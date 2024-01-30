@@ -6,6 +6,12 @@ import { LoginOutlined, CreditCardOutlined, NotificationOutlined, SearchOutlined
 
 const inter = Inter({ subsets: ["latin"] });
 
+interface serviceItem {
+  serviceName: string,
+  status: string,
+  Icon: React.ComponentType<any>
+}
+
 const serviceList = {
   "Geolocation" : ["green", EnvironmentOutlined],
   "Login": ["red", LoginOutlined],
@@ -15,13 +21,14 @@ const serviceList = {
 }
 
 // sorting functions be changed depending on the serviceList
-const sortedServiceArray = Object.entries(serviceList).map(([serviceName, [status, Icon]]) => ({
+const sortedServiceArray: serviceItem[] = Object.entries(serviceList).map(([serviceName, [status, Icon]]) => ({
   serviceName,
-  status,
-  Icon
+  status: status as string,
+  Icon: Icon as React.ComponentType<any>
 }));
+
+const order:{ [key: string]: number} = { red: 0, amber: 1, green: 2 };
 sortedServiceArray.sort((a, b) => {
-  const order = { red: 0, amber: 1, green: 2 };
   return order[a.status] - order[b.status];
 });
 
