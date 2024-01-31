@@ -3,6 +3,7 @@ import React from 'react';
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment} from 'react-icons/ai';
 import {Card, CardHeader, CardBody, CardFooter} from "@nextui-org/react";
 import {Avatar, AvatarGroup, AvatarIcon} from "@nextui-org/react";
+import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
 // import SearchBar from './components/searchBar'
 // import { Breadcrumb, Card, Avatar} from 'antd';
 
@@ -37,17 +38,16 @@ interface serviceItem {
 
 export default function Home() {
 
+  const [currentPage, setCurrentPage] = React.useState("services");
+
   return (
     <main>
       <div className="h-screen p-14">
-        {/* <Breadcrumb
-          className="text-xl mb-10"
-          items={[
-            {
-              title: "Services",
-            },
-          ]}
-        /> */}
+        <Breadcrumbs size="lg" underline="hover" onAction={(key) => setCurrentPage(String(key))} className="mb-10">
+          <BreadcrumbItem key="services" href="/servicesViews" isCurrent={currentPage === "services"}>
+            Services
+          </BreadcrumbItem>
+        </Breadcrumbs>
         {/* <SearchBar/> */}
         <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
           {sortedServiceArray.map(({ serviceName, status, Icon }) => (
@@ -55,7 +55,7 @@ export default function Home() {
               key={serviceName}
               className='py-2 px-4'
             >
-              <CardHeader className="flex items-start align-middle items-center">
+              <CardHeader className="flex justify-start align-middle">
                 {
                   status === "red" 
                   ? (<Avatar  
