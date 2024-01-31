@@ -4,6 +4,7 @@ import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineS
 import {Card, CardHeader, CardBody, CardFooter} from "@nextui-org/react";
 import {Avatar, AvatarGroup, AvatarIcon} from "@nextui-org/react";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
+import {Input} from "@nextui-org/react";
 // import SearchBar from './components/searchBar'
 // import { Breadcrumb, Card, Avatar} from 'antd';
 
@@ -42,13 +43,29 @@ export default function Home() {
 
   return (
     <main>
-      <div className="h-screen p-14">
-        <Breadcrumbs size="lg" underline="hover" onAction={(key) => setCurrentPage(String(key))} className="mb-10">
-          <BreadcrumbItem key="services" href="/servicesViews" isCurrent={currentPage === "services"}>
-            Services
-          </BreadcrumbItem>
-        </Breadcrumbs>
-        {/* <SearchBar/> */}
+      <div className="h-screen px-14 pt-6">
+        <div id='top-menu' className='mb-4'>
+          <div>
+            <Breadcrumbs size="lg" underline="hover" onAction={(key) => setCurrentPage(String(key))}>
+              <BreadcrumbItem key="services" href="/servicesViews" isCurrent={currentPage === "services"}>
+                Services
+              </BreadcrumbItem>
+            </Breadcrumbs>
+            <h1 className='text-4xl font-bold -mt-1'>Services</h1>
+          </div>
+          <div className="flex justify-end">
+            
+            <Input
+              type="text"
+              radius="sm"
+              placeholder="Search by name"
+              labelPlacement="outside"
+              startContent={
+                <AiOutlineSearch className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+              }
+            />
+          </div>
+        </div>
         <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
           {sortedServiceArray.map(({ serviceName, status, Icon }) => (
             <Card 
