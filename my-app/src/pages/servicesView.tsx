@@ -80,19 +80,62 @@ export default function ServiceView() {
 
   // initialize states
   const [mockServices, setMockServices] = useState<serviceItem[]>(sortedMockServices); // ! this is the original list, do not manipulate this directly
-  const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedMockServices);
-  const [searchQuery, setSearchQuery] = useState("");
-  
+  const [searchedServices, setSearchedServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
+  const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
+  const [renderedServices, setRenderedServices] = useState<serviceItem[]>(sortedMockServices); // * this is what is being rendered as cards
+  const [searchQuery, setSearchQuery] = useState<String>("");
+  const [filterSettings, setFilterSettings] = useState<Array<string>>(["red", "amber", "green"]);
+
   // handle search & filter
+  // Determine services that meet search criteria
   useEffect(() => {
     let result = [];
-    for (let service of sortedMockServices) {
+    for (let service of mockServices) {
       if(service.serviceName.toLowerCase().includes(searchQuery.toLowerCase())) {
         result.push(service);
       }
     }
-    setFilteredServices(result);
+    setSearchedServices(result);
   }, [searchQuery]);
+  
+  // Determine services that are included in filter
+  const handleFilterClick = (filter: string) => {
+    let result = [];
+    if (filterSettings.includes(filter)) {
+      result = filterSettings.filter((item) => item !== filter);
+    } else {
+      result = [...filterSettings, filter];
+    }
+    setFilterSettings(result);
+  }
+
+  useEffect(() => {
+    let result=[];
+    for (let service of mockServices) {
+      if(filterSettings.includes(service.status)) {
+        result.push(service);
+      }
+      setFilteredServices(result);
+    }
+  }, [filterSettings]);
+
+  // Determine final rendered services
+    useEffect(() => {
+      let result = [];
+      for (let service of searchedServices) {
+        if(filteredServices.includes(service)) {
+          result.push(service);
+        }
+      }
+      setRenderedServices(result);
+    }, [searchedServices, filteredServices]);
+
+    // Handle reset
+    const handleReset = () => {
+      setSearchQuery("");
+      setFilterSettings(["red", "amber", "green"]);
+      setSearchQuery("");
+    }
 
   return (
     <main>
@@ -105,64 +148,66 @@ export default function ServiceView() {
               </BreadcrumbItem>
             </Breadcrumbs> */}
             <h1 className='text-4xl font-bold -mt-1 py-8 text-indigo-d-500'>Services</h1>
-            <button className='rounded-lg h-10 px-3 my-8 bg-indigo-d-400 text-white'>New Service</button>
           </div>
-          {/* <button 
-              className="h-[2.5rem] px-[10px] rounded-[4px] text-[15px] appearance-none bg-transparent border-1 border-slate-500/20 leading-none text-text hover:text-lavender-500 hover:bg-lavender-100/70 focus:shadow focus:bg-lavender-100/70 focus:border-lavender-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-lavender-500 transition-all duration-200 ease-in-out"
-              id="filterBy"
-              aria-label="Filter Menu"
-            >
-              Red, Amber, Green
-          </button> */}
-          <div className="flex">
+          <div className='flex justify-center items-center w-full'>
             <div className="">
-              <Label.Root className="text-[15px] font-medium leading-[35px] text-text px-4" htmlFor="">
+              <Label.Root className="text-[15px] font-medium leading-[35px] text-text mr-2" htmlFor="">
                 Filter By
               </Label.Root>
-              <RagFilterMenu />
+              <RagFilterMenu filterSettings={filterSettings} handleFilterClick={handleFilterClick} />
             </div>
-            <div className="flex flex-wrap items-center gap-[15px] px-5">
+            <div className="flex flex-wrap items-center gap-[15px] ml-2 mr-2.5">
               <input
                 autoComplete="off"
                 className="inline-flex h-[2.5rem] w-[34rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:placeholder:text-lavender-500 hover:bg-lavender-100/70 focus:shadow focus:bg-lavender-100/70 focus:border-lavender-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-lavender-500 transition-all duration-200 ease-in-out"
                 type="text"
                 id="searchQuery"
                 placeholder="Search services by name..."
+                value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+            </div>
+            <div>
+              <button 
+                className="h-[2.5rem] px-4 bg-indigo-d-300 rounded-[4px] text-[#F2F3F4] border-1 border-indigo-d-300 shadow-md shadow-transparent hover:border-indigo-d-400 hover:bg-indigo-d-400 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                onClick={() => {handleReset()}}
+              >
+                Reset
+              </button>
             </div>
           </div>
         </div>
         <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
-          {filteredServices.map(({ serviceName, status, Icon }) => (
-            <Card 
-              key={serviceName}
-              className='py-2 px-4 cursor-pointer z-0 shadow-lg shadow-transparent bg-white hover:shadow-lg transition-all duration-200 ease-in-out'
-            >
-              <CardHeader className="flex justify-start align-middle text-text">
-                {
-                  status === "red" 
-                  ? (<Avatar  
-                      icon={<Icon size={24}/>} 
-                      style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
-                    />
-                  ): status === "amber"
-                  ? (<Avatar  
-                      icon={<Icon size={24}/>} 
-                      style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
-                    />
-                  ): status === "green"
-                  ?  (<Avatar  
-                      icon={<Icon size={24}/>} 
-                      style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
-                    />
-                  ): null
-                }
-                <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
-                <small className="text-default-500">12 Tracks</small> */}
-              </CardHeader> 
-            </Card>
+          {renderedServices.map(({ serviceName, status, Icon }, index) => (
+            <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
+              <Card 
+                className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
+              >
+                <CardHeader className="flex justify-start align-middle text-text">
+                  {
+                    status === "red" 
+                    ? (<Avatar  
+                        icon={<Icon size={24}/>} 
+                        style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
+                      />
+                    ): status === "amber"
+                    ? (<Avatar  
+                        icon={<Icon size={24}/>} 
+                        style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
+                      />
+                    ): status === "green"
+                    ?  (<Avatar  
+                        icon={<Icon size={24}/>} 
+                        style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
+                      />
+                    ): null
+                  }
+                  <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
+                  {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
+                  <small className="text-default-500">12 Tracks</small> */}
+                </CardHeader> 
+              </Card>
+            </div>
           ))}
         </div>
       </div>
