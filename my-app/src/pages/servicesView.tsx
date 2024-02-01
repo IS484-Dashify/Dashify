@@ -5,7 +5,7 @@ import {Card, CardHeader, CardBody, CardFooter} from "@nextui-org/react";
 import {Avatar, AvatarGroup, AvatarIcon} from "@nextui-org/react";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
 import {Input} from "@nextui-org/react";
-// import SearchBar from './components/searchBar'
+import DropdownCheckboxMenu from './components/filterMenu'
 // import { Breadcrumb, Card, Avatar} from 'antd';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -45,20 +45,58 @@ export default function Home() {
     <main>
       <div className="h-screen px-14 pt-6">
         <div id='top-menu' className='mb-4'>
-          <div>
-            <Breadcrumbs size="lg" underline="hover" onAction={(key) => setCurrentPage(String(key))}>
+          <div className="flex justify-between">
+            {/* <Breadcrumbs size="lg" underline="hover" onAction={(key) => setCurrentPage(String(key))}>
               <BreadcrumbItem key="services" href="/servicesViews" isCurrent={currentPage === "services"}>
                 Services
               </BreadcrumbItem>
-            </Breadcrumbs>
-            <h1 className='text-4xl font-bold -mt-1 text-indigo-d-500'>Services</h1>
+            </Breadcrumbs> */}
+            <h1 className='text-4xl font-bold -mt-1 py-8'>Services</h1>
+            <button className='rounded-lg h-10 px-3 my-8 bg-indigo-d-400 text-white'>New Service</button>
           </div>
           <div className="flex justify-between">
             <div>
-  
+              <DropdownCheckboxMenu/>
             </div>
-            <div className="w-2/5">
-              {/* <Input
+            <div className="w-2/5 pb-8">
+              <Input
+                classNames={{
+                  mainWrapper:[
+                    'group-focus:border-lavender-500',
+                  ],
+                  label:[
+                    'text-md',
+                    'group-hover:text-lavender-500',
+                    'group-focus:border-lavender-500'
+                  ],
+                  input: [
+                    "bg-transparent",
+                    "text-xl",
+                    "text-text",
+                    'group-focus:border-lavender-500'
+                  ],
+                  innerWrapper:[
+                    "bg-transparent",
+                    'group-focus:border-lavender-500'
+                  ],
+                  inputWrapper:[
+                    "border-2",
+                    "border-slate-500/20",
+                    "shadow-inner",
+                    "shadow-slate-500/20",
+                    "bg-p-white-200/50",
+                    "hover:bg-indigo-d-50",
+                    "group-hover:border-lavender-500",
+                    "focus:bg-indigo-d-50",
+                    "group-focus:bg-indigo-d-50",
+                    'group-focus:text-lavender-500',
+                    "!cursor-text",
+                    // "group-data-[focused=true]:bg-lavender-500",
+                    // "focus:ring",
+                    // "focus:ring-red-500",
+                    // "focus:outline-none",
+                  ]
+                }}
                 type="text"
                 variant="bordered"
                 radius="sm"
@@ -74,15 +112,15 @@ export default function Home() {
                 // startContent={
                 //   <AiOutlineSearch className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                 // }
-              /> */}
+              />
             </div>
           </div>
         </div>
-        <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
+        <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-10">
           {sortedServiceArray.map(({ serviceName, status, Icon }) => (
             <Card 
               key={serviceName}
-              className='py-2 px-4'
+              className='py-2 px-4 z-40'
             >
               <CardHeader className="flex justify-start align-middle text-text">
                 {
