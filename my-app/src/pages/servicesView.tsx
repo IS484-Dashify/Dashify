@@ -1,11 +1,13 @@
 import { Inter } from "next/font/google";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment} from 'react-icons/ai';
 import {Card, CardHeader, CardBody, CardFooter} from "@nextui-org/react";
 import {Avatar, AvatarGroup, AvatarIcon} from "@nextui-org/react";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
 import {Input} from "@nextui-org/react";
 import DropdownCheckboxMenu from './components/filterMenu'
+import * as Label from '@radix-ui/react-label';
+// import SearchBar from './components/searchBar'
 // import { Breadcrumb, Card, Avatar} from 'antd';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,30 +18,77 @@ interface serviceItem {
   Icon: React.ComponentType<any>
 }
 
-  const serviceList = {
-    "Geolocation" : ["green", AiOutlineEnvironment ],
-    "Login": ["red", AiOutlineLogin ],
-    "Payment": ["amber", AiOutlineCreditCard],
-    "Notification": ["green", AiOutlineNotification],
-    "Search": ["green", AiOutlineSearch],
-  }
+  // const serviceList = {
+  //   "Geolocation" : ["green", AiOutlineEnvironment ],
+  //   "Login": ["red", AiOutlineLogin ],
+  //   "Payment": ["amber", AiOutlineCreditCard],
+  //   "Notification": ["green", AiOutlineNotification],
+  //   "Search": ["green", AiOutlineSearch],
+  // }
 
-  // sorting functions be changed depending on the serviceList
-  const sortedServiceArray: serviceItem[] = Object.entries(serviceList).map(([serviceName, [status, Icon]]) => ({
-    serviceName,
-    status: status as string,
-    Icon: Icon as React.ComponentType<any>
-  }));
+  // // sorting functions be changed depending on the serviceList
+  // const sortedServiceArray: serviceItem[] = Object.entries(serviceList).map(([serviceName, [status, Icon]]) => ({
+  //   serviceName,
+  //   status: status as string,
+  //   Icon: Icon as React.ComponentType<any>
+  // }));
 
+  // const order:{ [key: string]: number} = { red: 0, amber: 1, green: 2 };
+  // sortedServiceArray.sort((a, b) => {
+  //   return order[a.status] - order[b.status];
+  // });
+
+// sorting functions be changed depending on the mockServices
+  const mockServices = [
+    {
+      serviceName: "Login",
+      status: "red",
+      Icon: AiOutlineLogin
+    },
+    {
+      serviceName: "Payment",
+      status: "amber",
+      Icon: AiOutlineCreditCard
+    },
+    {
+      serviceName: "Notification",
+      status: "green",
+      Icon: AiOutlineNotification
+    },
+    {
+      serviceName: "Search",
+      status: "green",
+      Icon: AiOutlineSearch
+    },
+    {
+      serviceName: "Geolocation",
+      status: "green",
+      Icon: AiOutlineEnvironment
+    },
+  
+  ];
   const order:{ [key: string]: number} = { red: 0, amber: 1, green: 2 };
-  sortedServiceArray.sort((a, b) => {
+  const sortedMockServices: serviceItem[]  = mockServices.sort((a, b) => {
     return order[a.status] - order[b.status];
-  });
+  })
 
-
-export default function Home() {
-
+export default function ServiceView() {
   const [currentPage, setCurrentPage] = React.useState("services");
+
+  // initialize states
+  const [mockServices, setMockServices] = useState<serviceItem[]>(sortedMockServices); // ! this is the original list, do not manipulate this directly
+  const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedMockServices);
+  const [searchQuery, setSearchQuery] = useState("");
+  // handle search & filter
+  useEffect(() => {
+    let result = [];
+    for (let service of sortedMockServices) {
+      if(service.serviceName.toLowerCase().includes(searchQuery.toLowerCase())) {
+        result.push(service);
+      }
+    }
+    setFilteredServices(result);
+  }, [searchQuery]);
 
   return (
     <main>
@@ -58,69 +107,25 @@ export default function Home() {
             <div>
               <DropdownCheckboxMenu/>
             </div>
-            <div className="w-2/5 pb-8">
-              <Input
-                classNames={{
-                  mainWrapper:[
-                    'group-focus:border-lavender-500',
-                  ],
-                  label:[
-                    'text-md',
-                    'group-hover:text-lavender-500',
-                    'group-focus:border-lavender-500'
-                  ],
-                  input: [
-                    "bg-transparent",
-                    "text-xl",
-                    "text-text",
-                    'group-focus:border-lavender-500'
-                  ],
-                  innerWrapper:[
-                    "bg-transparent",
-                    'group-focus:border-lavender-500'
-                  ],
-                  inputWrapper:[
-                    "border-2",
-                    "border-slate-500/20",
-                    "shadow-inner",
-                    "shadow-slate-500/20",
-                    "bg-p-white-200/50",
-                    "hover:bg-indigo-d-50",
-                    "group-hover:border-lavender-500",
-                    "focus:bg-indigo-d-50",
-                    "group-focus:bg-indigo-d-50",
-                    'group-focus:text-lavender-500',
-                    "!cursor-text",
-                    // "group-data-[focused=true]:bg-lavender-500",
-                    // "focus:ring",
-                    // "focus:ring-red-500",
-                    // "focus:outline-none",
-                  ]
-                }}
+            <div className="flex flex-wrap items-center gap-[15px] px-5">
+              {/* <Label.Root className="text-[15px] font-medium leading-[35px] text-text" htmlFor="searchQuery">
+                Search
+              </Label.Root> */}
+              <input
+                className="inline-flex h-[2.5rem] w-[34rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:placeholder:text-lavender-500 hover:bg-lavender-100/70 focus:shadow focus:bg-lavender-100/70 focus:border-lavender-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-lavender-500 transition-all duration-200 ease-in-out focus:transition-all focus:duration-100"
                 type="text"
-                variant="bordered"
-                radius="sm"
-                label="Search by name"
-                classNames={{
-                  mainWrapper:"",
-                  label: "text-md group-hover:text-lavender-500",
-                  input: "bg-transparent text-lg text-text",
-                  innerWrapper:"bg-transparent",
-                  inputWrapper:"border-2 border-slate-500/20 shadow-inner shadow-slate-500/20 bg-p-white-200/50 hover:bg-indigo-d-50 group-hover:border-lavender-500cursor-text group-data-[focused=true]:bg-red-500 dark:group-data-[focused=true]:bg-red-500",
-                }}
-                // placeholder="Search by name"
-                // startContent={
-                //   <AiOutlineSearch className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                // }
+                id="searchQuery"
+                placeholder="Search services by name..."
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
         </div>
-        <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-10">
-          {sortedServiceArray.map(({ serviceName, status, Icon }) => (
+        <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
+          {filteredServices.map(({ serviceName, status, Icon }) => (
             <Card 
               key={serviceName}
-              className='py-2 px-4 z-40'
+              className='py-2 px-4 cursor-pointer'
             >
               <CardHeader className="flex justify-start align-middle text-text">
                 {
