@@ -112,6 +112,7 @@ export default function ServiceView() {
                 Search
               </Label.Root> */}
               <input
+                autoComplete="off"
                 className="inline-flex h-[2.5rem] w-[34rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:placeholder:text-lavender-500 hover:bg-lavender-100/70 focus:shadow focus:bg-lavender-100/70 focus:border-lavender-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-lavender-500 transition-all duration-200 ease-in-out focus:transition-all focus:duration-100"
                 type="text"
                 id="searchQuery"
