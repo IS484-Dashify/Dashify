@@ -1,17 +1,12 @@
 import { Inter } from "next/font/google";
 import React, { useState, useEffect } from 'react';
-
-import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment} from 'react-icons/ai';
+import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome} from 'react-icons/ai';
 import RagFilterMenu from "./components/RagFilterMenu";
-
 import {Card, CardHeader, CardBody, CardFooter} from "@nextui-org/react";
 import {Avatar, AvatarGroup, AvatarIcon} from "@nextui-org/react";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
-import {Input} from "@nextui-org/react";
-import DropdownCheckboxMenu from './components/filterMenu'
 import * as Label from '@radix-ui/react-label';
-// import SearchBar from './components/searchBar'
-// import { Breadcrumb, Card, Avatar} from 'antd';
+import Link from 'next/link';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,59 +16,39 @@ interface serviceItem {
   Icon: React.ComponentType<any>
 }
 
-  // const serviceList = {
-  //   "Geolocation" : ["green", AiOutlineEnvironment ],
-  //   "Login": ["red", AiOutlineLogin ],
-  //   "Payment": ["amber", AiOutlineCreditCard],
-  //   "Notification": ["green", AiOutlineNotification],
-  //   "Search": ["green", AiOutlineSearch],
-  // }
-
-  // // sorting functions be changed depending on the serviceList
-  // const sortedServiceArray: serviceItem[] = Object.entries(serviceList).map(([serviceName, [status, Icon]]) => ({
-  //   serviceName,
-  //   status: status as string,
-  //   Icon: Icon as React.ComponentType<any>
-  // }));
-
-  // const order:{ [key: string]: number} = { red: 0, amber: 1, green: 2 };
-  // sortedServiceArray.sort((a, b) => {
-  //   return order[a.status] - order[b.status];
-  // });
-
 // sorting functions be changed depending on the mockServices
-  const mockServices = [
-    {
-      serviceName: "Login",
-      status: "red",
-      Icon: AiOutlineLogin
-    },
-    {
-      serviceName: "Payment",
-      status: "amber",
-      Icon: AiOutlineCreditCard
-    },
-    {
-      serviceName: "Notification",
-      status: "green",
-      Icon: AiOutlineNotification
-    },
-    {
-      serviceName: "Search",
-      status: "green",
-      Icon: AiOutlineSearch
-    },
-    {
-      serviceName: "Geolocation",
-      status: "green",
-      Icon: AiOutlineEnvironment
-    },
-  
-  ];
-  const order:{ [key: string]: number} = { red: 0, amber: 1, green: 2 };
-  const sortedMockServices: serviceItem[]  = mockServices.sort((a, b) => {
-    return order[a.status] - order[b.status];
-  })
+const mockServices = [
+  {
+    serviceName: "Login",
+    status: "red",
+    Icon: AiOutlineLogin
+  },
+  {
+    serviceName: "Payment",
+    status: "amber",
+    Icon: AiOutlineCreditCard
+  },
+  {
+    serviceName: "Notification",
+    status: "green",
+    Icon: AiOutlineNotification
+  },
+  {
+    serviceName: "Search",
+    status: "green",
+    Icon: AiOutlineSearch
+  },
+  {
+    serviceName: "Geolocation",
+    status: "green",
+    Icon: AiOutlineEnvironment
+  },
+
+];
+const order:{ [key: string]: number} = { red: 0, amber: 1, green: 2 };
+const sortedMockServices: serviceItem[]  = mockServices.sort((a, b) => {
+  return order[a.status] - order[b.status];
+})
 
 export default function ServiceView() {
   const [currentPage, setCurrentPage] = React.useState("services");
@@ -140,21 +115,27 @@ export default function ServiceView() {
   return (
     <main>
       <div className="h-screen px-14 pt-6">
-        <div id='top-menu' className='mb-4 z-50'>
-          <div className="flex justify-between">
-            {/* <Breadcrumbs size="lg" underline="hover" onAction={(key) => setCurrentPage(String(key))}>
-              <BreadcrumbItem key="services" href="/servicesViews" isCurrent={currentPage === "services"}>
-                Services
-              </BreadcrumbItem>
-            </Breadcrumbs> */}
-            <h1 className='text-4xl font-bold -mt-1 py-8 text-indigo-d-500'>Services</h1>
-          </div>
+        <div id='top-menu' className='mb-8 z-50'>
+          <Breadcrumbs 
+            size="lg" 
+            underline="hover" 
+            // classNames={{
+            //   list: "bg-stone-200",
+            // }}
+            // variant="solid" 
+            onAction={(key) => setCurrentPage(String(key))}
+          >
+            <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>} isCurrent={currentPage === "services"}>
+              Services
+            </BreadcrumbItem>
+          </Breadcrumbs>
+          <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>Services</h1>
           <div className='flex justify-center items-center w-full'>
             <div className="">
               <Label.Root className="text-[15px] font-medium leading-[35px] text-text mr-2" htmlFor="">
                 Filter By
               </Label.Root>
-              <RagFilterMenu filterSettings={filterSettings} handleFilterClick={handleFilterClick} />
+              <RagFilterMenu filterSettings={filterSettings} handleFilterClick={handleFilterClick}/>
             </div>
             <div className="flex flex-wrap items-center gap-[15px] ml-2 mr-2.5">
               <input
@@ -180,33 +161,35 @@ export default function ServiceView() {
         <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
           {renderedServices.map(({ serviceName, status, Icon }, index) => (
             <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
-              <Card 
-                className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
-              >
-                <CardHeader className="flex justify-start align-middle text-text">
-                  {
-                    status === "red" 
-                    ? (<Avatar  
-                        icon={<Icon size={24}/>} 
-                        style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
-                      />
-                    ): status === "amber"
-                    ? (<Avatar  
-                        icon={<Icon size={24}/>} 
-                        style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
-                      />
-                    ): status === "green"
-                    ?  (<Avatar  
-                        icon={<Icon size={24}/>} 
-                        style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
-                      />
-                    ): null
-                  }
-                  <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                  {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
-                  <small className="text-default-500">12 Tracks</small> */}
-                </CardHeader> 
-              </Card>
+              <Link href={`/worldView?service=${serviceName}`}>
+                <Card 
+                  className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
+                >
+                  <CardHeader className="flex justify-start align-middle text-text">
+                    {
+                      status === "red" 
+                      ? (<Avatar  
+                          icon={<Icon size={24}/>} 
+                          style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
+                        />
+                      ): status === "amber"
+                      ? (<Avatar  
+                          icon={<Icon size={24}/>} 
+                          style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
+                        />
+                      ): status === "green"
+                      ?  (<Avatar  
+                          icon={<Icon size={24}/>} 
+                          style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
+                        />
+                      ): null
+                    }
+                    <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
+                    {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
+                    <small className="text-default-500">12 Tracks</small> */}
+                  </CardHeader> 
+                </Card>
+              </Link>
             </div>
           ))}
         </div>
