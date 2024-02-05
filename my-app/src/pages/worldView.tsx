@@ -66,13 +66,13 @@ const tooltipContent = (countryName, iso, serviceNo, red, amber, green) => {
 
   if (countries.includes(iso) === true && hasFlag(iso) === true){
     return(
-      <div className="px-1 py-2 flex flex-row">
-        <div className="flex justify-center items-center px-3">
+      <div className="px-1 py-2">
+        <div className="flex justify-center items-center align-middle px-3">
+          <div className="text-md font-bold">{countryName} &nbsp;</div>
           <span className={"flag:" + iso} />
         </div>
         <div>
-          <div className="text-md font-bold mb-3">{countryName}</div>
-          <div className="text-sm">
+          <div className="text-sm mt-2">
             <span className="inline-flex items-center me-2"><AiOutlineBars className="me-1"/> {serviceNo}</span>
             <span className="inline-flex items-center me-2"><FaCircle className="text-reddish-200 me-1"/> {red} </span>
             <span className="inline-flex items-center me-2"><FaCircle className="text-amberish-200 me-1"/> {amber}</span>
