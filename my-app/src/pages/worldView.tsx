@@ -48,12 +48,12 @@ const mockServices = [
 ];
 
 const markers = [
-  { markerOffset: 15, name: "Singapore", iso: "SG", coordinates: [103.8198, 1.3521], status:"green", serviceNo: 3, red: 0, amber: 1, green: 3}, // 103.8198° E, 1.3521° N
-  { markerOffset: 15, name: "Australia", iso: "AU", coordinates: [133.281323, -26.4390917], status:"green", serviceNo: 3, red: 0, amber: 1, green: 3},
-  { markerOffset: 15, name: "China", iso: "CN", coordinates: [79.3871, 43.6426], status:"amber", serviceNo: 3, red: 0, amber: 1, green: 3 },
-  { markerOffset: 15, name: "France", iso: "FR", coordinates: [1.7191036, 46.2276], status:"amber", serviceNo: 3, red: 0, amber: 1, green: 3  },
-  { markerOffset: 15, name: "Hong Kong", iso: "HK", coordinates: [114.1694, 22.3193], status:"red", serviceNo: 3, red: 0, amber: 1, green: 3  },
-  { markerOffset: 15, name: "United States", iso: "US", coordinates: [-95.7129, 37.0902], status:"red", serviceNo: 3, red: 0, amber: 1, green: 3  }
+  { markerOffset: 15, name: "Singapore", iso: "SG", coordinates: [103.8198, 1.3521], status:"green", serviceNo: 3, red: 0, amber: 0, green: 3}, // 103.8198° E, 1.3521° N
+  { markerOffset: 15, name: "Australia", iso: "AU", coordinates: [133.281323, -26.4390917], status:"green", serviceNo: 3, red: 0, amber: 0, green: 3},
+  { markerOffset: 15, name: "China", iso: "CN", coordinates: [79.3871, 43.6426], status:"amber", serviceNo: 3, red: 0, amber: 1, green: 2 },
+  { markerOffset: 15, name: "France", iso: "FR", coordinates: [1.7191036, 46.2276], status:"amber", serviceNo: 3, red: 0, amber: 2, green: 0  },
+  { markerOffset: 15, name: "Hong Kong", iso: "HK", coordinates: [114.1694, 22.3193], status:"red", serviceNo: 3, red: 1, amber: 1, green: 1  },
+  { markerOffset: 15, name: "United States", iso: "US", coordinates: [-95.7129, 37.0902], status:"red", serviceNo: 4, red: 2, amber: 2, green: 0  }
 ];
 
 const getIconForService = (serviceName) => {
@@ -66,18 +66,13 @@ const tooltipContent = (countryName, iso, serviceNo, red, amber, green) => {
 
   if (countries.includes(iso) === true && hasFlag(iso) === true){
     return(
-      <div className="px-1 py-2 flex flex-row">
-        <div className="flex justify-center items-center px-3">
-          <span className={"flag:" + iso} />
-        </div>
-        <div>
-          <div className="text-md font-bold mb-3">{countryName}</div>
-          <div className="text-sm">
-            <span className="inline-flex items-center me-2"><AiOutlineBars className="me-1"/> {serviceNo}</span>
-            <span className="inline-flex items-center me-2"><FaCircle className="text-reddish-200 me-1"/> {red} </span>
-            <span className="inline-flex items-center me-2"><FaCircle className="text-amberish-200 me-1"/> {amber}</span>
-            <span className="inline-flex items-center me-2"><FaCircle className="text-greenish-200 me-1"/> {green}</span>
-          </div>
+      <div className="px-1 py-2 ">
+        <span className={"flag:" + iso} /><div className="text-md font-bold mb-2 ml-2 inline-flex">{countryName}</div>
+        <div className="text-sm">
+          <span className="inline-flex items-center me-2"><AiOutlineBars className="me-1"/> {serviceNo}</span>
+          <span className="inline-flex items-center me-2"><FaCircle className="text-reddish-200 me-1"/> {red} </span>
+          <span className="inline-flex items-center me-2"><FaCircle className="text-amberish-200 me-1"/> {amber}</span>
+          <span className="inline-flex items-center me-2"><FaCircle className="text-greenish-200 me-1"/> {green}</span>
         </div>
       </div>
     )
