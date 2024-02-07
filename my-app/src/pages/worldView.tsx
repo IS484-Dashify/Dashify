@@ -104,8 +104,7 @@ export default function WorldView() {
               {service}
             </BreadcrumbItem>
           </Breadcrumbs>
-          {/* <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>{service}</h1> */}
-          <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pt-2'>Login</h1>
+          <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>{service}</h1>
         </div>
         <div data-tip="" className="flex justify-center">
           <ComposableMap className="w-7/12">
