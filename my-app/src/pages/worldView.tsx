@@ -1,5 +1,7 @@
 import { Inter } from "next/font/google";
 import React, { useState, useEffect } from 'react';
+import { useSession, signIn, signOut } from "next-auth/react";
+
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome, AiOutlineBars} from 'react-icons/ai';
 import { FaCircle } from "react-icons/fa"
 import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
@@ -80,66 +82,80 @@ const tooltipContent = (countryName, iso, serviceNo, red, amber, green) => {
 }
 
 export default function WorldView() {
+  const { data: session } = useSession();
+  useEffect(() => {
+    console.log("Session:", session);
+  }, [session]);
+  
   const [currentPage, setCurrentPage] = React.useState("world");
   const router = useRouter();
   const { service } = router.query;
-
-  return (
-    <main>
-      <div className="h-screen min-h-full px-14 pt-6">
-        <div id='top-menu'>
-          <Breadcrumbs 
-            size="lg" 
-            underline="hover" 
-            // classNames={{
-            //   list: "bg-stone-200",
-            // }}
-            // variant="solid" 
-            onAction={(key) => setCurrentPage(String(key))}
-          >
-            <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>}>
-              Services
-            </BreadcrumbItem>
-            <BreadcrumbItem key="world" href="/worldView" startContent={getIconForService(service)} isCurrent={currentPage === "world"}>
-              {service}
-            </BreadcrumbItem>
-          </Breadcrumbs>
-          <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>{service}</h1>
+  
+  if(session){
+    return (
+      <main>
+        <div className="h-screen min-h-full px-14 pt-6">
+          <div id='top-menu'>
+            <Breadcrumbs 
+              size="lg" 
+              underline="hover" 
+              // classNames={{
+              //   list: "bg-stone-200",
+              // }}
+              // variant="solid" 
+              onAction={(key) => setCurrentPage(String(key))}
+            >
+              <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>}>
+                Services
+              </BreadcrumbItem>
+              <BreadcrumbItem key="world" href="/worldView" startContent={getIconForService(service)} isCurrent={currentPage === "world"}>
+                {service}
+              </BreadcrumbItem>
+            </Breadcrumbs>
+            <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>{service}</h1>
+          </div>
+          <div data-tip="" className="flex justify-center">
+            <ComposableMap className="w-7/12">
+              <Geographies geography={Map} fill="#e2dbf7" stroke="#a793e8">
+                {({ geographies }) =>
+                  geographies.map((geo) => (
+                    <Geography 
+                      key={geo.rsmKey} 
+                      geography={geo} 
+                    />
+                  ))
+                }
+              </Geographies>
+              {markers.map(({ name, iso, coordinates, markerOffset, status, serviceNo, red, amber, green }) => (
+                <Marker key={iso} coordinates={coordinates}>
+                   {
+                      status === "red" 
+                      ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, serviceNo, red, amber, green )}>
+                          <circle r={10} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={2} />
+                        </Tooltip>
+                      ): status === "amber"
+                      ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, serviceNo, red, amber, green )}>
+                          <circle r={10} fill="#ffc17a" stroke="#ff7e00" strokeWidth={2} />
+                        </Tooltip>
+                      ): status === "green"
+                      ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, serviceNo, red, amber, green )}>
+                          <circle r={10} fill="#acdf87" stroke="#4c9a2a" strokeWidth={2} />
+                        </Tooltip>
+                      ): null
+                    }
+                </Marker>
+              ))}
+            </ComposableMap>
+          </div>
         </div>
-        <div data-tip="" className="flex justify-center">
-          <ComposableMap className="w-7/12">
-            <Geographies geography={Map} fill="#e2dbf7" stroke="#a793e8">
-              {({ geographies }) =>
-                geographies.map((geo) => (
-                  <Geography 
-                    key={geo.rsmKey} 
-                    geography={geo} 
-                  />
-                ))
-              }
-            </Geographies>
-            {markers.map(({ name, iso, coordinates, markerOffset, status, serviceNo, red, amber, green }) => (
-              <Marker key={iso} coordinates={coordinates}>
-                 {
-                    status === "red" 
-                    ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, serviceNo, red, amber, green )}>
-                        <circle r={10} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={2} />
-                      </Tooltip>
-                    ): status === "amber"
-                    ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, serviceNo, red, amber, green )}>
-                        <circle r={10} fill="#ffc17a" stroke="#ff7e00" strokeWidth={2} />
-                      </Tooltip>
-                    ): status === "green"
-                    ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, serviceNo, red, amber, green )}>
-                        <circle r={10} fill="#acdf87" stroke="#4c9a2a" strokeWidth={2} />
-                      </Tooltip>
-                    ): null
-                  }
-              </Marker>
-            ))}
-          </ComposableMap>
-        </div>
-      </div>
-    </main>
-  );
+      </main>
+    );   
+  } else {
+    return (
+      <>
+        Not signed in <br />
+        <button onClick={() => signIn()}>Sign in</button>
+      </>
+    )
+  }
 }

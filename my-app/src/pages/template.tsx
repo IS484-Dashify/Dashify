@@ -13,19 +13,12 @@ export default function Home() {
   }, [session]);
 
   const router = useRouter();
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    router.push("/servicesView");
-  }
   if(session){
     return(
       <main
         className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
       >
-        <button onClick={handleClick}>
-          ServicesView
-        </button>
-        <button onClick={() => signOut()}>Sign out</button>
+        Template Page, you are logged in
       </main>)
   } else {
     return(
