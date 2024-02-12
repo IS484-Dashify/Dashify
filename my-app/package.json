@@ -20,6 +20,7 @@
     "@radix-ui/react-toggle": "^1.0.3",
     "country-flag-icons": "^1.5.9",
     "framer-motion": "^11.0.3",
+    "mysql2": "^3.9.1",
     "next": "14.1.0",
     "next-auth": "^4.24.5",
     "react": "^18",
