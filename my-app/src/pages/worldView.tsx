@@ -253,8 +253,6 @@ const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
   );
 };
 
-
-
 export default function WorldView() {
   const [currentPage, setCurrentPage] = React.useState("world");
   const router = useRouter();
@@ -270,7 +268,7 @@ export default function WorldView() {
   return (
     <main>
       <div className="h-screen min-h-full px-14 pt-6 h-dvh">
-        <div id='top-menu'>
+        <div id='top-menu' className="">
           <Breadcrumbs 
             size="lg" 
             underline="hover" 
@@ -283,43 +281,47 @@ export default function WorldView() {
               {service}
             </BreadcrumbItem>
           </Breadcrumbs>
-          <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>{service}</h1>
+          <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pt-2'>{service}</h1>
         </div>
-        <div className="flex justify-center">
-          <ComposableMap className="">
-            <Geographies geography={Map} fill="#e2dbf7" stroke="#a793e8">
-              {({ geographies }) =>
-                geographies.map((geo) => (
-                  <Geography 
-                    key={geo.rsmKey} 
-                    geography={geo} 
-                  />
+        <div>
+          <div className="flex">
+            <ComposableMap className="">
+              <Geographies geography={Map} fill="#e2dbf7" stroke="#a793e8">
+                {({ geographies }) =>
+                  geographies.map((geo) => (
+                    <Geography 
+                      key={geo.rsmKey} 
+                      geography={geo} 
+                    />
+                  ))
+                }
+              </Geographies>
+              {mockServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
+                <Marker key={iso} coordinates={coordinates}  onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
+                  {
+                      status === "red" 
+                      ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                          <circle r={10} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                        </Tooltip>
+                      ): status === "amber"
+                      ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                          <circle r={10} fill="#ffc17a" stroke="#ff7e00" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                        </Tooltip>
+                      ): status === "green"
+                      ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                          <circle r={10} fill="#acdf87" stroke="#4c9a2a" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                        </Tooltip>
+                      ): null
+                    }
+                </Marker>
                 ))
-              }
-            </Geographies>
-            {mockServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
-              <Marker key={iso} coordinates={coordinates}  onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
-                 {
-                    status === "red" 
-                    ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                        <circle r={10} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                      </Tooltip>
-                    ): status === "amber"
-                    ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                        <circle r={10} fill="#ffc17a" stroke="#ff7e00" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                      </Tooltip>
-                    ): status === "green"
-                    ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                        <circle r={10} fill="#acdf87" stroke="#4c9a2a" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                      </Tooltip>
-                    ): null
-                  }
-              </Marker>
-              ))
-            )}
-          </ComposableMap>
+              )}
+            </ComposableMap>
+            <div className={isPopupOpen ? "w-2/5" : "hidden"}>
+              <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} />
+            </div>
+          </div>
         </div>
-        <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} />
       </div>
     </main>
   );
