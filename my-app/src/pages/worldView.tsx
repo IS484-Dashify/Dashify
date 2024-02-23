@@ -316,12 +316,21 @@ export default function WorldView() {
                 style={{ width: "100%", height: "auto"}}
               >
                 {/* <ZoomableGroup zoom={1}> */}
-                  <Geographies geography={Map} fill="#e2dbf7" stroke="#a793e8">
+                  <Geographies 
+                    geography={Map} 
+                    fill="#e2dbf7" 
+                    stroke="#a793e8"
+                  >
                     {({ geographies }) =>
                       geographies.map((geo) => (
                         <Geography 
                           key={geo.rsmKey} 
-                          geography={geo} 
+                          geography={geo}
+                          style={{
+                            default : {
+                              pointerEvents: "none"
+                            }
+                          }}
                         />
                       ))
                     }
@@ -331,15 +340,15 @@ export default function WorldView() {
                       {
                           status === "red" 
                           ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={10} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={5} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): status === "amber"
                           ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={10} fill="#ffc17a" stroke="#ff7e00" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={5} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): status === "green"
                           ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={10} fill="#acdf87" stroke="#4c9a2a" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={5} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): null
                         }
