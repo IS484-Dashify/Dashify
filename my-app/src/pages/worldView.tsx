@@ -285,11 +285,11 @@ export default function WorldView() {
         </div>
         <div>
           <div className="flex">
-            <div className="w-full mx-auto border-2 border-black">
+            <div className="w-full mx-auto">
               <ComposableMap
-                projectionConfig={{ scale: 100 }}
+                projectionConfig={{ scale: 130 }}
                 width={1000}
-                height={isPopupOpen ? 500 : 400}
+                height={isPopupOpen ? 480 : 370}
                 style={{ width: "100%", height: "auto"}}
               >
                 {/* <ZoomableGroup zoom={1}> */}
@@ -326,7 +326,7 @@ export default function WorldView() {
                 {/* </ZoomableGroup> */}
               </ComposableMap>
             </div>
-            <div className={isPopupOpen ? "w-2/5" : "hidden"}>
+            <div className={isPopupOpen ? "w-2/6" : "hidden"}>
               <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} />
             </div>
           </div>
