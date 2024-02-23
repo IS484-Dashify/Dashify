@@ -30,9 +30,9 @@ const mockServices = [
         name: "Singapore", 
         iso: "SG", 
         coordinates: [103.8198, 1.3521], 
-        status:"green", 
+        status:"red", 
         vm: {
-          "VM1": "green",
+          "VM1": "red",
           "VM2": "green",
           "VM3": "green"
         }
@@ -111,8 +111,8 @@ const mockServices = [
 
 const vmList = {
   "VM1" : {
-    "component1": "green",
-    "component2": "green",
+    "component1": "amber",
+    "component2": "red",
     "component3": "green"
   },
   "VM2" : {
@@ -146,6 +146,29 @@ const vmList = {
     "component10": "red",
   }
 }
+
+const order = { red: 0, amber: 1, green: 2 };
+const sortRAG = (items) => {
+  return Object.fromEntries(
+    Object.entries(items).sort((a, b) => order[a[1]] - order[b[1]])
+  );
+};
+
+const sortedServices = mockServices.map(service => {
+  if (service.countries) {
+    const sortedCountries = service.countries.map(country => ({
+      ...country,
+      vm: sortRAG(country.vm),
+    })).sort((a, b) => order[a.status] - order[b.status]);
+    return { ...service, countries: sortedCountries };
+  }
+  return service;
+}).sort((a, b) => order[a.status] - order[b.status]);
+
+const sortedVMList = Object.fromEntries(
+  Object.entries(vmList).map(([vmKey, components]) => [vmKey, sortRAG(components)])
+);
+
 
 const getIconForService = (serviceName) => {
   const service = mockServices.find((s) => s.serviceName === serviceName);
@@ -207,7 +230,7 @@ const ToggleableList = ({ items, vmName, status }) => {
                 <FaCircle className={statusColors[item.status]} />
               </div>
               {(item.status === 'red' || item.status === 'amber') && (
-                <div className=" flex justify-between text-xs italic mt-1">
+                <div className=" flex justify-between text-xs italic mb-2">
                   <span>CPU down</span>
                   <span >3 hours ago</span> 
                 </div>
@@ -226,11 +249,11 @@ const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
   if (!isOpen) return null;
 
   const vmsToShow = Object.keys(selectedMarker.vm)
-    .filter(machine => Object.keys(vmList).includes(machine))
+    .filter(machine => Object.keys(sortedVMList).includes(machine))
     .map(machine => ({
       name: machine,
       status: selectedMarker.vm[machine],
-      components: Object.entries(vmList[machine]).map(([componentName, status]) => ({
+      components: Object.entries(sortedVMList[machine]).map(([componentName, status]) => ({
         componentName,
         status
       }))
@@ -303,7 +326,7 @@ export default function WorldView() {
                       ))
                     }
                   </Geographies>
-                  {mockServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
+                  {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
                     <Marker key={iso} coordinates={coordinates} className="cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
                       {
                           status === "red" 
