@@ -71,7 +71,7 @@ export default function ServiceView() {
       }
     }
     setSearchedServices(result);
-  }, [searchQuery]);
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Determine services that are included in filter
   const handleFilterClick = (filter: string) => {
@@ -92,7 +92,7 @@ export default function ServiceView() {
       }
       setFilteredServices(result);
     }
-  }, [filterSettings]);
+  }, [filterSettings]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Determine final rendered services
     useEffect(() => {
@@ -195,7 +195,7 @@ export default function ServiceView() {
           ))}
         </div>
         ): (
-          <div className="text-center w-full">
+          <div className="text-center w-full text-text/60 italic">
             <p>No services found.</p>
           </div>
         )}

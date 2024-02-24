@@ -4,7 +4,7 @@ import * as Checkbox from '@radix-ui/react-checkbox';
 import { AiOutlineClose } from "react-icons/ai";
 import { CheckIcon } from '@radix-ui/react-icons';
 
-const ragFilterMenu: React.FC<{ filterSettings: Array<string>, handleFilterClick: (filter: string) => void }> = ({ filterSettings, handleFilterClick }) => {
+const RagFilterMenu: React.FC<{ filterSettings: Array<string>, handleFilterClick: (filter: string) => void }> = ({ filterSettings, handleFilterClick }) => {
     const options = [{option: "red"}, {option: "amber"}, {option: "green"}];
     const [filterText, setFilterText] = useState<string>("Red, Amber, Green");
     useEffect(() => {
@@ -69,4 +69,4 @@ const ragFilterMenu: React.FC<{ filterSettings: Array<string>, handleFilterClick
     )
 };
 
-export default ragFilterMenu;
+export default RagFilterMenu;

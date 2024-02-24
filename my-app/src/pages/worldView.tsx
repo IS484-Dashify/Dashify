@@ -6,7 +6,7 @@ import { IoArrowBackCircleOutline } from "react-icons/io5";
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
 import { useRouter } from 'next/router';
-import { ComposableMap, Geographies, Geography, Marker, Annotation, ZoomableGroup } from "react-simple-maps"
+import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps"
 import Map from "../../public/map.json"
 import { hasFlag, countries } from 'country-flag-icons'
 import "country-flag-icons/3x2/flags.css";
@@ -14,13 +14,34 @@ import "country-flag-icons/3x2/flags.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-interface serviceItem {
-  serviceName: string,
-  status: string,
-  Icon: React.ComponentType<any>
+// Update the Country interface to reflect the correct type of the vm property
+type Status = "red" | "green" | "amber";
+interface Service {
+  serviceName: string;
+  status: Status;
+  Icon: React.ComponentType<any>; // Adjust the type as needed
+  countries: Country[]; // Specify that countries is an array of Country objects
+}
+interface Country {
+  name: string;
+  iso: string;
+  coordinates: number[];
+  status: Status; // Use the Status type here
+  vm: { [key: string]: Status };
+}
+interface Marker {
+  name: string;
+  iso: string;
+  coordinates: number[];
+  status: Status;
+  vm: { [key: string]: Status };
 }
 
-const mockServices = [
+interface VM {
+  [key: string]: Status;
+}
+
+const mockServices: Service[] = [
   {
     serviceName: "Login",
     status: "red",
@@ -86,27 +107,7 @@ const mockServices = [
         }
       }
     ]
-  },
-  {
-    serviceName: "Payment",
-    status: "amber",
-    Icon: AiOutlineCreditCard
-  },
-  {
-    serviceName: "Notification",
-    status: "green",
-    Icon: AiOutlineNotification
-  },
-  {
-    serviceName: "Search",
-    status: "green",
-    Icon: AiOutlineSearch
-  },
-  {
-    serviceName: "Geolocation",
-    status: "green",
-    Icon: AiOutlineEnvironment
-  },
+  }
 ];
 
 const vmList = {
@@ -147,8 +148,10 @@ const vmList = {
   }
 }
 
-const order = { red: 0, amber: 1, green: 2 };
-const sortRAG = (items) => {
+// Define the order object with keys of type Status
+const order: Record<Status, number> = { red: 0, amber: 1, green: 2 }
+
+const sortRAG = (items : Record<string, Status>) => {
   return Object.fromEntries(
     Object.entries(items).sort((a, b) => order[a[1]] - order[b[1]])
   );
@@ -156,27 +159,29 @@ const sortRAG = (items) => {
 
 const sortedServices = mockServices.map(service => {
   if (service.countries) {
-    const sortedCountries = service.countries.map(country => ({
-      ...country,
+    const sortedCountries = service.countries.map((country : Country) => ({
+      name: country.name,
+      iso: country.iso,
+      coordinates: country.coordinates,
+      status: country.status,
       vm: sortRAG(country.vm),
-    })).sort((a, b) => order[a.status] - order[b.status]);
+    })).sort((a: Country, b: Country) => order[a.status] - order[b.status]);
     return { ...service, countries: sortedCountries };
   }
   return service;
 }).sort((a, b) => order[a.status] - order[b.status]);
 
 const sortedVMList = Object.fromEntries(
-  Object.entries(vmList).map(([vmKey, components]) => [vmKey, sortRAG(components)])
+  Object.entries(vmList).map(([vmKey, components]) => [vmKey, sortRAG(components as Record<string, Status>)])
 );
 
-
-const getIconForService = (serviceName) => {
+const getIconForService = (serviceName : string) => {
   const service = mockServices.find((s) => s.serviceName === serviceName);
   const icon = service? service.Icon : null;
   return icon ? React.createElement(icon) : '';
 };
 
-const tooltipContent = (countryName, iso, vm) => {
+const tooltipContent = (countryName: string, iso: string, vm: { [key: string]: Status }) => {
   const status_counts = {"green": 0, "red": 0, "amber": 0};
   if (countries.includes(iso) && hasFlag(iso)) {
     Object.values(vm).forEach(machineStatus => {
@@ -209,7 +214,7 @@ const statusColors = {
   red: "text-reddish-200 me-1"
 };
 
-const ToggleableList = ({ items, vmName, status }) => {
+const ToggleableList = ({ items, vmName, status } : {items : {componentName: string; status: Status;}[], vmName : string, status : Status}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -224,7 +229,7 @@ const ToggleableList = ({ items, vmName, status }) => {
       {(
         <div className="mt-3">
           {items.map((item, index) => (
-            <div className={`pb-1 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-12" : "h-0"}`}>
+            <div key={index} className={`pb-1 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-12" : "h-0"}`}>
               <div key={index} className="flex items-center justify-between">
                 <span>{item.componentName}</span>
                 <FaCircle className={statusColors[item.status]} />
@@ -243,10 +248,24 @@ const ToggleableList = ({ items, vmName, status }) => {
   );
 };
 
-const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
-  if (!isOpen) return null;
-  const popupRef = useRef();
 
+// Assuming selectedMarker.vm is structured correctly and contains the VM identifiers you're interested in
+const RightPopup = ({isOpen, setIsOpen, selectedMarker} :  {isOpen : boolean, setIsOpen:(value: boolean) => void, selectedMarker : Marker | null}) => {
+  const popupRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleClickOutside(event: any) {
+      const isMarkerClick = event.target.closest('.map-marker');
+      if (popupRef.current && !popupRef.current.contains(event.target) && !isMarkerClick) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [popupRef, setIsOpen]);
+  if (!isOpen || selectedMarker === null) return null;
+  
   const vmsToShow = Object.keys(selectedMarker.vm)
     .filter(machine => Object.keys(sortedVMList).includes(machine))
     .map(machine => ({
@@ -258,18 +277,6 @@ const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
       }))
     }));
 
-    useEffect(() => {
-      function handleClickOutside(event) {
-        const isMarkerClick = event.target.closest('.map-marker');
-        if (popupRef.current && !popupRef.current.contains(event.target) && !isMarkerClick) {
-          setIsOpen(false);
-        }
-      }
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, [popupRef, setIsOpen]);
 
   return (
     <div ref={popupRef} className="fixed right-0 top-0 w-72 p-6 h-full bg-gray-100 shadow-lg z-50">
@@ -293,9 +300,9 @@ export default function WorldView() {
   const router = useRouter();
   const { service } = router.query;
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedMarker, setSelectedMarker] = useState(null);  
+  const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);  
 
-  const handleMarkerClick = (marker) => {
+  const handleMarkerClick = (marker : Marker) => {
     setSelectedMarker(marker);
     setIsPopupOpen(true);
   };
@@ -312,7 +319,7 @@ export default function WorldView() {
             <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>}>
               Services
             </BreadcrumbItem>
-            <BreadcrumbItem key="world" href="/worldView" startContent={getIconForService(service)} isCurrent={currentPage === "world"}>
+            <BreadcrumbItem key="world" href="/worldView" startContent={getIconForService(service as string)} isCurrent={currentPage === "world"}>
               {service}
             </BreadcrumbItem>
           </Breadcrumbs>
@@ -351,7 +358,7 @@ export default function WorldView() {
                   }
                 </Geographies>
                 {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
-                  <Marker key={iso} coordinates={coordinates} className=" map-marker cursor-pointer" onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
+                  <Marker key={iso} coordinates={[coordinates[0], coordinates[1]]} className="map-marker cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
                     {
                         status === "red" 
                         ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
