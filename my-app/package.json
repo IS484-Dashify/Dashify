@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@nextui-org/react": "^2.2.9",
-    "country-flag-icons": "^1.5.9",
     "@nextui-org/system": "^2.0.15",
     "@nextui-org/theme": "^2.1.17",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -19,6 +18,7 @@
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-toggle": "^1.0.3",
+    "country-flag-icons": "^1.5.9",
     "framer-motion": "^11.0.3",
     "next": "14.1.0",
     "react": "^18",

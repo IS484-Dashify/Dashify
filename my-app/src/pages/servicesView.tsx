@@ -158,6 +158,7 @@ export default function ServiceView() {
             </div>
           </div>
         </div>
+        {renderedServices.length > 0 ? (
         <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
           {renderedServices.map(({ serviceName, status, Icon }, index) => (
             <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
@@ -193,6 +194,11 @@ export default function ServiceView() {
             </div>
           ))}
         </div>
+        ): (
+          <div className="text-center w-full">
+            <p>No services found.</p>
+          </div>
+        )}
       </div>
     </main>
   );
