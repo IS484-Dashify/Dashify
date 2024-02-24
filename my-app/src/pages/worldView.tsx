@@ -243,8 +243,6 @@ const ToggleableList = ({ items, vmName, status }) => {
   );
 };
 
-
-// Assuming selectedMarker.vm is structured correctly and contains the VM identifiers you're interested in
 const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
   if (!isOpen) return null;
   const popupRef = useRef();
@@ -274,7 +272,7 @@ const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
     }, [popupRef, setIsOpen]);
 
   return (
-    <div ref={popupRef} className={`fixed right-0 top-0 w-72 p-6 h-full bg-gray-100 shadow-lg z-50`}>
+    <div ref={popupRef} className="fixed right-0 top-0 w-72 p-6 h-full bg-gray-100 shadow-lg z-50">
       <div className="flex flex-row items-center mb-6">
         <button onClick={() => setIsOpen(false)}>
           <IoArrowBackCircleOutline size="25px"/>
@@ -353,7 +351,7 @@ export default function WorldView() {
                   }
                 </Geographies>
                 {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
-                  <Marker key={iso} coordinates={coordinates} className="cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
+                  <Marker key={iso} coordinates={coordinates} className=" map-marker cursor-pointer" onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
                     {
                         status === "red" 
                         ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
