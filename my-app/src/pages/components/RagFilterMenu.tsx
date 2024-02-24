@@ -15,6 +15,14 @@ const RagFilterMenu: React.FC<{ filterSettings: Array<string>, handleFilterClick
         }
         setFilterText(result.join(", "));
     }, [filterSettings]);
+
+    // ! This is required in order to build the project
+    // According to next.js(https://nextjs.org/docs/messages/prerender-error), there is a need to Check for any code that assumes a prop is available, even when it might not be and handle it
+    // Read more here (https://www.google.com/search?q=nextjs+Prerender+Error&rlz=1C1UEAD_enSG1089SG1089&oq=nextjs+Prerender+Error&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQRRhAMgkIAhAAGAoYgAQyBwgDEAAYgAQyCQgEEAAYChiABDIGCAUQRRg8MgYIBhBFGDwyBggHEEUYPNIBBzc0M2owajeoAgCwAgA&sourceid=chrome&ie=UTF-8)
+    if(!filterSettings){
+        return <div>Error Code 404</div>
+    }
+
     return (
         <Popover.Root>
             <Popover.Trigger asChild>

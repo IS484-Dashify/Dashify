@@ -58,7 +58,7 @@ export default function ServiceView() {
   const [searchedServices, setSearchedServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
   const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
   const [renderedServices, setRenderedServices] = useState<serviceItem[]>(sortedMockServices); // * this is what is being rendered as cards
-  const [searchQuery, setSearchQuery] = useState<String>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterSettings, setFilterSettings] = useState<Array<string>>(["red", "amber", "green"]);
 
   // handle search & filter
