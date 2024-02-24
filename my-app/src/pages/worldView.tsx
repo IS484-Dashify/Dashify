@@ -1,5 +1,5 @@
 import { Inter } from "next/font/google";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome, AiOutlineBars } from 'react-icons/ai';
 import { FaCircle } from "react-icons/fa";
 import { IoArrowBackCircleOutline } from "react-icons/io5";
@@ -247,6 +247,7 @@ const ToggleableList = ({ items, vmName, status }) => {
 // Assuming selectedMarker.vm is structured correctly and contains the VM identifiers you're interested in
 const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
   if (!isOpen) return null;
+  const popupRef = useRef();
 
   const vmsToShow = Object.keys(selectedMarker.vm)
     .filter(machine => Object.keys(sortedVMList).includes(machine))
@@ -259,8 +260,21 @@ const RightPopup = ({ isOpen, setIsOpen, selectedMarker }) => {
       }))
     }));
 
+    useEffect(() => {
+      function handleClickOutside(event) {
+        const isMarkerClick = event.target.closest('.map-marker');
+        if (popupRef.current && !popupRef.current.contains(event.target) && !isMarkerClick) {
+          setIsOpen(false);
+        }
+      }
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [popupRef, setIsOpen]);
+
   return (
-    <div className={`fixed right-0 top-0 w-72 p-6 h-full bg-gray-100 shadow-lg z-50`}>
+    <div ref={popupRef} className={`fixed right-0 top-0 w-72 p-6 h-full bg-gray-100 shadow-lg z-50`}>
       <div className="flex flex-row items-center mb-6">
         <button onClick={() => setIsOpen(false)}>
           <IoArrowBackCircleOutline size="25px"/>
@@ -327,19 +341,19 @@ export default function WorldView() {
                     }
                   </Geographies>
                   {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
-                    <Marker key={iso} coordinates={coordinates} className="cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
+                    <Marker key={iso} coordinates={coordinates} className="map-marker cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
                       {
                           status === "red" 
                           ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={10} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={8} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): status === "amber"
                           ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={10} fill="#ffc17a" stroke="#ff7e00" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={8} fill="#ffc17a" stroke="#ff7e00" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): status === "green"
                           ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={10} fill="#acdf87" stroke="#4c9a2a" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={8} fill="#acdf87" stroke="#4c9a2a" strokeWidth={2} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): null
                         }
