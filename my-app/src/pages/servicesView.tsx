@@ -119,10 +119,6 @@ export default function ServiceView() {
           <Breadcrumbs 
             size="lg" 
             underline="hover" 
-            // classNames={{
-            //   list: "bg-stone-200",
-            // }}
-            // variant="solid" 
             onAction={(key) => setCurrentPage(String(key))}
           >
             <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>} isCurrent={currentPage === "services"}>
@@ -186,8 +182,6 @@ export default function ServiceView() {
                       ): null
                     }
                     <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                    {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
-                    <small className="text-default-500">12 Tracks</small> */}
                   </CardHeader> 
                 </Card>
               </Link>

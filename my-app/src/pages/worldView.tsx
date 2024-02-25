@@ -328,56 +328,52 @@ export default function WorldView() {
         <div className="flex h-full">
           <div 
             className={`transition-all duration-150 ease-in-out w-full mx-auto my-auto -translate-y-10 ${isPopupOpen ? 'scale-125 -translate-x-7' : 'scale-100 -translate-x-10'}`}
-            // className={`flex justify-center -translate-x-4 ${isPopupOpen ? 'w-5/6' : 'w-full mx-auto'}`}
           >
             <ComposableMap
               projectionConfig={{ scale: 130 }}
               width={800}
               height = {370}
-              // height={isPopupOpen ? 480 : 370}
               style={{ width: "100%", height: "auto"}}
             >
-              {/* <ZoomableGroup zoom={1}> */}
-                <Geographies 
-                  geography={Map} 
-                  fill="#e2dbf7" 
-                  stroke="#a793e8"
-                >
-                  {({ geographies }) =>
-                    geographies.map((geo) => (
-                      <Geography 
-                        key={geo.rsmKey} 
-                        geography={geo}
-                        style={{
-                          default : {
-                            pointerEvents: "none"
-                          }
-                        }}
-                      />
-                    ))
-                  }
-                </Geographies>
-                {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
-                  <Marker key={iso} coordinates={[coordinates[0], coordinates[1]]} className="map-marker cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
-                    {
-                        status === "red" 
-                        ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                            <circle r={5} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                          </Tooltip>
-                        ): status === "amber"
-                        ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                            <circle r={5} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                          </Tooltip>
-                        ): status === "green"
-                        ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                            <circle r={5} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                          </Tooltip>
-                        ): null
-                      }
-                  </Marker>
+              <Geographies 
+                geography={Map} 
+                fill="#e2dbf7" 
+                stroke="#a793e8"
+              >
+                {({ geographies }) =>
+                  geographies.map((geo) => (
+                    <Geography 
+                      key={geo.rsmKey} 
+                      geography={geo}
+                      style={{
+                        default : {
+                          pointerEvents: "none"
+                        }
+                      }}
+                    />
                   ))
-                )}
-              {/* </ZoomableGroup> */}
+                }
+              </Geographies>
+              {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
+                <Marker key={iso} coordinates={[coordinates[0], coordinates[1]]} className="map-marker cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
+                  {
+                      status === "red" 
+                      ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                          <circle r={5} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                        </Tooltip>
+                      ): status === "amber"
+                      ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                          <circle r={5} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                        </Tooltip>
+                      ): status === "green"
+                      ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                          <circle r={5} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                        </Tooltip>
+                      ): null
+                    }
+                </Marker>
+                ))
+              )}
             </ComposableMap>
           </div>
           <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
