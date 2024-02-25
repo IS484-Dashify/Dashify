@@ -58,7 +58,7 @@ export default function ServiceView() {
   const [searchedServices, setSearchedServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
   const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
   const [renderedServices, setRenderedServices] = useState<serviceItem[]>(sortedMockServices); // * this is what is being rendered as cards
-  const [searchQuery, setSearchQuery] = useState<String>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterSettings, setFilterSettings] = useState<Array<string>>(["red", "amber", "green"]);
 
   // handle search & filter
@@ -71,7 +71,7 @@ export default function ServiceView() {
       }
     }
     setSearchedServices(result);
-  }, [searchQuery]);
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Determine services that are included in filter
   const handleFilterClick = (filter: string) => {
@@ -92,7 +92,7 @@ export default function ServiceView() {
       }
       setFilteredServices(result);
     }
-  }, [filterSettings]);
+  }, [filterSettings]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Determine final rendered services
     useEffect(() => {
@@ -119,10 +119,6 @@ export default function ServiceView() {
           <Breadcrumbs 
             size="lg" 
             underline="hover" 
-            // classNames={{
-            //   list: "bg-stone-200",
-            // }}
-            // variant="solid" 
             onAction={(key) => setCurrentPage(String(key))}
           >
             <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>} isCurrent={currentPage === "services"}>
@@ -186,8 +182,6 @@ export default function ServiceView() {
                       ): null
                     }
                     <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                    {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
-                    <small className="text-default-500">12 Tracks</small> */}
                   </CardHeader> 
                 </Card>
               </Link>
@@ -195,7 +189,7 @@ export default function ServiceView() {
           ))}
         </div>
         ): (
-          <div className="text-center w-full">
+          <div className="text-center w-full text-text/60 italic">
             <p>No services found.</p>
           </div>
         )}
