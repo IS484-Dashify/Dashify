@@ -54,7 +54,7 @@ const Sidebar = () => {
   return (
     <div className="border-r-2 px-3 pt-6 flex flex-col items-center fixed top-0 left-0 h-full bg-white">
       <Image src="/logo.png" alt="" width={28} height={28} />
-      <div className="text-xs italic pt-2  text-grey font-bold">DASHIFY</div>
+      <div className="text-xs italic pt-2 text-gray-600 font-bold">DASHIFY</div>
       <div className="flex flex-col h-full items-center justify-center"> 
       {sidebarNavItems.map((item, index) => (
         <div

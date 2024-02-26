@@ -209,7 +209,7 @@ export default function InfrastructureView() {
               </BreadcrumbItem>
             </Breadcrumbs>
             <div className='mt-1 pb-8 pt-2'>
-              <div className='flex flex-row items-end justify-between mb-2'>
+              <div className='xl:flex lg:flex xl:flex-row lg:flex-row items-end justify-between mb-2'>
                 <h1 className='text-4xl font-bold text-indigo-d-500'>{component}</h1>
                 <span className='italic'>
                   Last updated 14 minutes ago
@@ -220,8 +220,8 @@ export default function InfrastructureView() {
             </div>
           </div>
           <div className="flex h-full flex-col w-full">
-            <div className='flex flex-row w-full mb-4'>
-              <div className='flex flex-col w-1/3 pr-4'>
+            <div className='xl:flex lg:flex xl:flex-row lg:flex-row w-full mb-4'>
+              <div className='flex flex-col lg:w-1/3 xl:w-1/3 pr-4 w-full'>
                 <div className="bg-green-100 p-4 rounded-lg shadow mb-4">
                   <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
                   <p className="text-3xl flex justify-center items-center text-green-700">Online</p>
@@ -230,7 +230,7 @@ export default function InfrastructureView() {
                   <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
                   <p className="text-3xl flex justify-center items-center text-red-500">Offline</p>
                 </div> */}
-                <div className="bg-white p-4 rounded-lg shadow">
+                <div className="bg-white p-4 rounded-lg shadow mb-4 lg:mb-0 xl:mb-0">
                   <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime (s)</h2>
                   <p className="text-3xl flex justify-center items-center">{uptime}</p>
                 </div>
@@ -239,7 +239,7 @@ export default function InfrastructureView() {
                   <p className="text-3xl flex justify-center items-center">{uptime}</p>
                 </div> */}
               </div>
-              <div className="bg-white p-4 rounded-lg shadow w-2/3">
+              <div className="bg-white p-4 rounded-lg shadow lg:w-2/3 xl:w-2/3 w-full">
                 <h2 className="text-lg text-gray-600 font-bold mb-4">Logs</h2>
                 <p className="text-gray-600">{cpuUsage}%</p>
                 {/* Add graph here */}
