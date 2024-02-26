@@ -1,6 +1,9 @@
 import { Inter } from "next/font/google";
 import React, { useState, useEffect } from 'react';
-import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome } from 'react-icons/ai';
+import { useRouter } from 'next/router';
+import { useSession } from "next-auth/react";
+
+import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome} from 'react-icons/ai';
 import { GiWorld } from "react-icons/gi";
 import RagFilterMenu from "./components/RagFilterMenu";
 import {Card, CardHeader} from "@nextui-org/react";
@@ -53,6 +56,16 @@ const sortedMockServices: serviceItem[]  = mockServices.sort((a, b) => {
 })
 
 export default function ServiceView() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    console.log("Session:", session);
+    if(!session){
+      router.push("/auth/login");
+    }
+  }, [session]);
+
   const [currentPage, setCurrentPage] = React.useState("services");
 
   // initialize states
@@ -159,39 +172,41 @@ export default function ServiceView() {
             </div>
           </div>
           {renderedServices.length > 0 ? (
-          <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
-            {renderedServices.map(({ serviceName, status, Icon }, index) => (
-              <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
-                <Link href={`/worldView?service=${serviceName}`}>
-                  <Card 
-                    className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
-                  >
-                    <CardHeader className="flex justify-start align-middle text-text">
-                      {
-                        status === "red" 
-                        ? (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
-                          />
-                        ): status === "amber"
-                        ? (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
-                          />
-                        ): status === "green"
-                        ?  (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
-                          />
-                        ): null
-                      }
-                      <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                    </CardHeader> 
-                  </Card>
-                </Link>
-              </div>
-            ))}
-          </div>
+            <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
+              {renderedServices.map(({ serviceName, status, Icon }, index) => (
+                <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
+                  <Link href={`/worldView?service=${serviceName}`}>
+                    <Card 
+                      className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
+                    >
+                      <CardHeader className="flex justify-start align-middle text-text">
+                        {
+                          status === "red" 
+                          ? (<Avatar  
+                              icon={<Icon size={24}/>} 
+                              style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
+                            />
+                          ): status === "amber"
+                          ? (<Avatar  
+                              icon={<Icon size={24}/>} 
+                              style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
+                            />
+                          ): status === "green"
+                          ?  (<Avatar  
+                              icon={<Icon size={24}/>} 
+                              style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
+                            />
+                          ): null
+                        }
+                        <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
+                        {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
+                        <small className="text-default-500">12 Tracks</small> */}
+                      </CardHeader> 
+                    </Card>
+                  </Link>
+                </div>
+              ))}
+            </div>
           ): (
             <div className="text-center w-full text-text/60 italic">
               <p>No services found.</p>

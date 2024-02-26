@@ -1,5 +1,7 @@
 import { Inter } from "next/font/google";
 import React, { useState, useRef, useEffect } from 'react';
+import { useSession } from "next-auth/react";
+
 import { AiOutlineBars, AiOutlineHome } from 'react-icons/ai';
 import { FaCircle } from "react-icons/fa";
 import { GiWorld } from "react-icons/gi";
@@ -290,6 +292,15 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker} :  {isOpen : boolean, se
 };
 
 export default function WorldView() {
+  const { data: session } = useSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    console.log("Session:", session);
+    if(!session){
+      router.push("/auth/login");
+    }
+  }, [session]);
+  
   const [currentPage, setCurrentPage] = React.useState("world");
   const router = useRouter();
   const { service } = router.query;
@@ -300,84 +311,85 @@ export default function WorldView() {
     setSelectedMarker(marker);
     setIsPopupOpen(true);
   };
-
-  return (
-    <main>
-      <div className="h-screen min-h-full overflow-hidden flex flex-row">
-        <Sidebar/>
-        <div className="w-full px-14 pt-6">
-          <div id='top-menu' className="mb-4">
-            <Breadcrumbs 
-              size="lg" 
-              underline="hover" 
-              onAction={(key) => setCurrentPage(String(key))}
-            >
-              <BreadcrumbItem key="services" startContent={<AiOutlineHome/>} href="/servicesView">
-                Services View
-              </BreadcrumbItem>
-              <BreadcrumbItem key="world" href="/worldView" startContent={<GiWorld/>} isCurrent={currentPage === "world"}>
-                World View
-              </BreadcrumbItem>
-            </Breadcrumbs>
-            <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pt-2'>{service}</h1>
-          </div>
-          <div className="flex h-full">
-            <div 
-              className={`transition-all duration-150 ease-in-out w-full mx-auto my-auto -translate-y-10 ${isPopupOpen ? 'scale-125 -translate-x-7' : 'scale-100 -translate-x-10'}`}
-            >
-              <ComposableMap
-                projectionConfig={{ scale: 130 }}
-                width={800}
-                height = {370}
-                style={{ width: "100%", height: "auto"}}
+  if(session){
+    return (
+      <main>
+        <div className="h-screen min-h-full overflow-hidden flex flex-row">
+          <Sidebar/>
+          <div className="w-full px-14 pt-6">
+            <div id='top-menu' className="mb-4">
+              <Breadcrumbs 
+                size="lg" 
+                underline="hover" 
+                onAction={(key) => setCurrentPage(String(key))}
               >
-                <Geographies 
-                  geography={Map} 
-                  fill="#e2dbf7" 
-                  stroke="#a793e8"
-                >
-                  {({ geographies }) =>
-                    geographies.map((geo) => (
-                      <Geography 
-                        key={geo.rsmKey} 
-                        geography={geo}
-                        style={{
-                          default : {
-                            pointerEvents: "none"
-                          }
-                        }}
-                      />
-                    ))
-                  }
-                </Geographies>
-                {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
-                  <Marker key={iso} coordinates={[coordinates[0], coordinates[1]]} className="map-marker cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
-                    {
-                        status === "red" 
-                        ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                            <circle r={5} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                          </Tooltip>
-                        ): status === "amber"
-                        ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                            <circle r={5} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                          </Tooltip>
-                        ): status === "green"
-                        ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                            <circle r={5} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                          </Tooltip>
-                        ): null
-                      }
-                  </Marker>
-                  ))
-                )}
-              </ComposableMap>
+                <BreadcrumbItem key="services" startContent={<AiOutlineHome/>} href="/servicesView">
+                  Services View
+                </BreadcrumbItem>
+                <BreadcrumbItem key="world" href="/worldView" startContent={<GiWorld/>} isCurrent={currentPage === "world"}>
+                  World View
+                </BreadcrumbItem>
+              </Breadcrumbs>
+              <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pt-2'>{service}</h1>
             </div>
-            <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
-              <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} />
+            <div className="flex h-full">
+              <div 
+                className={`transition-all duration-150 ease-in-out w-full mx-auto my-auto -translate-y-10 ${isPopupOpen ? 'scale-125 -translate-x-7' : 'scale-100 -translate-x-10'}`}
+              >
+                <ComposableMap
+                  projectionConfig={{ scale: 130 }}
+                  width={800}
+                  height = {370}
+                  style={{ width: "100%", height: "auto"}}
+                >
+                  <Geographies 
+                    geography={Map} 
+                    fill="#e2dbf7" 
+                    stroke="#a793e8"
+                  >
+                    {({ geographies }) =>
+                      geographies.map((geo) => (
+                        <Geography 
+                          key={geo.rsmKey} 
+                          geography={geo}
+                          style={{
+                            default : {
+                              pointerEvents: "none"
+                            }
+                          }}
+                        />
+                      ))
+                    }
+                  </Geographies>
+                  {sortedServices.flatMap(service => service.countries?.map(({ name, iso, coordinates, status, vm }) => (
+                    <Marker key={iso} coordinates={[coordinates[0], coordinates[1]]} className="map-marker cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
+                      {
+                          status === "red" 
+                          ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                              <circle r={5} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                            </Tooltip>
+                          ): status === "amber"
+                          ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                              <circle r={5} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                            </Tooltip>
+                          ): status === "green"
+                          ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
+                              <circle r={5} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                            </Tooltip>
+                          ): null
+                        }
+                    </Marker>
+                    ))
+                  )}
+                </ComposableMap>
+              </div>
+              <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
+                <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </main>
-  );
+      </main>
+    );
+  }
 }
