@@ -85,6 +85,9 @@ export default function WorldView() {
   const { data: session } = useSession();
   useEffect(() => {
     console.log("Session:", session);
+    if(!session){
+      router.push("/auth/login");
+    }
   }, [session]);
   
   const [currentPage, setCurrentPage] = React.useState("world");

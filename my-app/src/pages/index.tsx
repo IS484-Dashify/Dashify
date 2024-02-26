@@ -10,6 +10,7 @@ export default function Home() {
   const { data: session } = useSession();
   useEffect(() => {
     console.log("Session:", session);
+    router.push("/servicesView")
   }, [session]);
 
   const router = useRouter();

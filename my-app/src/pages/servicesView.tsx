@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useSession, signIn, signOut } from "next-auth/react";
 
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome} from 'react-icons/ai';
@@ -54,8 +55,12 @@ const sortedMockServices: serviceItem[]  = mockServices.sort((a, b) => {
 
 export default function ServiceView() {
   const { data: session } = useSession();
+  const router = useRouter();
   useEffect(() => {
     console.log("Session:", session);
+    if(!session){
+      router.push("/auth/login");
+    }
   }, [session]);
 
   const [currentPage, setCurrentPage] = React.useState("services");
