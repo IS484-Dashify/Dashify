@@ -6,7 +6,7 @@ import type {
 import { signIn } from "next-auth/react"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../api/auth/[...nextauth]"
-import { Login } from  "../components/svgs"
+import { Login } from  "../../../public/svgs"
 import { SlSocialGoogle } from "react-icons/sl";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -23,7 +23,6 @@ export default function SignIn({
               <h1 className='text-2xl font-bold text-indigo-d-500 mb-1'>Dashify</h1>
               <p>Welcome back to Dashify!</p>
               <div className="-mt-4 mb-4">
-                {/* <h1 className='text-4xl font-bold text-text mb-4'>Log In</h1> */}
                 <div className="mx-auto">
                   <Login/>
                 </div>

@@ -58,6 +58,7 @@ const sortedMockServices: serviceItem[]  = mockServices.sort((a, b) => {
 export default function ServiceView() {
   const { data: session } = useSession();
   const router = useRouter();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     console.log("Session:", session);
     if(!session){

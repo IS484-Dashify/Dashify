@@ -16,13 +16,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const [results, fields] = await db.query(
                 'SELECT * FROM user where email = ?', [email]
             );
-
-            if(results[0] === undefined){
+            const rowDataResults = results as any[];
+            if(rowDataResults[0] === undefined){
                 res.status(400).json({error: 'User not found'});
             } else {
-                res.status(200).json({ results: results[0] });
+                res.status(200).json({ results: rowDataResults[0] }); 
             }
-        } catch (error) {
+        } catch (error: any) {
             if (error.code === "ECONNREFUSED"){
                 res.status(500).json({ error: 'Database connection refused' });
             }

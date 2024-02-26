@@ -293,6 +293,7 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker} :  {isOpen : boolean, se
 
 export default function WorldView() {
   const { data: session } = useSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     console.log("Session:", session);
     if(!session){

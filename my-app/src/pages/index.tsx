@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
     console.log("Session:", session);
     router.push("/servicesView")
-  }, [session]);
+  }, [session]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const router = useRouter();
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
