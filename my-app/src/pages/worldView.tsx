@@ -131,13 +131,13 @@ const vmList = {
     "component10": "red",
   },
   "VM9" : {
-    "component10": "amber",
+    "Component11": "amber",
   },
   "VM10" : {
-    "component10": "green",
+    "component12": "green",
   },
   "VM11" : {
-    "component10": "red",
+    "component13": "red",
   }
 }
 
@@ -300,7 +300,7 @@ export default function WorldView() {
     <main>
       <div className="h-screen min-h-full overflow-hidden flex flex-row">
         <Sidebar/>
-        <div className="w-full px-14 pt-6">
+        <div className="w-full px-14 py-6 ml-20 h-full">
           <div id='top-menu' className="mb-4">
             <Breadcrumbs 
               size="lg" 

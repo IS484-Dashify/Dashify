@@ -1,5 +1,7 @@
 import React, { useEffect, useState }from 'react';
 import { AiOutlineHome } from 'react-icons/ai';
+import { MdOutlineLocationOn } from "react-icons/md";
+import { HiOutlineComputerDesktop } from "react-icons/hi2";
 import { GiWorld } from "react-icons/gi";
 import { VscGraph } from "react-icons/vsc";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/react";
@@ -120,14 +122,23 @@ const vmList = {
     "component10": "red",
   },
   "VM9" : {
-    "component10": "amber",
+    "Component11": "amber",
   },
   "VM10" : {
-    "component10": "green",
+    "component12": "green",
   },
   "VM11" : {
-    "component10": "red",
+    "component13": "red",
   }
+}
+
+const metricsCalc = {
+  'Percentage Memory Usage': '(nodejs_process_memory_rss_bytes/system_memory_total_bytes)*100',
+  'Percentage Cpu Usage': '100*rate(process_cpu_seconds_total{job="nodejs_server"}[1m])',
+  'System Uptime': 'system_uptime_seconds',
+  'Traffic In': 'incoming_traffic_bytes',
+  'Traffic Out': 'outgoing_traffic_bytes',
+  'Disk Usage': 'disk_usage_bytes{filesystem="/dev/root"}'
 }
 
 const uptime = 123456;
@@ -137,12 +148,31 @@ const memoryUsage = 80;
 const trafficIn = 1000000;
 const trafficOut = 2000000;
 
+function findCountryandNameByComponent(componentName: string) {
+  let results: string[] = [];
+  Object.entries(vmList).forEach(([vmName, components]) => {
+    if (components.hasOwnProperty(componentName)) {
+      results.push(vmName);
+    }
+  });
+  if (results.length == 1) {
+    mockServices.forEach((service) => {
+      service.countries.forEach((country) => {
+        if (country.vm.hasOwnProperty(results[0])) {
+          results.push(country.name);
+        }
+      });
+    });
+  }
+  return results;
+}
+
 export default function InfrastructureView() {
   const [currentPage, setCurrentPage] = React.useState("infra");
   const router = useRouter();
   const service = router.query.service as string | undefined;
   const component = router.query.component as string | undefined;
-  
+  const componentDetails = findCountryandNameByComponent(component!)
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
   const dateRangeOptions = [
     {label:"Last 15 Minutes", value:"15"},
@@ -159,9 +189,9 @@ export default function InfrastructureView() {
 
   return (
     <main>
-      <div className="h-screen min-h-full overflow-hidden flex flex-row">
+      <div className="h-full flex flex-row">
         <Sidebar/>
-        <div className="w-full px-14 pt-6">
+        <div className="w-full px-14 py-6 ml-20 h-full">
           <div id='top-menu' className=" z-50">
             <Breadcrumbs 
               size="lg" 
@@ -178,28 +208,44 @@ export default function InfrastructureView() {
                 {component}
               </BreadcrumbItem>
             </Breadcrumbs>
-            <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>{component}</h1>
+            <div className='mt-1 pb-8 pt-2'>
+              <div className='flex flex-row items-end justify-between mb-2'>
+                <h1 className='text-4xl font-bold text-indigo-d-500'>{component}</h1>
+                <span className='italic'>
+                  Last updated 14 minutes ago
+                </span>
+              </div>
+              <p className='flex items-center'><MdOutlineLocationOn className='mr-2'/> {componentDetails[1]}</p>
+              <p className='flex items-center'><HiOutlineComputerDesktop className='mr-2'/> {componentDetails[0]}</p>
+            </div>
           </div>
           <div className="flex h-full flex-col w-full">
-            <div className='grid xl:grid-cols-4 lg:grid-cols-4 grid-cols-2 gap-4 mb-4'>
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
-                <p className="text-4xl flex justify-center items-center">{uptime}</p>
+            <div className='flex flex-row w-full mb-4'>
+              <div className='flex flex-col w-1/3 pr-4'>
+                <div className="bg-green-100 p-4 rounded-lg shadow mb-4">
+                  <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
+                  <p className="text-3xl flex justify-center items-center text-green-700">Online</p>
+                </div>
+                {/* <div className="bg-red-100 p-4 rounded-lg shadow">
+                  <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
+                  <p className="text-3xl flex justify-center items-center text-red-500">Offline</p>
+                </div> */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime (s)</h2>
+                  <p className="text-3xl flex justify-center items-center">{uptime}</p>
+                </div>
+                {/* <div className="bg-white p-4 rounded-lg shadow">
+                  <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Downtime (s)</h2>
+                  <p className="text-3xl flex justify-center items-center">{uptime}</p>
+                </div> */}
               </div>
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
-                <p className="text-4xl flex justify-center items-center">{uptime}</p>
+              <div className="bg-white p-4 rounded-lg shadow w-2/3">
+                <h2 className="text-lg text-gray-600 font-bold mb-4">Logs</h2>
+                <p className="text-gray-600">{cpuUsage}%</p>
+                {/* Add graph here */}
               </div>
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
-                <p className="text-4xl flex justify-center items-center">{uptime}</p>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
-                <p className="text-4xl flex justify-center items-center">{uptime}</p>
-              </div>    
             </div>
-            <div className='flex items-center w-full mb-4'>
+            <div className='flex items-center w-full mb-4 mt-6'>
               <div className="" id="dateRangeSelector">
                 <Label.Root className="text-[15px] font-medium leading-[35px] text-text mr-2" htmlFor="">
                   Date Range
@@ -239,12 +285,12 @@ export default function InfrastructureView() {
                 {/* Add graph here */}
               </div>
               <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg text-gray-600 font-bold mb-4">Disk Usage</h2>
+                <h2 className="text-lg text-gray-600 font-bold mb-4">Memory Usage</h2>
                 <p className="text-gray-600">{diskUsage}%</p>
                 {/* Add graph here */}
               </div>
               <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg text-gray-600 font-bold mb-4">Memory Usage</h2>
+                <h2 className="text-lg text-gray-600 font-bold mb-4">Disk Usage</h2>
                 <p className="text-gray-600">{memoryUsage}%</p>
                 {/* Add graph here */}
               </div>

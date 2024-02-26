@@ -115,7 +115,7 @@ export default function ServiceView() {
     <main>
       <div className="h-screen min-h-full overflow-hidden flex flex-row">
         <Sidebar/>
-        <div className="w-full px-14 pt-6">
+        <div className="w-full px-14 py-6 ml-20 h-full">
           <div id='top-menu' className='mb-8 z-50'>
             <Breadcrumbs 
               size="lg" 
