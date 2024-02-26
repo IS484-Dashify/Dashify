@@ -4,12 +4,14 @@ import { useRouter } from 'next/router';
 import { useSession, signIn, signOut } from "next-auth/react";
 
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome} from 'react-icons/ai';
+import { GiWorld } from "react-icons/gi";
 import RagFilterMenu from "./components/RagFilterMenu";
-import {Card, CardHeader, CardBody, CardFooter} from "@nextui-org/react";
-import {Avatar, AvatarGroup, AvatarIcon} from "@nextui-org/react";
+import {Card, CardHeader} from "@nextui-org/react";
+import {Avatar} from "@nextui-org/react";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
 import * as Label from '@radix-ui/react-label';
 import Link from 'next/link';
+import Sidebar from "./components/navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -70,7 +72,7 @@ export default function ServiceView() {
   const [searchedServices, setSearchedServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
   const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
   const [renderedServices, setRenderedServices] = useState<serviceItem[]>(sortedMockServices); // * this is what is being rendered as cards
-  const [searchQuery, setSearchQuery] = useState<String>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterSettings, setFilterSettings] = useState<Array<string>>(["red", "amber", "green"]);
 
   // handle search & filter
@@ -83,7 +85,7 @@ export default function ServiceView() {
       }
     }
     setSearchedServices(result);
-  }, [searchQuery]);
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Determine services that are included in filter
   const handleFilterClick = (filter: string) => {
@@ -104,7 +106,7 @@ export default function ServiceView() {
       }
       setFilteredServices(result);
     }
-  }, [filterSettings]);
+  }, [filterSettings]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Determine final rendered services
     useEffect(() => {
@@ -123,22 +125,20 @@ export default function ServiceView() {
       setFilterSettings(["red", "amber", "green"]);
       setSearchQuery("");
     }
-  if(session){
-    return (
-      <main>
-        <div className="h-screen px-14 pt-6">
+
+  return (
+    <main>
+      <div className="h-screen min-h-full overflow-hidden flex flex-row">
+        <Sidebar/>
+        <div className="w-full px-14 pt-6">
           <div id='top-menu' className='mb-8 z-50'>
             <Breadcrumbs 
               size="lg" 
               underline="hover" 
-              // classNames={{
-              //   list: "bg-stone-200",
-              // }}
-              // variant="solid" 
               onAction={(key) => setCurrentPage(String(key))}
             >
               <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>} isCurrent={currentPage === "services"}>
-                Services
+                Services View
               </BreadcrumbItem>
             </Breadcrumbs>
             <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>Services</h1>
@@ -170,50 +170,49 @@ export default function ServiceView() {
               </div>
             </div>
           </div>
-          <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
-            {renderedServices.map(({ serviceName, status, Icon }, index) => (
-              <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
-                <Link href={`/worldView?service=${serviceName}`}>
-                  <Card 
-                    className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
-                  >
-                    <CardHeader className="flex justify-start align-middle text-text">
-                      {
-                        status === "red" 
-                        ? (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
-                          />
-                        ): status === "amber"
-                        ? (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
-                          />
-                        ): status === "green"
-                        ?  (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
-                          />
-                        ): null
-                      }
-                      <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                      {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
-                      <small className="text-default-500">12 Tracks</small> */}
-                    </CardHeader> 
-                  </Card>
-                </Link>
-              </div>
-            ))}
-          </div>
+          {renderedServices.length > 0 ? (
+            <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
+              {renderedServices.map(({ serviceName, status, Icon }, index) => (
+                <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
+                  <Link href={`/worldView?service=${serviceName}`}>
+                    <Card 
+                      className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
+                    >
+                      <CardHeader className="flex justify-start align-middle text-text">
+                        {
+                          status === "red" 
+                          ? (<Avatar  
+                              icon={<Icon size={24}/>} 
+                              style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
+                            />
+                          ): status === "amber"
+                          ? (<Avatar  
+                              icon={<Icon size={24}/>} 
+                              style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
+                            />
+                          ): status === "green"
+                          ?  (<Avatar  
+                              icon={<Icon size={24}/>} 
+                              style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
+                            />
+                          ): null
+                        }
+                        <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
+                        {/* <p className="text-tiny uppercase font-bold">Daily Mix</p>
+                        <small className="text-default-500">12 Tracks</small> */}
+                      </CardHeader> 
+                    </Card>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ): (
+            <div className="text-center w-full text-text/60 italic">
+              <p>No services found.</p>
+            </div>
+          )}
         </div>
-      </main>
-    );
-  } else {
-    return (
-      <>
-        Not signed in <br />
-        <button onClick={() => signIn()}>Sign in</button>
-      </>
-    )
-  }
+      </div>
+    </main>
+  );
 }

@@ -65,6 +65,9 @@ const config: Config = {
           100: "#acdf87",
           200: "#4c9a2a"
         }
+      },
+      transitionProperty: {
+        'multiple': 'width, height, backgroundColor, border-radius'
       }
     },
   },
