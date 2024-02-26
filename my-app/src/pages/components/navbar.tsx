@@ -58,6 +58,7 @@ const Sidebar = () => {
       <div className="flex flex-col h-full items-center justify-center"> 
       {sidebarNavItems.map((item, index) => (
         <div
+          key={index}
           className={`mb-6 p-2 ${activeIndex === index ? "bg-indigo-d-200 rounded-lg" : ""}`}
           onClick={() => setActiveIndex(index)}
         >
