@@ -128,6 +128,14 @@ const vmList = {
   }
 }
 
+const uptime = 123456;
+const cpuUsage = 75;
+const diskUsage = 50;
+const memoryUsage = 80;
+const trafficIn = 1000000;
+const trafficOut = 2000000;
+
+
 export default function WorldView() {
   const [currentPage, setCurrentPage] = React.useState("infra");
   const router = useRouter();
@@ -150,7 +158,7 @@ export default function WorldView() {
       <div className="h-screen min-h-full overflow-hidden flex flex-row">
         <Sidebar/>
         <div className="w-full px-14 pt-6">
-          <div id='top-menu' className="mb-8 z-50">
+          <div id='top-menu' className=" z-50">
             <Breadcrumbs 
               size="lg" 
               underline="hover" 
@@ -167,16 +175,54 @@ export default function WorldView() {
               </BreadcrumbItem>
             </Breadcrumbs>
             <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>{component}</h1>
-            <div className='flex items-center w-full'>
+          </div>
+          <div className="flex h-full flex-col w-full">
+            <div className='grid xl:grid-cols-4 lg:grid-cols-4 grid-cols-2 gap-4 mb-4'>
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
+                <p className="text-4xl flex justify-center items-center">{uptime}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
+                <p className="text-4xl flex justify-center items-center">{uptime}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
+                <p className="text-4xl flex justify-center items-center">{uptime}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-lg mb-4 text-gray-600 font-bold text-center">System Uptime (s)</h2>
+                <p className="text-4xl flex justify-center items-center">{uptime}</p>
+              </div>    
+            </div>
+            <div className='flex items-center w-full mb-4'>
               <div className="">
                 <Label.Root className="text-[15px] font-medium leading-[35px] text-text mr-2" htmlFor="">
                   Date Range
                 </Label.Root>
               </div>
             </div>
-          </div>
-          <div className="flex h-full">
-            <div></div>
+            <div className='grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4'>
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-lg  text-gray-600 font-bold mb-4">CPU Usage</h2>
+                <p className="text-gray-600">{cpuUsage}%</p>
+                {/* Add graph here */}
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-lg text-gray-600 font-bold mb-4">Disk Usage</h2>
+                <p className="text-gray-600">{diskUsage}%</p>
+                {/* Add graph here */}
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-lg text-gray-600 font-bold mb-4">Memory Usage</h2>
+                <p className="text-gray-600">{memoryUsage}%</p>
+                {/* Add graph here */}
+              </div>
+              <div className="bg-white p-4 rounded-lg ">
+                <h2 className="text-lg  text-gray-600 font-bold mb-4">Traffic</h2>
+                {/* Add graph here */}
+              </div>
+            </div>
           </div>
         </div>
       </div>
