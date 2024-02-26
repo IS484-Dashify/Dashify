@@ -1,6 +1,6 @@
 import { Inter } from "next/font/google";
 import React, { useState, useRef, useEffect } from 'react';
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 import { AiOutlineBars, AiOutlineHome } from 'react-icons/ai';
 import { FaCircle } from "react-icons/fa";

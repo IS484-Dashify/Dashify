@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome} from 'react-icons/ai';
 import { GiWorld } from "react-icons/gi";

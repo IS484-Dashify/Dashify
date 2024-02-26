@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { AiOutlineLogout } from "react-icons/ai";
 import { MdOutlineDashboard } from "react-icons/md";
@@ -73,7 +74,7 @@ const Sidebar = () => {
         <PopoverTrigger>
           <div className="my-6">
             <Badge content="5" color="danger">
-              <div className="opacity-60">
+              <div className="opacity-60 cursor-pointer">
                 <IoNotificationsOutline size={25}/>
               </div>
             </Badge>
@@ -107,7 +108,7 @@ const Sidebar = () => {
           </div>
         </PopoverContent>
       </Popover>
-      <div className="opacity-60 pb-6"><AiOutlineLogout size={25}/></div>
+      <button onClick={()=> signOut()}><div className="opacity-60 pb-6"><AiOutlineLogout size={25}/></div></button>
     </div>
   );
 };
