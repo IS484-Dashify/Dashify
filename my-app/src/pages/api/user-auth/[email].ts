@@ -23,6 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.status(200).json({ results: results[0] });
             }
         } catch (error) {
+            if (error.code === "ECONNREFUSED"){
+                res.status(500).json({ error: 'Database connection refused' });
+            }
             res.status(400).json({error: error})
         } finally {
             // Ensure the connection is closed whether or not there was an error
