@@ -1,12 +1,14 @@
 import { Inter } from "next/font/google";
 import React, { useState, useEffect } from 'react';
-import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome} from 'react-icons/ai';
+import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome } from 'react-icons/ai';
+import { GiWorld } from "react-icons/gi";
 import RagFilterMenu from "./components/RagFilterMenu";
-import {Card, CardHeader, CardBody, CardFooter} from "@nextui-org/react";
-import {Avatar, AvatarGroup, AvatarIcon} from "@nextui-org/react";
+import {Card, CardHeader} from "@nextui-org/react";
+import {Avatar} from "@nextui-org/react";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
 import * as Label from '@radix-ui/react-label';
 import Link from 'next/link';
+import Sidebar from "./components/navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -114,85 +116,88 @@ export default function ServiceView() {
 
   return (
     <main>
-      <div className="h-screen px-14 pt-6">
-        <div id='top-menu' className='mb-8 z-50'>
-          <Breadcrumbs 
-            size="lg" 
-            underline="hover" 
-            onAction={(key) => setCurrentPage(String(key))}
-          >
-            <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>} isCurrent={currentPage === "services"}>
-              Services
-            </BreadcrumbItem>
-          </Breadcrumbs>
-          <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>Services</h1>
-          <div className='flex justify-center items-center w-full'>
-            <div className="">
-              <Label.Root className="text-[15px] font-medium leading-[35px] text-text mr-2" htmlFor="">
-                Filter By
-              </Label.Root>
-              <RagFilterMenu filterSettings={filterSettings} handleFilterClick={handleFilterClick}/>
-            </div>
-            <div className="flex flex-wrap items-center gap-[15px] ml-2 mr-2.5">
-              <input
-                autoComplete="off"
-                className="inline-flex h-[2.5rem] w-[34rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:placeholder:text-lavender-500 hover:bg-lavender-100/70 focus:shadow focus:bg-lavender-100/70 focus:border-lavender-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-lavender-500 transition-all duration-200 ease-in-out"
-                type="text"
-                id="searchQuery"
-                placeholder="Search services by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div>
-              <button 
-                className="h-[2.5rem] px-4 bg-indigo-d-300 rounded-[4px] text-[#F2F3F4] border-1 border-indigo-d-300 shadow-md shadow-transparent hover:border-indigo-d-400 hover:bg-indigo-d-400 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
-                onClick={() => {handleReset()}}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-        {renderedServices.length > 0 ? (
-        <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
-          {renderedServices.map(({ serviceName, status, Icon }, index) => (
-            <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
-              <Link href={`/worldView?service=${serviceName}`}>
-                <Card 
-                  className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
+      <div className="h-screen min-h-full overflow-hidden flex flex-row">
+        <Sidebar/>
+        <div className="w-full px-14 pt-6">
+          <div id='top-menu' className='mb-8 z-50'>
+            <Breadcrumbs 
+              size="lg" 
+              underline="hover" 
+              onAction={(key) => setCurrentPage(String(key))}
+            >
+              <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>} isCurrent={currentPage === "services"}>
+                Services View
+              </BreadcrumbItem>
+            </Breadcrumbs>
+            <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>Services</h1>
+            <div className='flex justify-center items-center w-full'>
+              <div className="">
+                <Label.Root className="text-[15px] font-medium leading-[35px] text-text mr-2" htmlFor="">
+                  Filter By
+                </Label.Root>
+                <RagFilterMenu filterSettings={filterSettings} handleFilterClick={handleFilterClick}/>
+              </div>
+              <div className="flex flex-wrap items-center gap-[15px] ml-2 mr-2.5">
+                <input
+                  autoComplete="off"
+                  className="inline-flex h-[2.5rem] w-[34rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:placeholder:text-lavender-500 hover:bg-lavender-100/70 focus:shadow focus:bg-lavender-100/70 focus:border-lavender-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-lavender-500 transition-all duration-200 ease-in-out"
+                  type="text"
+                  id="searchQuery"
+                  placeholder="Search services by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div>
+                <button 
+                  className="h-[2.5rem] px-4 bg-indigo-d-300 rounded-[4px] text-[#F2F3F4] border-1 border-indigo-d-300 shadow-md shadow-transparent hover:border-indigo-d-400 hover:bg-indigo-d-400 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                  onClick={() => {handleReset()}}
                 >
-                  <CardHeader className="flex justify-start align-middle text-text">
-                    {
-                      status === "red" 
-                      ? (<Avatar  
-                          icon={<Icon size={24}/>} 
-                          style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
-                        />
-                      ): status === "amber"
-                      ? (<Avatar  
-                          icon={<Icon size={24}/>} 
-                          style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
-                        />
-                      ): status === "green"
-                      ?  (<Avatar  
-                          icon={<Icon size={24}/>} 
-                          style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
-                        />
-                      ): null
-                    }
-                    <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                  </CardHeader> 
-                </Card>
-              </Link>
+                  Reset
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
-        ): (
-          <div className="text-center w-full text-text/60 italic">
-            <p>No services found.</p>
           </div>
-        )}
+          {renderedServices.length > 0 ? (
+          <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4">
+            {renderedServices.map(({ serviceName, status, Icon }, index) => (
+              <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
+                <Link href={`/worldView?service=${serviceName}`}>
+                  <Card 
+                    className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
+                  >
+                    <CardHeader className="flex justify-start align-middle text-text">
+                      {
+                        status === "red" 
+                        ? (<Avatar  
+                            icon={<Icon size={24}/>} 
+                            style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
+                          />
+                        ): status === "amber"
+                        ? (<Avatar  
+                            icon={<Icon size={24}/>} 
+                            style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
+                          />
+                        ): status === "green"
+                        ?  (<Avatar  
+                            icon={<Icon size={24}/>} 
+                            style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
+                          />
+                        ): null
+                      }
+                      <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
+                    </CardHeader> 
+                  </Card>
+                </Link>
+              </div>
+            ))}
+          </div>
+          ): (
+            <div className="text-center w-full text-text/60 italic">
+              <p>No services found.</p>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
