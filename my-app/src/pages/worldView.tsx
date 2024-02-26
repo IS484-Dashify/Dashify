@@ -1,4 +1,3 @@
-import { Inter } from "next/font/google";
 import React, { useState, useRef, useEffect } from 'react';
 import { AiOutlineBars, AiOutlineHome } from 'react-icons/ai';
 import { FaCircle } from "react-icons/fa";
@@ -7,14 +6,12 @@ import { IoArrowBackCircleOutline } from "react-icons/io5";
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
 import { useRouter } from 'next/router';
+import Link from "next/link";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps"
 import Map from "../../public/map.json"
 import { hasFlag, countries } from 'country-flag-icons'
 import "country-flag-icons/3x2/flags.css";
 import Sidebar from "./components/navbar";
-
-
-const inter = Inter({ subsets: ["latin"] });
 
 // Update the Country interface to reflect the correct type of the vm property
 type Status = "red" | "green" | "amber";
@@ -36,10 +33,6 @@ interface Marker {
   coordinates: number[];
   status: Status;
   vm: { [key: string]: Status };
-}
-
-interface VM {
-  [key: string]: Status;
 }
 
 const mockServices: Service[] = [
@@ -208,7 +201,7 @@ const statusColors = {
   red: "text-reddish-200 me-1"
 };
 
-const ToggleableList = ({ items, vmName, status } : {items : {componentName: string; status: Status;}[], vmName : string, status : Status}) => {
+const ToggleableList = ({ items, vmName, status, selectedService } : {items : {componentName: string; status: Status;}[], vmName : string, status : Status, selectedService : string | string[] | null | undefined  }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -223,18 +216,20 @@ const ToggleableList = ({ items, vmName, status } : {items : {componentName: str
       {(
         <div className="mt-3">
           {items.map((item, index) => (
-            <div key={index} className={`pb-1 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-12" : "h-0"}`}>
-              <div key={index} className="flex items-center justify-between">
-                <span>{item.componentName}</span>
-                <FaCircle className={statusColors[item.status]} />
-              </div>
-              {(item.status === 'red' || item.status === 'amber') && (
-                <div className=" flex justify-between text-xs italic mb-2">
-                  <span>CPU down</span>
-                  <span >3 hours ago</span> 
+            <Link href={`/infraView?service=${selectedService}&component=${item.componentName}`}>
+              <div key={index} className={`pb-1 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-12" : "h-0"}`}>
+                <div key={index} className="flex items-center justify-between">
+                  <span>{item.componentName}</span>
+                  <FaCircle className={statusColors[item.status]} />
                 </div>
-              )}
-            </div>
+                {(item.status === 'red' || item.status === 'amber') && (
+                  <div className=" flex justify-between text-xs italic mb-2">
+                    <span>CPU down</span>
+                    <span >3 hours ago</span> 
+                  </div>
+                )}
+              </div>
+            </Link>
           ))}
         </div>
       )}
@@ -244,7 +239,7 @@ const ToggleableList = ({ items, vmName, status } : {items : {componentName: str
 
 
 // Assuming selectedMarker.vm is structured correctly and contains the VM identifiers you're interested in
-const RightPopup = ({isOpen, setIsOpen, selectedMarker} :  {isOpen : boolean, setIsOpen:(value: boolean) => void, selectedMarker : Marker | null}) => {
+const RightPopup = ({isOpen, setIsOpen, selectedMarker, selectedService} :  {isOpen : boolean, setIsOpen:(value: boolean) => void, selectedMarker : Marker | null, selectedService : string | string[] | null | undefined }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleClickOutside(event: any) {
@@ -283,7 +278,7 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker} :  {isOpen : boolean, se
         </div>
       </div>
       {vmsToShow.map(vm => 
-        <ToggleableList key={vm.name} items={vm.components} vmName={vm.name} status={vm.status} />
+        <ToggleableList key={vm.name} items={vm.components} vmName={vm.name} status={vm.status} selectedService={selectedService}/>
       )}
     </div>
   );
@@ -313,10 +308,10 @@ export default function WorldView() {
               onAction={(key) => setCurrentPage(String(key))}
             >
               <BreadcrumbItem key="services" startContent={<AiOutlineHome/>} href="/servicesView">
-                Services View
+                Services
               </BreadcrumbItem>
-              <BreadcrumbItem key="world" href="/worldView" startContent={<GiWorld/>} isCurrent={currentPage === "world"}>
-                World View
+              <BreadcrumbItem key="world" href={`/worldView?service=${service}`}  startContent={<GiWorld/>} isCurrent={currentPage === "world"}>
+                {service}
               </BreadcrumbItem>
             </Breadcrumbs>
             <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pt-2'>{service}</h1>
@@ -373,7 +368,7 @@ export default function WorldView() {
               </ComposableMap>
             </div>
             <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
-              <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} />
+              <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} selectedService={service}/>
             </div>
           </div>
         </div>

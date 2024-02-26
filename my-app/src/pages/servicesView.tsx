@@ -1,7 +1,5 @@
-import { Inter } from "next/font/google";
 import React, { useState, useEffect } from 'react';
 import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome } from 'react-icons/ai';
-import { GiWorld } from "react-icons/gi";
 import RagFilterMenu from "./components/RagFilterMenu";
 import {Card, CardHeader} from "@nextui-org/react";
 import {Avatar} from "@nextui-org/react";
@@ -10,7 +8,6 @@ import * as Label from '@radix-ui/react-label';
 import Link from 'next/link';
 import Sidebar from "./components/navbar";
 
-const inter = Inter({ subsets: ["latin"] });
 
 interface serviceItem {
   serviceName: string,
@@ -126,7 +123,7 @@ export default function ServiceView() {
               onAction={(key) => setCurrentPage(String(key))}
             >
               <BreadcrumbItem key="services" href="/servicesView" startContent={<AiOutlineHome/>} isCurrent={currentPage === "services"}>
-                Services View
+                Services
               </BreadcrumbItem>
             </Breadcrumbs>
             <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>Services</h1>
