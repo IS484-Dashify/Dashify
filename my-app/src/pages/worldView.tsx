@@ -233,7 +233,7 @@ const ToggleableList = ({ items, vmName, status } : {items : {componentName: str
               {(item.status === 'red' || item.status === 'amber') && (
                 <div className=" flex justify-between text-xs italic mb-2">
                   <span>CPU down</span>
-                  <span >3 hours ago</span> 
+                  <span>3 hours ago</span> 
                 </div>
               )}
             </div>
@@ -330,7 +330,7 @@ export default function WorldView() {
                   World View
                 </BreadcrumbItem>
               </Breadcrumbs>
-              <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pt-2'>{service}</h1>
+              <h1 className='text-4xl font-bold text-pri-500 mt-1 pt-2'>{service}</h1>
             </div>
             <div className="flex h-full">
               <div 
@@ -344,8 +344,8 @@ export default function WorldView() {
                 >
                   <Geographies 
                     geography={Map} 
-                    fill="#e2dbf7" 
-                    stroke="#a793e8"
+                    fill="#dce4f9" 
+                    stroke="#b9c9f3"
                   >
                     {({ geographies }) =>
                       geographies.map((geo) => (
@@ -366,15 +366,15 @@ export default function WorldView() {
                       {
                           status === "red" 
                           ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={5} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={4.2} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): status === "amber"
                           ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={5} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={4.2} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): status === "green"
                           ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                              <circle r={5} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
+                              <circle r={4.2} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
                             </Tooltip>
                           ): null
                         }
