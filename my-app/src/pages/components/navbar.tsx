@@ -77,7 +77,7 @@ const Sidebar = () => {
         </PopoverTrigger>
         <PopoverContent>
           <div className="px-1 py-2 h-fit w-48">
-            <div className="font-bold tetx-center">Notifications</div>
+            <div className="font-bold">Notifications</div>
             {notifications && notifications.length > 0 ? (
               <>
                 {notifications.map(notification => 
