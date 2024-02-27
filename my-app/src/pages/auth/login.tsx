@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../api/auth/[...nextauth]"
 import { Login } from  "../../../public/svgs"
 import { SlSocialGoogle } from "react-icons/sl";
+import Image from "next/image"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,9 +18,17 @@ export default function SignIn({
   return(
     <main>
       <div className="h-screen px-14 pt-6">
-        <div id="login-div" className="flex text-center justify-center items-center h-full">
-          <div className="flex justify-between items-end border rounded bg-lavender-200/50 px-6 py-12">
-            <div className="flex flex-col">
+        <div id="login-div" className="flex flex-col text-center justify-center items-center h-full">
+          <div className="shadow-md w-2/5 h-3/4 relative rounded-xl">
+            <div className="flex items-start justify-center border rounded-t-xl bg-blue-500 w-full h-2/3 p-10">
+              <Image src="/logo(white).png" alt="" width={400} height={400} />
+            </div>
+            <div className="h-1/3 w-full bg-white rounded-b-xl"></div>
+            </div>
+          </div>
+          <div className="h-1/5 w-1/5 bg-white absolute  shadow-md rounded-xl"></div>
+        </div>
+          {/* <div className="flex flex-col">
               <h1 className='text-2xl font-bold text-indigo-d-500 mb-1'>Dashify</h1>
               <p>Welcome back to Dashify!</p>
               <div className="-mt-4 mb-4">
@@ -36,11 +45,8 @@ export default function SignIn({
                   Log In
                 </button>
               </div>
-            </div>
-            
-          </div>
-        </div>
-      </div>
+            </div> */}
+        
     </main>
   )
 }
