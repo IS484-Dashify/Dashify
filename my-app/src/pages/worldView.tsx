@@ -275,7 +275,7 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker} :  {isOpen : boolean, se
 
 
   return (
-    <div ref={popupRef} className="fixed right-0 top-0 w-72 p-6 h-full bg-gray-100 shadow-lg z-50">
+    <div ref={popupRef} className="fixed right-0 top-0 w-72 p-6 h-full bg-white shadow-lg z-50">
       <div className="flex flex-row items-center mb-6">
         <button onClick={() => setIsOpen(false)}>
           <IoArrowBackCircleOutline size="25px"/>
