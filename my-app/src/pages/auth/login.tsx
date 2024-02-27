@@ -19,22 +19,24 @@ export default function SignIn({
     <main>
       <div className="h-screen px-14 pt-6">
         <div id="login-div" className="flex flex-col text-center justify-center items-center h-full">
-          <div className="flex items-start justify-center border rounded-t-xl bg-blue-500 w-2/5 h-1/2 px-8 pt-14 relative">
+          <div className="flex items-start justify-center rounded-t-xl bg-blue-500 w-2/5 h-[40%] px-12 pt-12 relative">
             <Image src="/logo(white).png" alt="" width={400} height={400} />
             
           </div>
           <div className="h-1/4 w-2/5 bg-white rounded-b-xl shadow-md"></div>
           
-          <div className="h-1/4 w-1/5 bg-white absolute mt-44 shadow-md rounded-lg flex">
+          <div className="px-12 py-9 bg-white absolute mt-44 shadow-md rounded-lg flex">
             <div className="mx-auto my-auto">
-                <p className="mb-8">Welcome back!</p>
-                <button
-                  className="h-[2.5rem] text-xl bg-blue-500 px-4 text-[#F2F3F4] border-1 rounded border-blue-500 shadow-md shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring flex items-center align-middle" 
-                  onClick={() => signIn("google")}
-                >
-                  <SlSocialGoogle className="inline mr-2" size="20"/>
-                  Log In
-                </button>
+                <p className="mb-6 text-lg font-bold">Welcome back!</p>
+                <div className="flex justify-center">
+                  <button
+                    className="h-[2.5rem] text-xl bg-blue-500 px-4 text-[#F2F3F4] border-1 rounded border-blue-500 shadow-md shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring flex items-center align-middle" 
+                    onClick={() => signIn("google")}
+                  >
+                    <SlSocialGoogle className="inline mr-2" size="20"/>
+                    Log In
+                  </button>
+                </div>
               </div>
             </div>
           </div>
