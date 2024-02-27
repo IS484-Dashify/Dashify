@@ -17,43 +17,7 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       colors:{
-        "p-white": "#F2F3F4", // ! Background colour
-        "indigo-d": {
-          50: "#E7E9F7",
-          100: "#e2dbf7",
-          200: "#c4b7ef",
-          300: "#a793e8",
-          400: "#896fe0",
-          500: "#6c4bd8", // ! main primary coloor
-          600: "#563cad",
-          700: "#412d82",
-          800: "#2b1e56",
-          900: "#160f2b"
-        },
-        "text": "#060828",
-        "lavender": {
-          100: "#ede9f3",
-          200: "#dad3e8",
-          300: "#c8bddc",
-          400: "#b5a7d1",
-          500: "#a391c5", // ! main secondary colour
-          600: "#82749e",
-          700: "#625776",
-          800: "#413a4f",
-          900: "#211d27"
-        },
-        "accent": {
-          100: "#d1d3f0",
-          200: "#a3a8e1",
-          300: "#747cd2",
-          400: "#4651c3",
-          500: "#1825b4", // ! main accent colour
-          600: "#131e90",
-          700: "#0e166c",
-          800: "#0a0f48",
-          900: "#050724"
-        },
-        pri: {
+        "p-white": "#F2F3F4", // ! Background colourpri: {
           100: "#dce4f9",
           200: "#b9c9f3",
           300: "#95aeec",
