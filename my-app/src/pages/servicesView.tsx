@@ -179,31 +179,6 @@ export default function ServiceView() {
                         />
                       </div>
                     </div>
-                    {/* <Card 
-                      className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
-                    >
-                      <CardHeader className="flex justify-start align-middle text-text">
-                        {
-                          status === "red" 
-                          ? (<Avatar  
-                              icon
-                              style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
-                            />
-                          ): status === "amber"
-                          ? (<Avatar  
-                              icon
-                              style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
-                            />
-                          ): status === "green"
-                          ?  (<Avatar  
-                              icon
-                              style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
-                            />
-                          ): null
-                        }
-                        <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                      </CardHeader> 
-                    </Card> */}
                   </Link>
                 </div>
               ))}
