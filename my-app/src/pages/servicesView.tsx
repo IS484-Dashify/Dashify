@@ -166,7 +166,7 @@ export default function ServiceView() {
           {renderedServices.length > 0 ? (
             <div className="grid grid-cols-4 gap-7">
               {renderedServices.map(({ serviceName, status }, index) => (
-                <div className={`py-3 px-6 cursor-pointer z-0 border-l-4 rounded-sm bg-white shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring ${status === "red" ? "border-reddish-200" : status === "green" ? "border-greenish-200" : "border-amberish-200"}`} key={index}>
+                <div className={`py-3 px-6 cursor-pointer z-0 border-l-4 rounded-lg bg-white shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring ${status === "red" ? "border-reddish-200" : status === "green" ? "border-greenish-200" : "border-amberish-200"}`} key={index}>
 
                 
                   <Link href={`/worldView?service=${serviceName}`}>
