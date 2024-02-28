@@ -8,7 +8,7 @@ import { HiOutlineComputerDesktop } from "react-icons/hi2";
 import { GiWorld } from "react-icons/gi";
 import { TfiReload } from "react-icons/tfi";
 import { VscGraph } from "react-icons/vsc";
-import { Breadcrumbs, BreadcrumbItem, DropdownItemProps } from "@nextui-org/react";
+import { Breadcrumbs, BreadcrumbItem, DropdownItemProps, select } from "@nextui-org/react";
 import Sidebar from "./components/navbar";
 import InfraFilter from "./components/infraFilter"
 import { AreaChart } from '@tremor/react';
@@ -77,10 +77,13 @@ export default function InfrastructureView() {
   const service = router.query.currentService as string | undefined;
   const component = router.query.currentComponent as string | undefined;
   const componentDetails = findCountryAndNameByComponent(component!, data)
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
   const [metrics, setMetrics] = useState<{ [key: string]: any[] }>({});
+  const [trafficMetrics, setTrafficMetrics] = useState([]);
+
   useEffect(() => {
-    console.log("Metrics:", metrics);
-  }, [metrics]);
+    console.log("selectedDateRange:", selectedDateRange);
+  }, [selectedDateRange]);
   const [systemStatus, setSystemStatus] = useState(true);
   const [downtime, setDowntime] = useState(0);
 
@@ -94,10 +97,10 @@ export default function InfrastructureView() {
   // * Retrieve metrics from db on page load
   useEffect(() => {
     fetchData();
-  }, []); 
+  }, [selectedDateRange]); 
 
   const fetchData = () => {
-    const time = 10; 
+    const time = selectedDateRange; 
     const requestBody = {
       query: `nifi_metrics | order by Datetime desc | take ${time}`
     };
@@ -112,7 +115,9 @@ export default function InfrastructureView() {
     .then(response => response.json())
     .then(data => {
       const transformedData = transformJSON(data.Tables[0]); 
+      const transformedTrafficData = transformTrafficJSON(transformedData);
       // console.log(data.Tables[0])
+      setTrafficMetrics(transformedTrafficData);
       setMetrics(transformedData);
       setLoading(false);
     })
@@ -147,7 +152,7 @@ export default function InfrastructureView() {
         if (dateTimeString) {
           const dateTime = new Date(dateTimeString);
           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-          const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)} ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
+          const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
           dataPoint["Datetime"] = formattedDate;
         }
         metricData.push(dataPoint);
@@ -155,6 +160,29 @@ export default function InfrastructureView() {
       return metricData;
     });
     return chartData;
+  }
+
+  function transformTrafficJSON(transformedData) {
+    let result = [];
+    for(let i=0; i<transformedData[0].length; i++){
+      let trafficInDataPoint = transformedData[6][i]['Traffic In'];
+      let trafficOutDataPoint = transformedData[7][i]['Traffic Out'];
+      let dateTimeString = transformedData[0][i]['Datetime'];
+      if(trafficInDataPoint != null && trafficOutDataPoint != null){
+        const dateTime = new Date(dateTimeString);
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
+
+        let temp = {
+          'Datetime': formattedDate,
+          'Traffic In': trafficInDataPoint,
+          'Traffic Out': trafficOutDataPoint
+        }
+        result.push(temp);
+      }
+    }
+    // console.log("Result:", result);
+    return result;
   }
 
   if(loading === false && session && Object.keys(metrics).length > 0){
@@ -187,7 +215,7 @@ export default function InfrastructureView() {
                       <TfiReload />
                     </button>
                     <span className='italic pl-3'>
-                      Last updated 14 minutes ago
+                      Last updated 14 minutes ago 
                     </span>
                   </div>
                 </div>
@@ -205,7 +233,7 @@ export default function InfrastructureView() {
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow mb-4 lg:mb-0 xl:mb-0">
                       <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime (In Seconds)</h2>
-                      <p className="text-3xl flex justify-center items-cente">{metrics[1][0].Clock}</p>
+                      <p className="text-3xl flex justify-center items-center">{metrics[3][0]['System Uptime']}</p>
                     </div> 
                   </div>                
                 ) : (
@@ -226,7 +254,7 @@ export default function InfrastructureView() {
                 </div>
               </div>
               <div className='flex items-center w-full mb-4 mt-6'>
-                <InfraFilter/>
+                <InfraFilter selectedDateRange={selectedDateRange} setSelectedDateRange={setSelectedDateRange}/>
               </div>
               <div className='grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4'>
                 <div className="bg-white p-4 rounded-lg shadow">
@@ -236,7 +264,7 @@ export default function InfrastructureView() {
                     data={metrics[2]}
                     index="Datetime"
                     yAxisWidth={65}
-                    categories={["Cpu Usage"]}
+                    categories={["CPU Usage"]}
                     colors={['indigo']}
                     valueFormatter={(value: number) => `${value * 100}%`}
                   />
@@ -245,20 +273,37 @@ export default function InfrastructureView() {
                   <h2 className="text-lg text-gray-600 font-bold mb-4">Memory Usage</h2>
                   <AreaChart
                     className="mt-4 h-72"
-                    data={metrics[3]}
+                    data={metrics[4]}
                     index="Datetime"
                     yAxisWidth={65}
-                    categories={["Cpu Usage"]}
-                    colors={['indigo']}
+                    categories={["Memory Usage"]}
+                    colors={['rose']}
+                    valueFormatter={(value: number) => `${value * 100}%`}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
                   <h2 className="text-lg text-gray-600 font-bold mb-4">Disk Usage</h2>
-                  {/* Add graph here */}
+                  <AreaChart
+                    className="mt-4 h-72"
+                    data={metrics[0]}
+                    index="Datetime"
+                    yAxisWidth={65}
+                    categories={["Disk Usage"]}
+                    colors={['emerald']}
+                    valueFormatter={(value: number) => `${value}%`}
+                  />
                 </div>
                 <div className="bg-white p-4 rounded-lg ">
                   <h2 className="text-lg  text-gray-600 font-bold mb-4">Traffic</h2>
-                  {/* Add graph here */}
+                  <AreaChart
+                    className="mt-4 h-72"
+                    data={trafficMetrics}
+                    index="Datetime"
+                    yAxisWidth={65}
+                    categories={["Traffic In", "Traffic Out"]}
+                    colors={['indigo', 'rose']}
+                    valueFormatter={(value: number) => `${value} bytes`}
+                  />
                 </div>
               </div>
             </div>
