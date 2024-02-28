@@ -37,6 +37,15 @@ interface Component {
   name: string;
   status: Status;
 }
+interface Column {
+  ColumnName: string;
+  DataType: string;
+  ColumnType: string;
+}
+
+interface Row {
+  [index: number]: number | string | null;
+}
 interface RawData {
   TableName: string;
   Columns: Column[];
@@ -70,7 +79,7 @@ export default function InfrastructureView() {
   const componentDetails = findCountryAndNameByComponent(component!, data)
   const [metrics, setMetrics] = useState<{ [key: string]: any[] }>({});
   useEffect(() => {
-    console.log("Metrics:", metrics[2]);
+    console.log("Metrics:", metrics);
   }, [metrics]);
   const [systemStatus, setSystemStatus] = useState(true);
   const [downtime, setDowntime] = useState(0);
@@ -127,14 +136,20 @@ export default function InfrastructureView() {
     }
   }, [metrics, loading]);
   
-  function transformJSON(rawData: RawData): any[] {
+  function transformJSON(rawData: RawData) {
     const columnNames = rawData.Columns.map(column => column.ColumnName);
     const chartData = columnNames.map(columnName => {
       const metricData: any[] = [];
       const columnIndex = rawData.Columns.findIndex(column => column.ColumnName === columnName);
       rawData.Rows.forEach(row => {
-        const dataPoint: any = { [columnName]: row[columnIndex] };
-        dataPoint["Datetime"] = row[columnNames.indexOf("Datetime")];
+        const dataPoint: any = { [columnName === "Cpu Usage" ? "CPU Usage" : columnName]: row[columnIndex] };
+        const dateTimeString = row[columnNames.indexOf("Datetime")];
+        if (dateTimeString) {
+          const dateTime = new Date(dateTimeString);
+          const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)} ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
+          dataPoint["Datetime"] = formattedDate;
+        }
         metricData.push(dataPoint);
       });
       return metricData;
