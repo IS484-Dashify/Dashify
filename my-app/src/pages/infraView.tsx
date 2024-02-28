@@ -80,10 +80,6 @@ export default function InfrastructureView() {
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
   const [metrics, setMetrics] = useState<{ [key: string]: any[] }>({});
   const [trafficMetrics, setTrafficMetrics] = useState([]);
-
-  useEffect(() => {
-    console.log("selectedDateRange:", selectedDateRange);
-  }, [selectedDateRange]);
   const [systemStatus, setSystemStatus] = useState(true);
   const [downtime, setDowntime] = useState(0);
 
@@ -267,6 +263,7 @@ export default function InfrastructureView() {
                     categories={["CPU Usage"]}
                     colors={['indigo']}
                     valueFormatter={(value: number) => `${value * 100}%`}
+                    tickGap={50}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
@@ -279,6 +276,7 @@ export default function InfrastructureView() {
                     categories={["Memory Usage"]}
                     colors={['rose']}
                     valueFormatter={(value: number) => `${value * 100}%`}
+                    tickGap={50}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
@@ -291,6 +289,7 @@ export default function InfrastructureView() {
                     categories={["Disk Usage"]}
                     colors={['emerald']}
                     valueFormatter={(value: number) => `${value}%`}
+                    tickGap={50}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg ">
@@ -303,6 +302,7 @@ export default function InfrastructureView() {
                     categories={["Traffic In", "Traffic Out"]}
                     colors={['indigo', 'rose']}
                     valueFormatter={(value: number) => `${value} bytes`}
+                    tickGap={50}
                   />
                 </div>
               </div>
