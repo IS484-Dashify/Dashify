@@ -136,7 +136,7 @@ export default function InfrastructureView() {
     const time = selectedDateRange; 
     const queries = {"Component 1": "prometheus-metrics", "Component 2": "nifi_metrics"}
     const requestBody = {
-      query: `nifi_metrics | order by Datetime asc | take ${time}`
+      query: `nifi_metrics | order by Datetime desc | take ${time}`
     };
   
     fetch('http://20.82.137.238:3001/queryAdx', {
@@ -205,7 +205,7 @@ export default function InfrastructureView() {
       return metricData;
     });
     // console.log("ChartData:", chartData);
-    return chartData;
+    return chartData.map(subArray => subArray.reverse());
   }
 
   function transformTrafficJSON(transformedData : Metric[]) {
@@ -229,6 +229,7 @@ export default function InfrastructureView() {
       }
     }
     // console.log("Result:", result);
+    console.log("Traffic Metrics:", result);
     return result;
   }
 
@@ -338,7 +339,7 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Memory Usage"]}
-                    colors={['rose']}
+                    colors={['cyan']}
                     valueFormatter={(value: number) => `${value * 100}%`}
                     tickGap={50}
                   />
@@ -351,12 +352,12 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Disk Usage"]}
-                    colors={['orange']}
+                    colors={['indigo']}
                     valueFormatter={(value: number) => `${value}%`}
                     tickGap={50}
                   />
                 </div>
-                <div className="bg-white p-4 rounded-lg border-t-4">
+                <div className="bg-white p-4 rounded-lg border-t-4 border-amberish-200 shadow">
                   <h2 className="text-lg  text-gray-600 font-bold mb-4">Traffic</h2>
                   <AreaChart
                     className="mt-4 h-72"
