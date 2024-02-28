@@ -269,8 +269,12 @@ export default function InfrastructureView() {
                 <div className='xl:flex lg:flex xl:flex-row lg:flex-row items-end justify-between mb-2'>
                   <h1 className='text-4xl font-bold text-pri-500'>{component}</h1>
                   <div className='flex items-center'>
-                    <button onClick={fetchData}>
-                      <TfiReload />
+                    <button 
+                      className='px-4 py-2 flex justify-center items-center border-1 rounded-lg shadow hover:hover:bg-pri-100/70 hover:text-pri-500 hover:shadow-pri-200 transition-all duration-300 ease-in-out'
+                      onClick={fetchData}
+                    >
+                      <TfiReload className='mr-1.5'/>
+                      Reload
                     </button>
                     <span className='italic pl-3'>
                       Last updated {Math.round(timeDiff/60)} minutes ago

@@ -25,7 +25,7 @@ const InfraFilter = ({selectedDateRange, setSelectedDateRange} : { selectedDateR
         value={selectedDateRange}
         onValueChange={setSelectedDateRange}
       >
-        <Select.Trigger className="inline-flex h-[2.5rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-4 py-2 text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:text-pri-500 hover:bg-pri-100/70 focus:shadow focus:bg-pri-100/70 focus:border-pri -500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-pri-500 transition-all duration-200 ease-in-out">
+        <Select.Trigger className="inline-flex h-[2.5rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-4 py-2 text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:text-pri-500 hover:bg-pri-100/70 focus:shadow focus:bg-pri-100/70 focus:border-pri-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-pri-500 transition-all duration-200 ease-in-out">
           <Select.Value placeholder="Select a Time Period" />
           <ChevronDownIcon className="ml-1.5" />
         </Select.Trigger>
