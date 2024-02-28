@@ -118,7 +118,7 @@ export default function InfrastructureView() {
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [systemStatus, setSystemStatus] = useState(true);
-  const [downtime, setDowntime] = useState(0);
+  const [timeDiff, setTimeDiff] = useState(0);
 
   useEffect(() => {
     // console.log("Session:", session);
@@ -134,8 +134,9 @@ export default function InfrastructureView() {
 
   const fetchData = () => {
     const time = selectedDateRange; 
+    const queries = {"Component 1": "prometheus-metrics", "Component 2": "nifi_metrics"}
     const requestBody = {
-      query: `nifi_metrics | order by Datetime desc | take ${time}`
+      query: `nifi_metrics | order by Datetime asc | take ${time}`
     };
   
     fetch('http://20.82.137.238:3001/queryAdx', {
@@ -159,22 +160,28 @@ export default function InfrastructureView() {
     });
   };
   
+  function getTimeDifferenceInSeconds(timeString) {
+    const givenTime = new Date(timeString);
+    const currentTime = new Date();
+    const timeDifference = currentTime - givenTime;
+    const timeDifferenceInSeconds = Math.floor(timeDifference / 1000);
+    return timeDifferenceInSeconds;
+  }
+  
   // ! Check if system is down
   useEffect(() => {
-    if(loading == false && metrics[0] && Array.isArray(metrics[0]) && metrics[0].length > 0){
-        const firstElement = metrics[0][0];
-        if('Disk Usage' in firstElement && 'Datetime' in firstElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
-          const diskUsageElement = firstElement as DiskUsage;
-          const datetime = new Date(diskUsageElement.Datetime);
-          const metricTimestamp = datetime.getTime();
-          const currentTimestamp = new Date().getTime();
-          const timeDifference = currentTimestamp - metricTimestamp;
+    if(loading == false){
+        const latestElement = metrics[0][9];
+        if('Disk Usage' in latestElement && 'Datetime' in latestElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
+          const diskUsageElement = latestElement as DiskUsage;
+          const metricTimestamp = new Date(diskUsageElement.Datetime);
+          const timeDifference = getTimeDifferenceInSeconds(metricTimestamp);
           if (timeDifference < 240000) {
             setSystemStatus(true); // system down
           } else {
             setSystemStatus(false); // system up
-            setDowntime(timeDifference);
           }
+          setTimeDiff(timeDifference);
         }
     }
   }, [metrics, loading]);
@@ -187,12 +194,13 @@ export default function InfrastructureView() {
       rawData.Rows.forEach(row => {
         const dataPoint: any = { [columnName === "Cpu Usage" ? "CPU Usage" : columnName]: row[columnIndex] };
         const dateTimeString = row[columnNames.indexOf("Datetime")];
+        console.log("zzzz" + dateTimeString)
         if (dateTimeString) {
           let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
           const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
           dataPoint["Datetime"] = formattedDate;
-        }
+        }      
         metricData.push(dataPoint);
       });
       return metricData;
@@ -213,7 +221,6 @@ export default function InfrastructureView() {
         const dateTime = new Date(dateTimeString);
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
-
         let temp = {
           'Datetime': formattedDate,
           'Traffic In': trafficInDataPoint,
@@ -224,6 +231,14 @@ export default function InfrastructureView() {
     }
     // console.log("Result:", result);
     return result;
+  }
+
+  function formatTime(seconds) {
+    const days = Math.floor(seconds / (3600 * 24));
+    const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return { days, hours, minutes, seconds: remainingSeconds };
   }
 
   if(loading === false && session && Object.keys(metrics).length > 0){
@@ -241,10 +256,10 @@ export default function InfrastructureView() {
                 <BreadcrumbItem key="services" startContent={<AiOutlineHome/>} href="/servicesView">
                   Services
                 </BreadcrumbItem>
-                <BreadcrumbItem key="world" href={`/worldView?service=${service}`}  startContent={<GiWorld/>}>
+                <BreadcrumbItem key="world" href={`/worldView?currentService=${service}`}  startContent={<GiWorld/>}>
                   {service}
                 </BreadcrumbItem>
-                <BreadcrumbItem key="infra" href={`/worldView?service=${service}&component=${component}`}  startContent={<VscGraph/>} isCurrent={currentPage === "infra"}>
+                <BreadcrumbItem key="infra" href={`/worldView?currentService=${service}&currentComponent=${component}`}  startContent={<VscGraph/>} isCurrent={currentPage === "infra"}>
                   {component}
                 </BreadcrumbItem>
               </Breadcrumbs>
@@ -256,7 +271,7 @@ export default function InfrastructureView() {
                       <TfiReload />
                     </button>
                     <span className='italic pl-3'>
-                      Last updated 14 minutes ago 
+                      Last updated {Math.round(timeDiff/60)} minutes ago
                     </span>
                   </div>
                 </div>
@@ -270,11 +285,16 @@ export default function InfrastructureView() {
                   <div className='flex flex-col lg:w-1/3 xl:w-1/3 pr-4 w-full'>
                     <div className="bg-green-100 p-4 rounded-lg shadow mb-4">
                       <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
-                      <p className="text-3xl flex justify-center items-center text-green-700">Up</p>
+                      <p className="text-3xl flex justify-center items-center text-green-700">Running</p>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow mb-4 lg:mb-0 xl:mb-0">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime (In Seconds)</h2>
-                      <p className="text-3xl flex justify-center items-center">{metrics[3][0]['System Uptime']}</p>
+                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
+                      <p className="text-3xl flex justify-center items-end">
+                        {`${formatTime(metrics[3][0]['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
+                        {`${formatTime(metrics[3][0]['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
+                        {`${formatTime(metrics[3][0]['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
+                        {`${formatTime(metrics[3][0]['System Uptime']).seconds}`}<span className='text-xl'>s </span>
+                      </p>
                     </div> 
                   </div>                
                 ) : (
@@ -285,7 +305,7 @@ export default function InfrastructureView() {
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow">
                       <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Downtime (In Seconds)</h2>
-                      <p className="text-3xl flex justify-center items-center">{downtime}</p>
+                      <p className="text-3xl flex justify-center items-center">{timeDiff}</p>
                     </div>
                   </div>
                 )}
@@ -332,7 +352,7 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Disk Usage"]}
-                    colors={['emerald']}
+                    colors={['orange']}
                     valueFormatter={(value: number) => `${value}%`}
                     tickGap={50}
                   />
@@ -345,7 +365,7 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Traffic In", "Traffic Out"]}
-                    colors={['indigo', 'rose']}
+                    colors={['indigo', 'cyan']}
                     valueFormatter={(value: number) => `${value} bytes`}
                     tickGap={50}
                   />
