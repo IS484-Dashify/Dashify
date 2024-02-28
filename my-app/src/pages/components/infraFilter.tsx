@@ -5,8 +5,7 @@ import {
   ChevronUpIcon,
 } from "@radix-ui/react-icons";
 
-const InfraFilter = () => {
-  const [selectedDateRange, setSelectedDateRange] = useState<string>("");
+const InfraFilter = ({selectedDateRange, setSelectedDateRange} : { selectedDateRange: string; setSelectedDateRange: (dateRange: string) => void; }) => {
   const dateRangeOptions = [
     {label:"Last 15 Minutes", value:"15"},
     {label:"Last 30 Minutes", value:"30"},
