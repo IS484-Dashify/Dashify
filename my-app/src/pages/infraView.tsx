@@ -345,7 +345,7 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Traffic In", "Traffic Out"]}
-                    colors={['pri-500', 'rose']}
+                    colors={['indigo', 'rose']}
                     valueFormatter={(value: number) => `${value} bytes`}
                     tickGap={50}
                   />
