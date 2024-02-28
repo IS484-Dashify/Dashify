@@ -1,70 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { AiOutlineLogin , AiOutlineCreditCard, AiOutlineNotification, AiOutlineSearch, AiOutlineEnvironment, AiOutlineHome } from 'react-icons/ai';
-import RagFilterMenu from "./components/RagFilterMenu";
-import {Card, CardHeader} from "@nextui-org/react";
-import {Avatar} from "@nextui-org/react";
+import { useRouter } from 'next/router';
+import { useSession } from "next-auth/react";
+import { AiOutlineHome, AiOutlineClose } from 'react-icons/ai';
+import { MdOutlineArrowForwardIos } from 'react-icons/md';
+import RagFilter from "./components/ragFilter";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
 import * as Label from '@radix-ui/react-label';
 import Link from 'next/link';
 import Sidebar from "./components/navbar";
+import rawData from './../../public/vmInfo.json';
 
-
+const data: serviceItem[] = rawData as serviceItem[];
 interface serviceItem {
   serviceName: string,
   status: string,
-  Icon: React.ComponentType<any>
 }
 
-// sorting functions be changed depending on the mockServices
-const mockServices = [
-  {
-    serviceName: "Login",
-    status: "red",
-    Icon: AiOutlineLogin
-  },
-  {
-    serviceName: "Payment",
-    status: "amber",
-    Icon: AiOutlineCreditCard
-  },
-  {
-    serviceName: "Notification",
-    status: "green",
-    Icon: AiOutlineNotification
-  },
-  {
-    serviceName: "Search",
-    status: "green",
-    Icon: AiOutlineSearch
-  },
-  {
-    serviceName: "Geolocation",
-    status: "green",
-    Icon: AiOutlineEnvironment
-  },
-
-];
-const order:{ [key: string]: number} = { red: 0, amber: 1, green: 2 };
-const sortedMockServices: serviceItem[]  = mockServices.sort((a, b) => {
+const order:{ [key: string]: number} = { Critical: 0, Warning: 1, Normal: 2 };
+const sortedData: serviceItem[]  = data.sort((a, b) => {
   return order[a.status] - order[b.status];
 })
 
 export default function ServiceView() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    console.log("Session:", session);
+    if(!session){
+      router.push("/auth/login");
+    }
+  }, [session]);
+
   const [currentPage, setCurrentPage] = React.useState("services");
 
   // initialize states
-  const [mockServices, setMockServices] = useState<serviceItem[]>(sortedMockServices); // ! this is the original list, do not manipulate this directly
-  const [searchedServices, setSearchedServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
-  const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedMockServices); // this is used to determine rendered services
-  const [renderedServices, setRenderedServices] = useState<serviceItem[]>(sortedMockServices); // * this is what is being rendered as cards
+  const [services, setServices] = useState<serviceItem[]>(sortedData); // ! this is the original list, do not manipulate this directly
+  const [searchedServices, setSearchedServices] = useState<serviceItem[]>(sortedData); // this is used to determine rendered services
+  const [filteredServices, setFilteredServices] = useState<serviceItem[]>(sortedData); // this is used to determine rendered services
+  const [renderedServices, setRenderedServices] = useState<serviceItem[]>(sortedData); // * this is what is being rendered as cards
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filterSettings, setFilterSettings] = useState<Array<string>>(["red", "amber", "green"]);
+  const [filterSettings, setFilterSettings] = useState<Array<string>>(["Critical", "Warning", "Normal"]);
 
   // handle search & filter
   // Determine services that meet search criteria
   useEffect(() => {
     let result = [];
-    for (let service of mockServices) {
+    for (let service of services) {
       if(service.serviceName.toLowerCase().includes(searchQuery.toLowerCase())) {
         result.push(service);
       }
@@ -85,7 +67,7 @@ export default function ServiceView() {
 
   useEffect(() => {
     let result=[];
-    for (let service of mockServices) {
+    for (let service of services) {
       if(filterSettings.includes(service.status)) {
         result.push(service);
       }
@@ -107,15 +89,17 @@ export default function ServiceView() {
     // Handle reset
     const handleReset = () => {
       setSearchQuery("");
-      setFilterSettings(["red", "amber", "green"]);
+      setFilterSettings(["Critical", "Warning", "Normal"]);
       setSearchQuery("");
     }
-
+    console.log(data)
+    console.log(sortedData)
+    console.log(renderedServices)
   return (
     <main>
-      <div className="h-screen min-h-full overflow-hidden flex flex-row">
+      <div className="h-screen min-h-full flex flex-row">
         <Sidebar/>
-        <div className="w-full px-14 py-6 ml-20 h-full">
+        <div className="w-full px-14 py-6 h-full ml-16">
           <div id='top-menu' className='mb-8 z-50'>
             <Breadcrumbs 
               size="lg" 
@@ -126,71 +110,51 @@ export default function ServiceView() {
                 Services
               </BreadcrumbItem>
             </Breadcrumbs>
-            <h1 className='text-4xl font-bold text-indigo-d-500 mt-1 pb-8 pt-2'>Services</h1>
-            <div className='flex flex-col xl:flex-row justify-center xl:items-center w-full'>
-              <div className="mb-4 xl:mb-0">
+            <h1 className='text-4xl font-bold text-pri-500 mt-1 pb-8 pt-2'>Services</h1>
+            <div className='flex justify-center xl:items-center w-full flex-col xl:flex-row '>
+              <div className="flex w-fit">
                 <Label.Root className="text-[15px] font-medium leading-[35px] text-text mr-2" htmlFor="">
-                  Filter By
+                  Filter By Status
                 </Label.Root>
-                <RagFilterMenu filterSettings={filterSettings} handleFilterClick={handleFilterClick}/>
+                <RagFilter filterSettings={filterSettings} handleFilterClick={handleFilterClick}/>
               </div>
-              <div className='flex'>
-                <div className="flex flex-wrap items-center gap-[15px] xl:ml-2 mr-2.5">
-                  <input
-                    autoComplete="off"
-                    className="inline-flex h-[2.5rem] lg:w-[34rem] appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:placeholder:text-lavender-500 hover:bg-lavender-100/70 focus:shadow focus:bg-lavender-100/70 focus:border-lavender-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-lavender-500 transition-all duration-200 ease-in-out"
-                    type="text"
-                    id="searchQuery"
-                    placeholder="Search services by name..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <button 
-                    className="h-[2.5rem] px-4 bg-indigo-d-300 rounded-[4px] text-[#F2F3F4] border-1 border-indigo-d-300 shadow-md shadow-transparent hover:border-indigo-d-400 hover:bg-indigo-d-400 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
-                    onClick={() => {handleReset()}}
-                  >
-                    Reset
-                  </button>
-                </div>
+              <div className="flex flex-wrap items-center gap-[15px] xl:ml-8 mt-4 xl:mt-0 relative">
+                <input
+                  autoComplete="off"
+                  className="inline-flex h-[2.5rem] w-[34rem] max-w-full appearance-none bg-transparent border-1 border-slate-500/20 shadow-inner items-center justify-center rounded-[4px] pl-[10px] pr-[30px] text-[15px] leading-none text-text placeholder:text-text/50 outline-none hover:placeholder:text-pri-500 hover:bg-pri-100/70 hover:border-pri-500 focus:shadow focus:bg-pri-100/70 focus:border-pri-500 focus:ring-0 focus:ring-offset-0 focus:ring-offset-transparent focus:ring-pri-500 transition-all duration-200 ease-in-out"
+                  type="text"
+                  id="searchQuery"
+                  placeholder="Search services by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button 
+                  className="h-[2.5rem] px-4 bg-pri-500 rounded-[4px] text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                  onClick={() => {handleReset()}}
+                >
+                  Reset
+                </button>
               </div>
             </div>
           </div>
           {renderedServices.length > 0 ? (
-          <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 xs:grid-cols-1 gap-4">
-            {renderedServices.map(({ serviceName, status, Icon }, index) => (
-              <div className="shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring rounded-lg" key={index}>
-                <Link href={`/worldView?service=${serviceName}`}>
-                  <Card 
-                    className='py-2 px-4 cursor-pointer z-0 bg-white shadow-none rounded-lg'
-                  >
-                    <CardHeader className="flex justify-start align-middle text-text">
-                      {
-                        status === "red" 
-                        ? (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: "#ffa5a1", color: "#f01e2c"}}
-                          />
-                        ): status === "amber"
-                        ? (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: '#ffc17a', color: "#ff7e00"}}
-                          />
-                        ): status === "green"
-                        ?  (<Avatar  
-                            icon={<Icon size={24}/>} 
-                            style={{ backgroundColor: "#acdf87", color: "#4c9a2a" }}
-                          />
-                        ): null
-                      }
-                      <h4 className="font-bold text-large text-text ml-4">{serviceName}</h4>
-                    </CardHeader> 
-                  </Card>
-                </Link>
-              </div>
-            ))}
-          </div>
+            <div className="grid grid-cols-4 gap-7">
+              {renderedServices.map(({ serviceName, status }, index) => (
+                <div className={`py-4 px-6 cursor-pointer z-0 border-l-4 rounded-lg bg-white shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring ${status === "Critical" ? "border-reddish-200" : status === "Normal" ? "border-greenish-200" : "border-amberish-200"}`} key={index}>
+                  <Link href={`/worldView?currentService=${serviceName}`}>
+                    <div id="serviceCard" className="flex justify-between">
+                      <h4 className="font-bold text-md text-text">{serviceName}</h4>
+                      <div>
+                        <MdOutlineArrowForwardIos 
+                          size={20} 
+                          className="text-text/30 h-full"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
           ): (
             <div className="text-center w-full text-text/60 italic">
               <p>No services found.</p>

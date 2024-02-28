@@ -2,14 +2,17 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import {NextUIProvider} from "@nextui-org/react";
 import {useRouter} from 'next/router'
+import { SessionProvider } from "next-auth/react"
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps:{ session, ...pageProps}}: AppProps) {
   
   const router = useRouter();
 
   return (
-    <NextUIProvider navigate={router.push}>
-      <Component {...pageProps} />
-    </NextUIProvider>
+    <SessionProvider session={session}>
+      <NextUIProvider navigate={router.push}>
+        <Component {...pageProps} />
+      </NextUIProvider>
+    </SessionProvider>
   );
 }

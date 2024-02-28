@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { AiOutlineLogout } from "react-icons/ai";
 import { MdOutlineDashboard } from "react-icons/md";
@@ -52,29 +53,23 @@ const Sidebar = () => {
 
 
   return (
-    <div className="border-r-2 px-3 pt-6 flex flex-col items-center fixed top-0 left-0 h-full bg-white">
-      <Image src="/logo.png" alt="" width={28} height={28} />
-      <div className="text-xs italic pt-2 text-gray-600 font-bold">DASHIFY</div>
+    <div className="border-r-2 px-3 pt-6 flex flex-col items-center bg-white fixed h-full">
+      <Image src="/logo(down).png" alt="" width={35} height={35} />
       <div className="flex flex-col h-full items-center justify-center"> 
       {sidebarNavItems.map((item, index) => (
-        <div
-          key={index}
-          className={`mb-6 p-2 ${activeIndex === index ? "bg-indigo-d-200 rounded-lg" : ""}`}
-          onClick={() => setActiveIndex(index)}
-        >
-          <Link href={item.to} key={index}> 
-          <div className="opacity-60">
-            {item.icon}
-          </div>
-          </Link>
+      <Link href={item.to} key={index}> 
+        <div className={`my-4 rounded-md ${activeIndex === index ? "text-pri-500" : "opacity-50 hover:opacity-100 hover:text-pri-500"}`}
+          onClick={() => setActiveIndex(index)}>
+          {item.icon}
         </div>
-      ))}
+      </Link>
+    ))}
       </div>
       <Popover placement="right-end" shouldCloseOnBlur={true} className="ml-8">
         <PopoverTrigger>
-          <div className="my-6">
+          <div className="my-4 p-1">
             <Badge content="5" color="danger">
-              <div className="opacity-60">
+              <div className="opacity-50 hover:opacity-100 hover:text-pri-500">
                 <IoNotificationsOutline size={25}/>
               </div>
             </Badge>
@@ -87,9 +82,9 @@ const Sidebar = () => {
               <>
                 {notifications.map(notification => 
                   <div key={notification.id} className="pb-2 my-3 border-b flex items-center">
-                    <div className={`w-3 h-3 rounded-full mr-2 ${notification.ragStatus === 'red' ? 'bg-red-500' : 
-                                    notification.ragStatus === 'amber' ? 'bg-yellow-500' : 
-                                    notification.ragStatus === 'green' ? 'bg-green-500' : ''}`}>
+                    <div className={`w-3 h-3 rounded-full mr-2 ${notification.ragStatus === 'red' ? 'bg-reddish-100 border-2 border-reddish-200' : 
+                                    notification.ragStatus === 'amber' ? 'bg-amberish-100 border-2 border-amberish-200' : 
+                                    notification.ragStatus === 'green' ? 'bg-greenish-100 border-2 border-greenish-200' : ''}`}>
                     </div>
                     <div className="w-11/12">
                       <div className="break-all">{notification.message}</div>
@@ -108,7 +103,7 @@ const Sidebar = () => {
           </div>
         </PopoverContent>
       </Popover>
-      <div className="opacity-60 pb-6"><AiOutlineLogout size={25}/></div>
+      <button onClick={()=> signOut()}><div className="opacity-60 pb-6"><AiOutlineLogout size={25}/></div></button>
     </div>
   );
 };
