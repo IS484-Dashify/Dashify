@@ -223,11 +223,19 @@ export default function InfrastructureView() {
                     yAxisWidth={65}
                     categories={["Cpu Usage"]}
                     colors={['indigo']}
+                    valueFormatter={(value: number) => `${value * 100}%`}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
                   <h2 className="text-lg text-gray-600 font-bold mb-4">Memory Usage</h2>
-                  {/* Add graph here */}
+                  <AreaChart
+                    className="mt-4 h-72"
+                    data={metrics[3]}
+                    index="Datetime"
+                    yAxisWidth={65}
+                    categories={["Cpu Usage"]}
+                    colors={['indigo']}
+                  />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
                   <h2 className="text-lg text-gray-600 font-bold mb-4">Disk Usage</h2>
