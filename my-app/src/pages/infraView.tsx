@@ -12,6 +12,10 @@ import Sidebar from "./components/navbar";
 import InfraFilter from "./components/infraFilter"
 import { AreaChart } from '@tremor/react';
 import rawData from './../../public/vmInfo.json';
+import Terminal, { ColorMode, TerminalOutput } from 'react-terminal-ui';
+
+const terminalData = "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)"
+
 
 const data: Service[] = rawData as Service[];
 type Status = "Critical" | "Warning" | "Normal";
@@ -119,6 +123,9 @@ export default function InfrastructureView() {
   const [systemStatus, setSystemStatus] = useState(true);
   const [timeDiff, setTimeDiff] = useState(0);
   const [minutes, setMinutes] = useState(0);
+  const [terminalLineData, setTerminalLineData] = useState([
+    <TerminalOutput>{terminalData}</TerminalOutput>
+  ]);
 
   useEffect(() => {
     // console.log("Session:", session);
@@ -300,38 +307,40 @@ export default function InfrastructureView() {
               </div>
             </div>
             <div className="flex h-full flex-col w-full">
-              <div className='xl:flex lg:flex xl:flex-row lg:flex-row w-full mb-4'>
-                {systemStatus ? (
-                  <div className='flex flex-col lg:w-1/3 xl:w-1/3 pr-4 w-full'>
-                    <div className="bg-green-100 p-4 rounded-lg shadow mb-4">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
-                      <p className="text-3xl flex justify-center items-center text-green-700">Running</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow mb-4 lg:mb-0 xl:mb-0">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
-                      <p className="text-3xl flex justify-center items-end">
-                        {`${formatTime(metrics[3][0]['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
-                        {`${formatTime(metrics[3][0]['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
-                        {`${formatTime(metrics[3][0]['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
-                        {`${formatTime(metrics[3][0]['System Uptime']).seconds}`}<span className='text-xl'>s </span>
-                      </p>
-                    </div> 
-                  </div>                
-                ) : (
-                  <div className='flex flex-col lg:w-1/3 xl:w-1/3 pr-4 w-full'>
-                    <div className="bg-red-100 p-4 rounded-lg shadow mb-4">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
-                      <p className="text-3xl flex justify-center items-center text-red-500">Down</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Downtime (In Seconds)</h2>
-                      <p className="text-3xl flex justify-center items-center">{timeDiff}</p>
-                    </div>
+              {systemStatus ? (
+                <div className='flex w-full gap-4'>
+                  <div className="bg-green-100 p-4 rounded-lg shadow mb-4 w-1/2">
+                    <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
+                    <p className="text-3xl flex justify-center items-center text-green-700">Running</p>
                   </div>
-                )}
-                <div className="bg-white p-4 rounded-lg shadow lg:w-2/3 xl:w-2/3 w-full">
-                  <h2 className="text-lg text-gray-600 font-bold mb-4">Logs</h2>
-                  {/* Add graph here */}
+                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
+                    <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
+                    <p className="text-3xl flex justify-center items-end">
+                      {`${formatTime(metrics[3][0]['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime(metrics[3][0]['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime(metrics[3][0]['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
+                      {`${formatTime(metrics[3][0]['System Uptime']).seconds}`}<span className='text-xl'>s </span>
+                    </p>
+                  </div> 
+                </div>                
+              ) : (
+                <div className='flex w-full'>
+                  <div className="bg-red-100 p-4 rounded-lg shadow mb-4">
+                    <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
+                    <p className="text-3xl flex justify-center items-center text-red-500">Down</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Downtime (In Seconds)</h2>
+                    <p className="text-3xl flex justify-center items-center">{timeDiff}</p>
+                  </div>
+                </div>
+              )}
+              <div className='xl:flex lg:flex xl:flex-row lg:flex-row w-full mb-4'>
+                <div className="bg-white p-4 rounded-lg shadow w-full">
+                  <h2 className="text-lg text-gray-600 font-bold mb-4 w-full">Logs</h2>
+                  <Terminal colorMode={ ColorMode.Light }  height="px">
+                    { terminalLineData }
+                  </Terminal>
                 </div>
               </div>
               <div className='flex items-center w-full mb-4 mt-6'>
