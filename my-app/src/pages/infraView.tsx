@@ -115,7 +115,7 @@ export default function InfrastructureView() {
   const [currentPage, setCurrentPage] = React.useState("infra");
   const router = useRouter();
   const service = router.query.currentService as string | undefined;
-  const component = router.query.currentComponent as string | undefined;
+  const component = router.query.currentComponent as string;
   const componentDetails = findCountryAndNameByComponent(component!, data)
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
   const [metrics, setMetrics] = useState<Metric[]>([]);
@@ -124,7 +124,7 @@ export default function InfrastructureView() {
   const [timeDiff, setTimeDiff] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [terminalLineData, setTerminalLineData] = useState([
-    <TerminalOutput>{terminalData}</TerminalOutput>
+    <TerminalOutput key={0}>{terminalData}</TerminalOutput>
   ]);
 
   useEffect(() => {
@@ -146,10 +146,10 @@ export default function InfrastructureView() {
       "Node.js Server 2": ["prometheus_metrics_v3 | take ", "3002"]
     }
     const requestBody = {
-      query: `${queries[component][0]}${time}`
+      query: `${queries[component as keyof typeof queries][0]}${time}`
     };
   
-    fetch(`http://20.82.137.238:${queries[component][1]}/queryAdx`, {
+    fetch(`http://20.82.137.238:${queries[component as keyof typeof queries][1]}/queryAdx`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -218,11 +218,11 @@ export default function InfrastructureView() {
   function transformTrafficJSON(transformedData : Metric[]) {
     let result = [];
     for(let i=0; i<transformedData[0].length; i++){
-      let trafficInDataRow = transformedData[6][i];
+      let trafficInDataRow = transformedData[6][i] as unknown as TrafficIn;
       let trafficInDataPoint = trafficInDataRow['Traffic In'];
-      let trafficOutDataRow = transformedData[7][i];
+      let trafficOutDataRow = transformedData[7][i] as unknown as TrafficOut;
       let trafficOutDataPoint = trafficOutDataRow['Traffic Out'];
-      let dateTimeString = transformedData[0][i]['Datetime'];
+      let dateTimeString = trafficOutDataRow['Datetime'];
       if(trafficInDataPoint != null && trafficOutDataPoint != null){
         let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -240,7 +240,7 @@ export default function InfrastructureView() {
     return result;
   }
 
-  function formatTime(seconds) {
+  function formatTime(seconds : number) {
     const days = Math.floor(seconds / (3600 * 24));
     const hours = Math.floor((seconds % (3600 * 24)) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -316,10 +316,11 @@ export default function InfrastructureView() {
                   <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
                     <p className="text-3xl flex justify-center items-end">
-                      {`${formatTime(metrics[3][0]['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
-                      {`${formatTime(metrics[3][0]['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
-                      {`${formatTime(metrics[3][0]['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
-                      {`${formatTime(metrics[3][0]['System Uptime']).seconds}`}<span className='text-xl'>s </span>
+                      
+                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
+                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).seconds}`}<span className='text-xl'>s </span>
                     </p>
                   </div> 
                 </div>                
