@@ -51,6 +51,43 @@ interface RawData {
   Columns: Column[];
   Rows: Row[];
 }
+interface Metric extends Array<DiskUsage[] | Clock[] | CPUUsage[] | SystemUptime[] | MemoryUsage[] | DatetimeOnly[] | TrafficIn[] | TrafficOut[]> {}
+interface DiskUsage {
+  "Disk Usage": number;
+  "Datetime": string;
+}
+interface Clock {
+  "Clock": number;
+  "Datetime": string;
+}
+interface CPUUsage {
+  "CPU Usage": number;
+  "Datetime": string;
+}
+interface SystemUptime {
+  "System Uptime": number;
+  "Datetime": string;
+}
+interface MemoryUsage {
+  "Memory Usage": number;
+  "Datetime": string;
+}
+interface DatetimeOnly {
+  "Datetime": string;
+}
+interface TrafficIn {
+  "Traffic In": number | null;
+  "Datetime": string;
+}
+interface TrafficOut {
+  "Traffic Out": number | null;
+  "Datetime": string;
+}
+interface TrafficMetric {
+  Datetime: string;
+  'Traffic In': number | null; // Assuming 'Traffic In' can be null
+  'Traffic Out': number | null; // Assuming 'Traffic Out' can be null
+}
 
 function findCountryAndNameByComponent(componentName: string, services: Service[]) {
   let results: string[] = [];
@@ -78,8 +115,8 @@ export default function InfrastructureView() {
   const component = router.query.currentComponent as string | undefined;
   const componentDetails = findCountryAndNameByComponent(component!, data)
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
-  const [metrics, setMetrics] = useState<{ [key: string]: any[] }>({});
-  const [trafficMetrics, setTrafficMetrics] = useState([]);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [systemStatus, setSystemStatus] = useState(true);
   const [downtime, setDowntime] = useState(0);
 
@@ -113,8 +150,8 @@ export default function InfrastructureView() {
       const transformedData = transformJSON(data.Tables[0]); 
       const transformedTrafficData = transformTrafficJSON(transformedData);
       // console.log(data.Tables[0])
-      setTrafficMetrics(transformedTrafficData);
       setMetrics(transformedData);
+      setTrafficMetrics(transformedTrafficData);
       setLoading(false);
     })
     .catch((error) => {
@@ -124,20 +161,25 @@ export default function InfrastructureView() {
   
   // ! Check if system is down
   useEffect(() => {
-    if(loading == false){
-        const metricTimestamp = new Date(metrics[0][0].Datetime).getTime();
-        const currentTimestamp = new Date().getTime();
-        const timeDifference = currentTimestamp - metricTimestamp;
-        if (timeDifference < 240000) {
-          setSystemStatus(true); // system down
-        } else {
-          setSystemStatus(false); // system up
-          setDowntime(timeDifference);
+    if(loading == false && metrics[0] && Array.isArray(metrics[0]) && metrics[0].length > 0){
+        const firstElement = metrics[0][0];
+        if('Disk Usage' in firstElement && 'Datetime' in firstElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
+          const diskUsageElement = firstElement as DiskUsage;
+          const datetime = new Date(diskUsageElement.Datetime);
+          const metricTimestamp = datetime.getTime();
+          const currentTimestamp = new Date().getTime();
+          const timeDifference = currentTimestamp - metricTimestamp;
+          if (timeDifference < 240000) {
+            setSystemStatus(true); // system down
+          } else {
+            setSystemStatus(false); // system up
+            setDowntime(timeDifference);
+          }
         }
     }
   }, [metrics, loading]);
   
-  function transformJSON(rawData: RawData) {
+  function transformJSON(rawData: RawData): Metric[] {
     const columnNames = rawData.Columns.map(column => column.ColumnName);
     const chartData = columnNames.map(columnName => {
       const metricData: any[] = [];
@@ -146,7 +188,7 @@ export default function InfrastructureView() {
         const dataPoint: any = { [columnName === "Cpu Usage" ? "CPU Usage" : columnName]: row[columnIndex] };
         const dateTimeString = row[columnNames.indexOf("Datetime")];
         if (dateTimeString) {
-          const dateTime = new Date(dateTimeString);
+          let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
           const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
           dataPoint["Datetime"] = formattedDate;
@@ -155,14 +197,17 @@ export default function InfrastructureView() {
       });
       return metricData;
     });
+    // console.log("ChartData:", chartData);
     return chartData;
   }
 
-  function transformTrafficJSON(transformedData) {
+  function transformTrafficJSON(transformedData : Metric[]) {
     let result = [];
     for(let i=0; i<transformedData[0].length; i++){
-      let trafficInDataPoint = transformedData[6][i]['Traffic In'];
-      let trafficOutDataPoint = transformedData[7][i]['Traffic Out'];
+      let trafficInDataRow = transformedData[6][i];
+      let trafficInDataPoint = trafficInDataRow['Traffic In'];
+      let trafficOutDataRow = transformedData[7][i];
+      let trafficOutDataPoint = trafficOutDataRow['Traffic Out'];
       let dateTimeString = transformedData[0][i]['Datetime'];
       if(trafficInDataPoint != null && trafficOutDataPoint != null){
         const dateTime = new Date(dateTimeString);
@@ -292,7 +337,7 @@ export default function InfrastructureView() {
                     tickGap={50}
                   />
                 </div>
-                <div className="bg-white p-4 rounded-lg ">
+                <div className="bg-white p-4 rounded-lg border-t-4">
                   <h2 className="text-lg  text-gray-600 font-bold mb-4">Traffic</h2>
                   <AreaChart
                     className="mt-4 h-72"
