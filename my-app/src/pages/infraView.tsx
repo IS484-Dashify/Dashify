@@ -134,10 +134,11 @@ export default function InfrastructureView() {
 
   const fetchData = () => {
     const time = selectedDateRange; 
-    const queries = {"Component 1": "prometheus-metrics", "Component 2": "nifi_metrics"}
+    const queries = {"Node.js Server 1": "nifi_metrics", "Node.js Server 2": "prometheus-metrics"}
     const requestBody = {
-      query: `nifi_metrics | order by Datetime desc | take ${time}`
+      query: `${queries[component]} | order by Datetime desc | take ${time}`
     };
+    console.log(requestBody)
   
     fetch('http://20.82.137.238:3001/queryAdx', {
       method: 'POST',
@@ -194,6 +195,7 @@ export default function InfrastructureView() {
       rawData.Rows.forEach(row => {
         const dataPoint: any = { [columnName === "Cpu Usage" ? "CPU Usage" : columnName]: row[columnIndex] };
         const dateTimeString = row[columnNames.indexOf("Datetime")];
+
         if (dateTimeString) {
           let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -326,7 +328,7 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["CPU Usage"]}
-                    colors={['indigo']}
+                    colors={['blue']}
                     valueFormatter={(value: number) => `${value * 100}%`}
                     tickGap={50}
                   />
@@ -352,7 +354,7 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Disk Usage"]}
-                    colors={['indigo']}
+                    colors={['blue']}
                     valueFormatter={(value: number) => `${value}%`}
                     tickGap={50}
                   />
@@ -365,7 +367,7 @@ export default function InfrastructureView() {
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Traffic In", "Traffic Out"]}
-                    colors={['indigo', 'cyan']}
+                    colors={['blue', 'cyan']}
                     valueFormatter={(value: number) => `${value} bytes`}
                     tickGap={50}
                   />
