@@ -193,7 +193,7 @@ export default function WorldView() {
   const { data: session } = useSession();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    console.log("Session:", session);
+    // console.log("Session:", session);
     if(!session){
       router.push("/auth/login");
     }
@@ -204,7 +204,7 @@ export default function WorldView() {
   const { currentService } = router.query;
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);  
-  console.log(currentService)
+  // console.log(currentService);
 
   const handleMarkerClick = (marker : Marker) => {
     setSelectedMarker(marker);

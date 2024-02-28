@@ -1,5 +1,7 @@
 import React, { useEffect, useState }from 'react';
 import { useSession } from "next-auth/react";
+import { useRouter } from 'next/router';
+
 import { AiOutlineHome } from 'react-icons/ai';
 import { MdOutlineLocationOn } from "react-icons/md";
 import { HiOutlineComputerDesktop } from "react-icons/hi2";
@@ -7,11 +9,10 @@ import { GiWorld } from "react-icons/gi";
 import { TfiReload } from "react-icons/tfi";
 import { VscGraph } from "react-icons/vsc";
 import { Breadcrumbs, BreadcrumbItem, DropdownItemProps } from "@nextui-org/react";
-import { useRouter } from 'next/router';
 import Sidebar from "./components/navbar";
 import InfraFilter from "./components/infraFilter"
-import rawData from './../../public/vmInfo.json';
 import { AreaChart } from '@tremor/react';
+import rawData from './../../public/vmInfo.json';
 
 const data: Service[] = rawData as Service[];
 type Status = "Critical" | "Warning" | "Normal";
@@ -69,13 +70,13 @@ export default function InfrastructureView() {
   const componentDetails = findCountryAndNameByComponent(component!, data)
   const [metrics, setMetrics] = useState<{ [key: string]: any[] }>({});
   useEffect(() => {
-    console.log("Metrics:", metrics);
+    console.log("Metrics:", metrics[2]);
   }, [metrics]);
   const [systemStatus, setSystemStatus] = useState(true);
   const [downtime, setDowntime] = useState(0);
 
   useEffect(() => {
-    console.log("Session:", session);
+    // console.log("Session:", session);
     if (!session) {
       router.push("/auth/login");
     }
@@ -102,7 +103,7 @@ export default function InfrastructureView() {
     .then(response => response.json())
     .then(data => {
       const transformedData = transformJSON(data.Tables[0]); 
-      console.log(data.Tables[0])
+      // console.log(data.Tables[0])
       setMetrics(transformedData);
       setLoading(false);
     })
@@ -218,9 +219,9 @@ export default function InfrastructureView() {
                   <AreaChart
                     className="mt-4 h-72"
                     data={metrics[2]}
-                    index="date"
+                    index="Datetime"
                     yAxisWidth={65}
-                    categories={["CPU Usage"]}
+                    categories={["Cpu Usage"]}
                     colors={['indigo']}
                   />
                 </div>

@@ -26,7 +26,7 @@ export default function ServiceView() {
   const router = useRouter();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    console.log("Session:", session);
+    // console.log("Session:", session);
     if(!session){
       router.push("/auth/login");
     }
@@ -92,9 +92,9 @@ export default function ServiceView() {
       setFilterSettings(["Critical", "Warning", "Normal"]);
       setSearchQuery("");
     }
-    console.log(data)
-    console.log(sortedData)
-    console.log(renderedServices)
+    // console.log(data)
+    // console.log(sortedData)
+    // console.log(renderedServices)
   return (
     <main>
       <div className="h-screen min-h-full flex flex-row">
