@@ -1,7 +1,6 @@
 import React, { useEffect, useState }from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/router';
-
 import { AiOutlineHome } from 'react-icons/ai';
 import { MdOutlineLocationOn } from "react-icons/md";
 import { HiOutlineComputerDesktop } from "react-icons/hi2";
@@ -119,6 +118,7 @@ export default function InfrastructureView() {
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [systemStatus, setSystemStatus] = useState(true);
   const [timeDiff, setTimeDiff] = useState(0);
+  const [minutes, setMinutes] = useState(0);
 
   useEffect(() => {
     // console.log("Session:", session);
@@ -134,13 +134,15 @@ export default function InfrastructureView() {
 
   const fetchData = () => {
     const time = selectedDateRange; 
-    const queries = {"Node.js Server 1": "nifi_metrics", "Node.js Server 2": "prometheus-metrics"}
+    const queries = {
+      "Node.js Server 1": ["nifi_metrics | order by Datetime desc | take ", "3001" ],
+      "Node.js Server 2": ["prometheus_metrics_v3 | take ", "3002"]
+    }
     const requestBody = {
-      query: `${queries[component]} | order by Datetime desc | take ${time}`
+      query: `${queries[component][0]}${time}`
     };
-    console.log(requestBody)
   
-    fetch('http://20.82.137.238:3001/queryAdx', {
+    fetch(`http://20.82.137.238:${queries[component][1]}/queryAdx`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -151,39 +153,36 @@ export default function InfrastructureView() {
     .then(data => {
       const transformedData = transformJSON(data.Tables[0]); 
       const transformedTrafficData = transformTrafficJSON(transformedData);
-      // console.log(data.Tables[0])
+      console.log(data.Tables[0])
       setMetrics(transformedData);
       setTrafficMetrics(transformedTrafficData);
       setLoading(false);
+      setMinutes(0)
     })
     .catch((error) => {
       console.error('Error:', error);
     });
   };
   
-  function getTimeDifferenceInSeconds(timeString) {
-    const givenTime = new Date(timeString);
-    const currentTime = new Date();
-    const timeDifference = currentTime - givenTime;
-    const timeDifferenceInSeconds = Math.floor(timeDifference / 1000);
-    return timeDifferenceInSeconds;
-  }
-  
   // ! Check if system is down
   useEffect(() => {
     if(loading == false){
-        const latestElement = metrics[0][9];
-        if('Disk Usage' in latestElement && 'Datetime' in latestElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
-          const diskUsageElement = latestElement as DiskUsage;
-          const metricTimestamp = new Date(diskUsageElement.Datetime);
-          const timeDifference = getTimeDifferenceInSeconds(metricTimestamp);
+      const latestElement = metrics[0][parseInt(selectedDateRange) - 1];
+      console.log(latestElement)
+      if('Disk Usage' in latestElement && 'Datetime' in latestElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
+        const diskUsageElement = latestElement as DiskUsage;
+        const metricTimestamp = new Date(diskUsageElement.Datetime);
+        const currentTimestamp = new Date()
+        if (!isNaN(metricTimestamp.getTime()) && !isNaN(currentTimestamp.getTime())) {
+          const timeDifference = (currentTimestamp.getTime() - metricTimestamp.getTime()) / 1000;
+          setTimeDiff(timeDifference);
           if (timeDifference < 240000) {
             setSystemStatus(true); // system down
           } else {
             setSystemStatus(false); // system up
           }
-          setTimeDiff(timeDifference);
         }
+      }
     }
   }, [metrics, loading]);
   
@@ -195,7 +194,6 @@ export default function InfrastructureView() {
       rawData.Rows.forEach(row => {
         const dataPoint: any = { [columnName === "Cpu Usage" ? "CPU Usage" : columnName]: row[columnIndex] };
         const dateTimeString = row[columnNames.indexOf("Datetime")];
-
         if (dateTimeString) {
           let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -243,6 +241,22 @@ export default function InfrastructureView() {
     return { days, hours, minutes, seconds: remainingSeconds };
   }
 
+  useEffect(() => {
+    const calculateTime = () => {
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - startTime;
+        const minutesSinceRender = Math.floor(elapsedTime / 60000); 
+        setMinutes(minutesSinceRender);
+      }, 60000); 
+      return () => clearInterval(interval);
+    };
+    calculateTime();
+  }, []); 
+
+
+  console.log(metrics)
   if(loading === false && session && Object.keys(metrics).length > 0){
     return (
       <main>
@@ -277,7 +291,7 @@ export default function InfrastructureView() {
                       Reload
                     </button>
                     <span className='italic pl-3'>
-                      Last updated {Math.round(timeDiff/60)} minutes ago
+                      Last updated {minutes} minutes ago
                     </span>
                   </div>
                 </div>
