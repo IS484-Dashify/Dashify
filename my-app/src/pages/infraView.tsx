@@ -194,7 +194,6 @@ export default function InfrastructureView() {
       rawData.Rows.forEach(row => {
         const dataPoint: any = { [columnName === "Cpu Usage" ? "CPU Usage" : columnName]: row[columnIndex] };
         const dateTimeString = row[columnNames.indexOf("Datetime")];
-        console.log("zzzz" + dateTimeString)
         if (dateTimeString) {
           let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -218,7 +217,7 @@ export default function InfrastructureView() {
       let trafficOutDataPoint = trafficOutDataRow['Traffic Out'];
       let dateTimeString = transformedData[0][i]['Datetime'];
       if(trafficInDataPoint != null && trafficOutDataPoint != null){
-        const dateTime = new Date(dateTimeString);
+        let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
         let temp = {
