@@ -131,12 +131,15 @@ export default function InfrastructureView() {
   // Date range for metrics
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
   const [metrics, setMetrics] = useState<Metric>({});
-  useEffect(() => {
-    console.log("Metrics:", metrics);
-  }, [metrics]);
+  // useEffect(() => {
+  //   console.log("Metrics:", metrics);
+  // }, [metrics]);
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [timeDiff, setTimeDiff] = useState(0); // time difference between current time and last metric
   const [minutes, setMinutes] = useState(0); // minutes since last render
+  // useEffect(() => {
+  //   console.log("MInutes changed to:", minutes);
+  // }, [minutes]);
 
   useEffect(() => {
     // console.log("Session:", session);
@@ -148,14 +151,13 @@ export default function InfrastructureView() {
   // * Retrieve metrics from db on page load
   useEffect(() => {
     fetchData();
-    calculateTime();
   }, [selectedDateRange]);
 
   const calculateTime = () => {
     const startTime = Date.now();
     const interval = setInterval(() => {
       const currentTime = Date.now();
-      console.log(currentTime);
+      // console.log(currentTime);
       const elapsedTime = currentTime - startTime;
       const minutesSinceRender = Math.floor(elapsedTime / 60000); 
       setMinutes(minutesSinceRender);
@@ -268,13 +270,11 @@ export default function InfrastructureView() {
       });
       return metricData;
     });
-    console.log("Chart Data:", chartData);
     return convertToDictionary(chartData);
   }
 
   function transformTrafficJSON(transformedData : Metric) {
     let result = [];
-    console.log("Traffic In:", transformedData["Traffic In"]);
     for(let i=0; i<(transformedData["Traffic In"]).length; i++){
       let trafficInDataRow = transformedData[("Traffic In")][i] as unknown as TrafficIn;
       let trafficInDataPoint = trafficInDataRow['Traffic In'];
