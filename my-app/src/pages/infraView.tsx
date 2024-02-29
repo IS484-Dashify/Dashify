@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState }from 'react';
+import React, { useEffect, useState }from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/router';
 import { AiOutlineHome } from 'react-icons/ai';
@@ -13,7 +13,7 @@ import InfraFilter from "./components/infraFilter"
 import { AreaChart } from '@tremor/react';
 import rawData from './../../public/vmInfo.json';
 import Terminal, { ColorMode, TerminalOutput } from 'react-terminal-ui';
-import { stringify } from 'querystring';
+import { DateTimeFormatOptions } from 'intl';
 
 const rawTerminalData = [
   "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)",
@@ -152,12 +152,12 @@ export default function InfrastructureView() {
   // * Retrieve metrics from db on page load
   useEffect(() => {
     fetchData();
-  }, [selectedDateRange]);
+  }, [selectedDateRange, systemStatus, loading]);
 
   const fetchData = () => {
     const queries = {
       "Node.js Server 1": ["nifi_metrics | order by Datetime desc | take ", "3001" ],
-      "Node.js Server 2": ["prometheus_metrics | take ", "3002"]
+      "Node.js Server 2": ["prometheus_metrics | order by Datetime desc | take ", "3002"]
     }
     const requestBody = {
       query: `${queries[component as keyof typeof queries][0]} 1440`
@@ -223,14 +223,14 @@ export default function InfrastructureView() {
   }
 
   // convert array to dictionary, key is the name of the metric
-  function convertToDictionary(arr: any[]) {
-    const filterTime = parseInt(selectedDateRange); 
+  function convertToDictionary(arr: any[]) { 
+    const filterTime = parseInt(selectedDateRange);
     let result : Metric = {};
     for(let subArray of arr){
       let key = Object.keys(subArray[0])[0];
       result[key] = subArray.reverse();
     }
-    let metricsToCleanup= ["CPU Usage", "Disk Usage", "Memory Usage"];
+    let metricsToCleanup= ["CPU Usage", "Disk Usage", "Memory Usage", "System Uptime"];
     for(let metric of metricsToCleanup){
       result[metric] = convertNullToZero(result[metric]);
     }
@@ -312,11 +312,22 @@ export default function InfrastructureView() {
   // last updated
   const getCurrentSGTDateTime = () => {
     const now = new Date();
-    return now.toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+    const options: DateTimeFormatOptions = {
+        timeZone: 'Asia/Singapore',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    };
+    return now.toLocaleString('en-SG', options);
   };
   useEffect(() => {
     setLastUpdated(getCurrentSGTDateTime())
   }, []);
+
+  console.log(metrics["System Uptime"])
 
   if(loading === false && session && Object.keys(metrics).length > 0){
     return (
@@ -370,10 +381,9 @@ export default function InfrastructureView() {
                   <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
                     <p className="text-3xl flex justify-center items-end">
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).seconds}`}<span className='text-xl'>s </span>
+                      {`${formatTime((metrics["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime((metrics["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime((metrics["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
                     </p>
                   </div> 
                 </div> 
