@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState }from 'react';
+import React, { useEffect, useState }from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/router';
 import { AiOutlineHome } from 'react-icons/ai';
@@ -13,6 +13,7 @@ import InfraFilter from "./components/infraFilter"
 import { AreaChart } from '@tremor/react';
 import rawData from './../../public/vmInfo.json';
 import Terminal, { ColorMode, TerminalOutput } from 'react-terminal-ui';
+import { DateTimeFormatOptions } from 'intl';
 
 const rawTerminalData = [
   "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)",
@@ -128,6 +129,7 @@ export default function InfrastructureView() {
 
   // Logs
   const [terminalLineData, setTerminalLineData] = useState<JSX.Element | null>(null);
+
   // Date range for metrics
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
   const [metrics, setMetrics] = useState<Metric>({});
@@ -135,11 +137,11 @@ export default function InfrastructureView() {
   //   console.log("Metrics:", metrics);
   // }, [metrics]);
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
-  const [timeDiff, setTimeDiff] = useState(0); // time difference between current time and last metric
-  const [minutes, setMinutes] = useState(0); // minutes since last render
-  // useEffect(() => {
-  //   console.log("MInutes changed to:", minutes);
-  // }, [minutes]);
+  const [downtime, setDowntime] = useState(0); // time difference between current time and last metric
+  const [uptime, setUptime] = useState(0)
+  
+  // Last Updated
+  const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
     // console.log("Session:", session);
@@ -151,28 +153,15 @@ export default function InfrastructureView() {
   // * Retrieve metrics from db on page load
   useEffect(() => {
     fetchData();
-  }, [selectedDateRange]);
-
-  const calculateTime = () => {
-    const startTime = Date.now();
-    const interval = setInterval(() => {
-      const currentTime = Date.now();
-      // console.log(currentTime);
-      const elapsedTime = currentTime - startTime;
-      const minutesSinceRender = Math.floor(elapsedTime / 60000); 
-      setMinutes(minutesSinceRender);
-    }, 60000); 
-    return () => clearInterval(interval);
-  };
+  }, [selectedDateRange, systemStatus, loading]);
 
   const fetchData = () => {
-    const time = selectedDateRange; 
     const queries = {
       "Node.js Server 1": ["nifi_metrics | order by Datetime desc | take ", "3001" ],
-      "Node.js Server 2": ["prometheus_metrics | take ", "3002"]
+      "Node.js Server 2": ["prometheus_metrics | order by Datetime desc | take ", "3002"]
     }
     const requestBody = {
-      query: `${queries[component as keyof typeof queries][0]}${time}`
+      query: `${queries[component as keyof typeof queries][0]} 1440`
     };
   
     fetch(`http://20.82.137.238:${queries[component as keyof typeof queries][1]}/queryAdx`, {
@@ -189,31 +178,25 @@ export default function InfrastructureView() {
       // console.log(data.Tables[0])
       setMetrics(transformedData);
       setTrafficMetrics(transformedTrafficData);
+      setLastUpdated(getCurrentSGTDateTime())
       setLoading(false);
-      setMinutes(0);
-      calculateTime();
     })
     .catch((error) => {
       console.error('Error:', error);
     });
   };
-  
+
   // ! Check if system is down
   useEffect(() => {
     if(loading == false){
-      const latestElement = metrics["Disk Usage"][parseInt(selectedDateRange) - 1];
-      if('Disk Usage' in latestElement && 'Datetime' in latestElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
-        const diskUsageElement = latestElement as DiskUsage;
-        const metricTimestamp = new Date(diskUsageElement.Datetime);
-        const currentTimestamp = new Date()
-        if (!isNaN(metricTimestamp.getTime()) && !isNaN(currentTimestamp.getTime())) {
-          const timeDifference = (currentTimestamp.getTime() - metricTimestamp.getTime()) / 1000;
-          setTimeDiff(timeDifference);
-          if (timeDifference < 240000) {
-            setSystemStatus(true); // system down
-          } else {
-            setSystemStatus(false); // system up
-          }
+      const latestElement = metrics["System Uptime"][parseInt(selectedDateRange) - 1];
+      if('System Uptime' in latestElement && 'Datetime' in latestElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
+        const systemUptimeElement = latestElement as SystemUptime;
+        if (systemUptimeElement['System Uptime'] !== 0){
+          setSystemStatus(true);
+        }
+        else {
+          setSystemStatus(false);
         }
       }
     }
@@ -230,29 +213,44 @@ export default function InfrastructureView() {
     return result;
   }
 
+  // find time for earliest 0 uptime (only for down components!!)
+  function findHighestZeroDatetime(data : SystemUptime[]) {
+    for (let i = data.length - 2; i >= 0; i--) {
+      const uptimeDict = data[i];
+      if (uptimeDict['System Uptime'] !== 0) {
+          return (data[i + 1]['Datetime']);
+      }
+    }
+  }
+
   // convert array to dictionary, key is the name of the metric
-  function convertToDictionary(arr: any[]) {
+  function convertToDictionary(arr: any[]) { 
+    const filterTime = parseInt(selectedDateRange);
     let result : Metric = {};
     for(let subArray of arr){
       let key = Object.keys(subArray[0])[0];
       result[key] = subArray.reverse();
     }
-
-    let metricsToCleanup= ["CPU Usage", "Disk Usage", "Memory Usage"];
+    let metricsToCleanup= ["CPU Usage", "Disk Usage", "Memory Usage", "System Uptime"];
     for(let metric of metricsToCleanup){
       result[metric] = convertNullToZero(result[metric]);
     }
+    if (systemStatus === false){ // if system down, calc downtime
+      const downtimeTime = findHighestZeroDatetime((result["System Uptime"] as unknown as SystemUptime[]));
+      if (downtimeTime && typeof downtimeTime === 'string'){
+        const currentTime = new Date();
+        const timeDiff = currentTime.getTime() - new Date(downtimeTime).getTime()
+        setDowntime(timeDiff/1000)
+      }
+    }
+    // filter data based on filter time
+    for (let metric of Object.keys(result)){
+      result[metric] = result[metric].slice(-filterTime)
+    }
+    setUptime((result["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime'])
     return result;
   }
 
-  function formatDate(dateTimeString : number) {
-    // console.log("DateTimeString:", dateTimeString);
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    let dateTime = new Date(dateTimeString * 1000);
-    const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
-    return formattedDate;
-  }
-  
   function transformJSON(rawData: RawData): Metric {
     const columnNames = rawData.Columns.map(column => column.ColumnName);
     const chartData = columnNames.map(columnName => {
@@ -293,6 +291,13 @@ export default function InfrastructureView() {
     return result;
   }
 
+  function formatDate(dateTimeString : number) {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let dateTime = new Date(dateTimeString * 1000);
+    const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
+    return formattedDate;
+  }
+
   function formatTime(seconds : number) {
     const days = Math.floor(seconds / (3600 * 24));
     const hours = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -306,6 +311,24 @@ export default function InfrastructureView() {
     const combinedTerminalData = rawTerminalData.join("\n\n");
     setTerminalLineData(<TerminalOutput>{combinedTerminalData}</TerminalOutput>);
   }, [rawTerminalData]);
+
+  // last updated
+  const getCurrentSGTDateTime = () => {
+    const now = new Date();
+    const options: DateTimeFormatOptions = {
+        timeZone: 'Asia/Singapore',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    };
+    return now.toLocaleString('en-SG', options);
+  };
+  useEffect(() => {
+    setLastUpdated(getCurrentSGTDateTime())
+  }, []);
 
   if(loading === false && session && Object.keys(metrics).length > 0){
     return (
@@ -332,7 +355,7 @@ export default function InfrastructureView() {
               <div className='mt-1 pb-8 pt-2'>
                 <div className='xl:flex lg:flex xl:flex-row lg:flex-row items-end justify-between mb-2'>
                   <h1 className='text-4xl font-bold text-pri-500'>{component}</h1>
-                  <div className='flex items-center'>
+                  <div className='flex items-center mt-2 xl:mt-0'>
                     <button 
                       className='px-4 py-2 flex justify-center items-center border-1 rounded-lg shadow hover:hover:bg-pri-100/70 hover:text-pri-500 hover:shadow-pri-200 transition-all duration-300 ease-in-out'
                       onClick={fetchData}
@@ -341,7 +364,7 @@ export default function InfrastructureView() {
                       Reload
                     </button>
                     <span className='italic pl-3'>
-                      Last updated {minutes} minutes ago
+                      Last updated {lastUpdated} 
                     </span>
                   </div>
                 </div>
@@ -352,41 +375,39 @@ export default function InfrastructureView() {
             <div className="flex h-full flex-col w-full">
               {systemStatus ? (
                 <div className='flex w-full gap-4'>
-                  <div className="bg-green-100 p-4 rounded-lg shadow mb-4 w-1/2">
+                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 border-amberish-200">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
-                    <p className="text-3xl flex justify-center items-center text-green-700">Running</p>
+                    <p className="text-3xl flex justify-center items-center text-green-600">Running</p>
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
                     <p className="text-3xl flex justify-center items-end">
-                      
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
-                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).seconds}`}<span className='text-xl'>s </span>
+                      {`${formatTime(uptime).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime(uptime).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime(uptime).minutes}`}<span className='text-xl pr-2'>m </span>
                     </p>
                   </div> 
-                </div>                
+                </div> 
               ) : (
-                <div className='flex w-full'>
-                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
+                <div className='flex w-full gap-4'>
+                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 border-amberish-200">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
                     <p className="text-3xl flex justify-center items-center text-red-500">Down</p>
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Downtime</h2>
                     <p className="text-3xl flex justify-center items-end">
-                      {`${formatTime(timeDiff).days}`}<span className='text-xl pr-2'>d </span>
-                      {`${formatTime(timeDiff).hours}`}<span className='text-xl pr-2'>h </span>
-                      {`${formatTime(timeDiff).minutes}`}<span className='text-xl pr-2'>m </span>
-                      {`${formatTime(timeDiff).seconds}`}<span className='text-xl'>s </span>
+                      {`${formatTime(downtime).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime(downtime).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime(downtime).minutes}`}<span className='text-xl pr-2'>m </span>
+                      {`${formatTime(downtime).seconds}`}<span className='text-xl'>s </span>
                     </p>
                   </div>
                 </div>
               )}
               <p className="text-2xl  text-gray-700 font-bold mt-4">Metrics</p>
               <div className='flex items-center w-full mb-4 mt-4'>
-                <InfraFilter selectedDateRange={selectedDateRange} setSelectedDateRange={setSelectedDateRange}/>
+                <InfraFilter selectedDateRange={selectedDateRange} setSelectedDateRange={setSelectedDateRange} />
               </div>
               <div className='grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4'>
                 <div className="bg-white p-4 rounded-lg shadow">
@@ -446,7 +467,7 @@ export default function InfrastructureView() {
                 </div>
               </div>
               <p className="text-2xl  text-gray-700 font-bold mt-8">Real-time Logs</p>
-              <div className='xl:flex lg:flex xl:flex-row lg:flex-row w-full mt-4 mb-4'>
+              <div className='mt-4 mb-4'>
                 <Terminal  height="400px">
                   { terminalLineData }
                 </Terminal>
