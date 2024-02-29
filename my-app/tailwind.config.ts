@@ -142,7 +142,7 @@ const config: Config = {
         'tremor-metric': ['1.875rem', { lineHeight: '2.25rem' }],
       },
       transitionProperty: {
-        'multiple': 'width, height, backgroundColor, border-radius'
+        multiple: "width, height, backgroundColor, border-radius",
       }
     },
   },

@@ -382,7 +382,7 @@ export default function InfrastructureView() {
                     yAxisWidth={65}
                     categories={["CPU Usage"]}
                     colors={['blue']}
-                    valueFormatter={(value: number) => `${value * 100}%`}
+                    valueFormatter={(value: number) => `${(value * 100).toFixed(2)}%`}
                     tickGap={50}
                   />
                 </div>
@@ -395,7 +395,7 @@ export default function InfrastructureView() {
                     yAxisWidth={65}
                     categories={["Memory Usage"]}
                     colors={['cyan']}
-                    valueFormatter={(value: number) => `${value * 100}%`}
+                    valueFormatter={(value: number) => `${(value * 100).toFixed(2)}%`}
                     tickGap={50}
                   />
                 </div>

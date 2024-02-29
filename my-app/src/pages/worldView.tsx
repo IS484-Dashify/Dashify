@@ -123,10 +123,10 @@ const ToggleableList = ({ items, vmName, status, selectedService } : {items : {c
         </button>
       </div>
       {(
-        <div className="mt-3">
+        <div className={`mt-3 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-fit" : "h-0"}`}>
           {items.map((item, index) => (
             <Link key={index} href={`/infraView?currentService=${selectedService}&currentComponent=${item.componentName}`}>
-              <div className={`pb-1 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-fit" : "h-0"}`}>
+              <div className="pb-1">
                 <div key={index} className="flex items-center justify-between">
                   <span>{item.componentName}</span>
                   <FaCircle className={statusColors[item.status]} />
