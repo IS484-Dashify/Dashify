@@ -217,12 +217,28 @@ export default function InfrastructureView() {
     }
   }, [metrics, loading]);
 
+  function convertNullToZero(arr: any[]) {
+    let result = [];
+    for(let dataPoint of arr){
+      if(dataPoint[Object.keys(dataPoint)[0]] == null){
+        dataPoint[Object.keys(dataPoint)[0]] = 0;
+      }
+      result.push(dataPoint);
+    }
+    return result;
+  }
+
   // convert array to dictionary, key is the name of the metric
   function convertToDictionary(arr: any[]) {
     let result : Metric = {};
     for(let subArray of arr){
       let key = Object.keys(subArray[0])[0];
       result[key] = subArray.reverse();
+    }
+
+    let metricsToCleanup= ["CPU Usage", "Disk Usage", "Memory Usage"];
+    for(let metric of metricsToCleanup){
+      result[metric] = convertNullToZero(result[metric]);
     }
     return result;
   }
@@ -384,6 +400,7 @@ export default function InfrastructureView() {
                     colors={['blue']}
                     valueFormatter={(value: number) => `${(value * 100).toFixed(2)}%`}
                     tickGap={50}
+                    maxValue={1}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
@@ -397,6 +414,7 @@ export default function InfrastructureView() {
                     colors={['cyan']}
                     valueFormatter={(value: number) => `${(value * 100).toFixed(2)}%`}
                     tickGap={50}
+                    maxValue={1}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
@@ -410,6 +428,7 @@ export default function InfrastructureView() {
                     colors={['blue']}
                     valueFormatter={(value: number) => `${value}%`}
                     tickGap={50}
+                    maxValue={100}
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg border-t-4 border-amberish-200 shadow">
