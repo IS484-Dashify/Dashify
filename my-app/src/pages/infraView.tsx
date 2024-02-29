@@ -138,6 +138,7 @@ export default function InfrastructureView() {
   // }, [metrics]);
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [downtime, setDowntime] = useState(0); // time difference between current time and last metric
+  const [uptime, setUptime] = useState(0)
   
   // Last Updated
   const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -177,8 +178,8 @@ export default function InfrastructureView() {
       // console.log(data.Tables[0])
       setMetrics(transformedData);
       setTrafficMetrics(transformedTrafficData);
-      setLoading(false);
       setLastUpdated(getCurrentSGTDateTime())
+      setLoading(false);
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -234,7 +235,7 @@ export default function InfrastructureView() {
     for(let metric of metricsToCleanup){
       result[metric] = convertNullToZero(result[metric]);
     }
-    if (systemStatus === false){
+    if (systemStatus === false){ // if system down, calc downtime
       const downtimeTime = findHighestZeroDatetime((result["System Uptime"] as unknown as SystemUptime[]));
       if (downtimeTime && typeof downtimeTime === 'string'){
         const currentTime = new Date();
@@ -242,9 +243,11 @@ export default function InfrastructureView() {
         setDowntime(timeDiff/1000)
       }
     }
+    // filter data based on filter time
     for (let metric of Object.keys(result)){
       result[metric] = result[metric].slice(-filterTime)
     }
+    setUptime((result["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime'])
     return result;
   }
 
@@ -327,8 +330,6 @@ export default function InfrastructureView() {
     setLastUpdated(getCurrentSGTDateTime())
   }, []);
 
-  console.log(metrics["System Uptime"])
-
   if(loading === false && session && Object.keys(metrics).length > 0){
     return (
       <main>
@@ -381,9 +382,9 @@ export default function InfrastructureView() {
                   <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
                     <p className="text-3xl flex justify-center items-end">
-                      {`${formatTime((metrics["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
-                      {`${formatTime((metrics["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
-                      {`${formatTime((metrics["System Uptime"][parseInt(selectedDateRange)-1] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
+                      {`${formatTime(uptime).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime(uptime).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime(uptime).minutes}`}<span className='text-xl pr-2'>m </span>
                     </p>
                   </div> 
                 </div> 
@@ -406,7 +407,7 @@ export default function InfrastructureView() {
               )}
               <p className="text-2xl  text-gray-700 font-bold mt-4">Metrics</p>
               <div className='flex items-center w-full mb-4 mt-4'>
-                <InfraFilter selectedDateRange={selectedDateRange} setSelectedDateRange={setSelectedDateRange}/>
+                <InfraFilter selectedDateRange={selectedDateRange} setSelectedDateRange={setSelectedDateRange} />
               </div>
               <div className='grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4'>
                 <div className="bg-white p-4 rounded-lg shadow">
