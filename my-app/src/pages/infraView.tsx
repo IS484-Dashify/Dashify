@@ -184,7 +184,7 @@ export default function InfrastructureView() {
     })
     .then(response => response.json())
     .then(data => {
-      const transformedData = transformJSON(data.Tables[0]); 
+      const transformedData = transformJSON(data.Tables[0]);
       const transformedTrafficData = transformTrafficJSON(transformedData);
       // console.log(data.Tables[0])
       setMetrics(transformedData);
@@ -398,7 +398,7 @@ export default function InfrastructureView() {
                     yAxisWidth={65}
                     categories={["CPU Usage"]}
                     colors={['blue']}
-                    valueFormatter={(value: number) => `${(value * 100).toFixed(2)}%`}
+                    valueFormatter={(value: number) => `${(value).toFixed(2)}%`}
                     tickGap={50}
                     maxValue={1}
                   />
@@ -412,7 +412,7 @@ export default function InfrastructureView() {
                     yAxisWidth={65}
                     categories={["Memory Usage"]}
                     colors={['cyan']}
-                    valueFormatter={(value: number) => `${(value * 100).toFixed(2)}%`}
+                    valueFormatter={(value: number) => `${(value).toFixed(2)}%`}
                     tickGap={50}
                     maxValue={1}
                   />

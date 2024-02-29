@@ -8,14 +8,34 @@ import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
 import * as Label from '@radix-ui/react-label';
 import Link from 'next/link';
 import Sidebar from "./components/navbar";
-import rawData from './../../public/vmInfo.json';
 
-const data: serviceItem[] = rawData as serviceItem[];
+// import jsons
+import rawData from './../../data/serviceInfo.json';
+
+type Status = "Critical" | "Warning" | "Normal";
 interface serviceItem {
   serviceName: string,
   status: string,
+  countries: Country[]; 
+}
+interface Country {
+  name: string;
+  iso: string;
+  coordinates: number[];
+  status: Status; 
+  vm:  Vm[];
+}
+interface Vm {
+  name: string;
+  status: Status;
+  components: Component[];
+}
+interface Component {
+  name: string;
+  status: Status;
 }
 
+const data: serviceItem[] = rawData as serviceItem[];
 const order:{ [key: string]: number} = { Critical: 0, Warning: 1, Normal: 2 };
 const sortedData: serviceItem[]  = data.sort((a, b) => {
   return order[a.status] - order[b.status];
@@ -41,7 +61,118 @@ export default function ServiceView() {
   const [renderedServices, setRenderedServices] = useState<serviceItem[]>(sortedData); // * this is what is being rendered as cards
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterSettings, setFilterSettings] = useState<Array<string>>(["Critical", "Warning", "Normal"]);
+  const [fetchedData, setFetchedData] = useState<any>();
 
+  // ! on page load < RAG Status Process Start >
+  const [componentList, setComponentList] = useState<{ "service": string, "country" : string, "VM" : string, "component" : string}[]>([]);
+  const [componentStatusList, setComponentStatusList] = useState<{ "service": string, "country" : string, "VM" : string, "component" : string, "status" : string}[]>([]);
+  // * 1. Create a list of queries based on list of components from sortedData
+  useEffect(()=>{
+    // console.log("sortedData:", sortedData);
+    let tempComponentList = [];
+    for(let service of sortedData){
+      for(let country of service.countries){
+        for(let vm of country.vm){
+          for(let component of vm.components){
+            let componentObj = {
+              "service": service.serviceName,
+              "country": country.name,
+              "VM": vm.name,
+              "component": component.name,
+            }
+            tempComponentList.push(componentObj);
+          }
+        }
+      }
+    }
+    setComponentList(tempComponentList);
+  }, [services]);
+
+  // * 2. Fetch 5 rows of data for each component via api route (allComponentLogs.ts)
+  useEffect(() => {
+    const fetchData = async () => {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ componentList })
+      }
+      const res = await fetch("/api/allComponentLogs", requestOptions);
+      const data = await res.json();
+      setFetchedData(data.data);
+    }
+    if (componentList.length != 0) {
+      fetchData();
+    }
+  }, [componentList]);
+  
+  useEffect(() => {
+    if (fetchedData) {
+        // * 3. Iterate each component and determine the status of each metric
+      console.log("FetchedData:", fetchedData);
+      let updatedComponentData = [];
+      for(let componentData of fetchedData){
+        let metricStatus = {
+          'CPU Usage' : checkPercentageMetric(componentData['metrics']['CPU Usage'], 'CPU Usage'),
+          'Memory Usage' : checkPercentageMetric(componentData['metrics']['Memory Usage'], 'Memory Usage'),
+          'Disk Usage' : checkPercentageMetric(componentData['metrics']['Disk Usage'], 'Disk Usage'),
+        }
+        
+        // * 4. Determine the status of the component based on the highest priority status metric
+        let status;
+        for(let metric in metricStatus){
+          if(metricStatus[metric as keyof typeof metricStatus] === 'Critical'){
+            status = 'Critical';
+          } else if(metricStatus[metric as keyof typeof metricStatus] === 'Warning'){
+            status = 'Warning';
+          } else {
+            status = 'Normal';
+          }
+        }
+
+        // * 5. Create attribute to store highest priority status in componentData
+        componentData['status'] = status;
+        updatedComponentData.push(componentData);
+      }
+      console.log("Component Data:", updatedComponentData);
+      setComponentStatusList(updatedComponentData);
+    }
+  }, [fetchedData]);
+  // ! on page load < RAG Status Process End >
+
+  function checkPercentageMetric(metrics : {[key:string]:string, Datetime:string}[], metricName : string){
+    const thresholdList = [
+      [80, 60]
+    ]
+    // sort and get the latest metric
+    const sortedMetrics = metrics.sort((a : {[key:string]:string, Datetime:string}, b : {[key:string]:string, Datetime:string}) => {
+      const dateA = new Date(a.Datetime);
+      const dateB = new Date(b.Datetime);
+      return dateA.getTime() - dateB.getTime()
+    })
+    // find the latest (non-null) metric
+    let latestMetric;
+    for(let i=sortedMetrics.length-1; i>=0; i--){
+      if(sortedMetrics[i][metricName] != null){
+        latestMetric = sortedMetrics[i];
+        break;
+      }
+    }
+    // check metric against threshold
+    if(latestMetric){
+      let threshold = thresholdList[0];
+      const metricValue = Number(latestMetric[metricName]) as number;
+      // console.log("MetricName:", metricName, "MetricValue:", metricValue)
+      if(metricValue > threshold[0]){
+        return 'Critical'
+      } else if (metricValue > threshold[1]){
+        return 'Warning'
+      } else {
+        return 'Normal'
+      }
+    }
+  }
   // handle search & filter
   // Determine services that meet search criteria
   useEffect(() => {
@@ -90,7 +221,6 @@ export default function ServiceView() {
     const handleReset = () => {
       setSearchQuery("");
       setFilterSettings(["Critical", "Warning", "Normal"]);
-      setSearchQuery("");
     }
     // console.log(data)
     // console.log(sortedData)
