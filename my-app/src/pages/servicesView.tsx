@@ -308,7 +308,11 @@ export default function ServiceView() {
       }
     }
     // check metric against threshold
+<<<<<<< Updated upstream
     if (latestMetric) {
+=======
+    if(latestMetric != null){
+>>>>>>> Stashed changes
       let threshold = thresholdList[0];
       const metricValue = Number(latestMetric[metricName]) as number;
       // console.log("MetricName:", metricName, "MetricValue:", metricValue)

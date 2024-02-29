@@ -96,6 +96,10 @@ interface TrafficMetric {
   'Traffic Out': number | null; // Assuming 'Traffic Out' can be null
 }
 
+interface Queries {
+  [key : string]: [string, string];
+}
+
 function findCountryAndNameByComponent(componentName: string, services: Service[]) {
   let results: string[] = [];
 
@@ -139,6 +143,26 @@ export default function InfrastructureView() {
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [downtime, setDowntime] = useState(0); // time difference between current time and last metric
   const [uptime, setUptime] = useState(0)
+  const [metricsStatus, setMetricsStatus] = useState({"CPU Usage": "Normal", "Disk Usage": "Normal", "Memory Usage": "Normal", "Traffic": "Normal"});
+  const [overallStatus, setOverallStatus] = useState("Normal");
+  useEffect(() => {
+    console.log("Metrics Status:", metricsStatus);
+    const order = { Critical: 0, Warning: 1, Normal: 2 };
+    const sortedMetricStatus = Object.keys(metricsStatus).sort((a, b) => {
+      return order[metricsStatus[a]] - order[metricsStatus[b]];
+    }).reduce((obj, key) => {
+        obj[key] = metricsStatus[key];
+        return obj;
+    }, {});
+    
+    console.log("Overall Status:", sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
+    if(systemStatus){
+      setOverallStatus(sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
+    } else {
+      setOverallStatus('Critical');
+      setMetricsStatus({"CPU Usage": "Critical", "Disk Usage": "Critical", "Memory Usage": "Critical", "Traffic": "Critical"});
+    }
+  }, [metricsStatus, systemStatus]);
   
   // Last Updated
   const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -156,10 +180,8 @@ export default function InfrastructureView() {
   }, [selectedDateRange, systemStatus, loading]);
 
   const fetchData = () => {
-    const queries = {
-      "Node.js Server 1": ["nifi_metrics | order by Datetime desc | take ", "3001" ],
-      "Node.js Server 2": ["prometheus_metrics | order by Datetime desc | take ", "3002"]
-    }
+    const queries: Queries = require('./../../data/queries.json');
+    
     const requestBody = {
       query: `${queries[component as keyof typeof queries][0]} 1440`
     };
@@ -186,9 +208,9 @@ export default function InfrastructureView() {
     });
   };
 
-  // ! Check if system is down
   useEffect(() => {
-    if(loading == false){
+    if(loading == false && metrics){
+      // ! Check if system is down
       const latestElement = metrics["System Uptime"][parseInt(selectedDateRange) - 1];
       if('System Uptime' in latestElement && 'Datetime' in latestElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
         const systemUptimeElement = latestElement as SystemUptime;
@@ -199,8 +221,43 @@ export default function InfrastructureView() {
           setSystemStatus(false);
         }
       }
+
+      // ! Check RAG status of each metric
+      let tempMetricStatus ={
+        'CPU Usage': checkPercentageMetric((metrics['CPU Usage'] as unknown as {[key:string]:string, Datetime:string}[]), 'CPU Usage'),
+        'Disk Usage': checkPercentageMetric((metrics['Disk Usage'] as unknown as {[key:string]:string, Datetime:string}[]), 'Disk Usage'),
+        'Memory Usage': checkPercentageMetric((metrics['Memory Usage'] as unknown as {[key:string]:string, Datetime:string}[]), 'Memory Usage')
+      }
+      setMetricsStatus(tempMetricStatus);
     }
   }, [metrics, loading]);
+
+  function checkPercentageMetric(metricList : {[key:string]:string, Datetime:string}[], metricName : "CPU Usage" | "Disk Usage" | "Memory Usage"){
+    const thresholdList = [
+      [80, 60]
+    ]
+    // find the latest (non-null) metric
+    let latestMetric;
+    for(let i=metricList.length-1; i>=0; i--){
+      let dataPoint = metricList[i];
+      if(dataPoint[metricName] != null){
+        latestMetric = dataPoint[metricName];
+        break;
+      }
+    }
+    // check metric against threshold
+    if(latestMetric != null){
+      let threshold = thresholdList[0];
+      const metricValue = Number(latestMetric) as number;
+      if(metricValue > threshold[0]){
+        return 'Critical'
+      } else if (metricValue > threshold[1]){
+        return 'Warning'
+      } else {
+        return 'Normal'
+      }
+    }
+  }
 
   function convertNullToZero(arr: any[]) {
     let result = [];
@@ -363,8 +420,8 @@ export default function InfrastructureView() {
                       <TfiReload className='mr-1.5'/>
                       Reload
                     </button>
-                    <span className='italic pl-3'>
-                      Last updated {lastUpdated} 
+                    <span className='italic pl-3 text-black/50'>
+                      Last refreshed {lastUpdated} 
                     </span>
                   </div>
                 </div>
@@ -375,7 +432,8 @@ export default function InfrastructureView() {
             <div className="flex h-full flex-col w-full">
               {systemStatus ? (
                 <div className='flex w-full gap-4'>
-                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 border-amberish-200">
+                  <div className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${overallStatus === "Critical" ? "border-reddish-200" : overallStatus === "Warning" ? "border-amberish-200" : "border-greenish-200"}`}>
+
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
                     <p className="text-3xl flex justify-center items-center text-green-600">Running</p>
                   </div>
@@ -390,7 +448,7 @@ export default function InfrastructureView() {
                 </div> 
               ) : (
                 <div className='flex w-full gap-4'>
-                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 border-amberish-200">
+                  <div className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${overallStatus === "Critical" ? "border-reddish-200" : overallStatus === "Warning" ? "border-amberish-200" : "border-greenish-200"}`}>
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
                     <p className="text-3xl flex justify-center items-center text-red-500">Down</p>
                   </div>
@@ -410,7 +468,13 @@ export default function InfrastructureView() {
                 <InfraFilter selectedDateRange={selectedDateRange} setSelectedDateRange={setSelectedDateRange} />
               </div>
               <div className='grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4'>
-                <div className="bg-white p-4 rounded-lg shadow">
+                <div 
+                  className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                    metricsStatus['CPU Usage'] === 'Critical' ? "border-reddish-200" :
+                    metricsStatus['CPU Usage'] === "Warning" ? "border-amberish-200" :
+                    "border-greenish-200"
+                  }`}
+                >
                 <p className="text-base text-gray-600 font-bold mb-4">CPU Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
@@ -424,7 +488,13 @@ export default function InfrastructureView() {
                     maxValue={1}
                   />
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow">
+                <div 
+                  className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                    metricsStatus['Memory Usage'] === 'Critical' ? "border-reddish-200" :
+                    metricsStatus['Memory Usage'] === "Warning" ? "border-amberish-200" :
+                    "border-greenish-200"
+                  }`}
+                >
                 <p className="text-base text-gray-600 font-bold mb-4">Memory Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
@@ -438,7 +508,13 @@ export default function InfrastructureView() {
                     maxValue={1}
                   />
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow">
+                <div 
+                  className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                    metricsStatus['Disk Usage'] === 'Critical' ? "border-reddish-200" :
+                    metricsStatus['Disk Usage'] === "Warning" ? "border-amberish-200" :
+                    "border-greenish-200"
+                  }`}
+                >
                 <p className="text-base text-gray-600 font-bold mb-4">Disk Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
@@ -452,7 +528,13 @@ export default function InfrastructureView() {
                     maxValue={100}
                   />
                 </div>
-                <div className="bg-white p-4 rounded-lg border-t-4 border-amberish-200 shadow">
+                <div 
+                  className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                    metricsStatus['Traffic'] === 'Critical' ? "border-reddish-200" :
+                    metricsStatus['Traffic'] === "Warning" ? "border-amberish-200" :
+                    "border-greenish-200"
+                  }`}
+                >
                   <p className="text-base text-gray-600 font-bold mb-4">Traffic</p>
                   <AreaChart
                     className="mt-4 h-72"
