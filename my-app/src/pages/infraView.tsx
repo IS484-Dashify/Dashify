@@ -1,4 +1,4 @@
-import React, { useEffect, useState }from 'react';
+import React, { use, useEffect, useState }from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/router';
 import { AiOutlineHome } from 'react-icons/ai';
@@ -47,7 +47,6 @@ interface Column {
   DataType: string;
   ColumnType: string;
 }
-
 interface Row {
   [index: number]: number | string | null;
 }
@@ -56,7 +55,9 @@ interface RawData {
   Columns: Column[];
   Rows: Row[];
 }
-interface Metric extends Array<DiskUsage[] | Clock[] | CPUUsage[] | SystemUptime[] | MemoryUsage[] | DatetimeOnly[] | TrafficIn[] | TrafficOut[]> {}
+interface Metric {
+  [key:string] : (DiskUsage[] | Clock[] | CPUUsage[] | SystemUptime[] | MemoryUsage[] | DatetimeOnly[] | TrafficIn[] | TrafficOut[])
+}
 interface DiskUsage {
   "Disk Usage": number;
   "Datetime": string;
@@ -113,19 +114,29 @@ function findCountryAndNameByComponent(componentName: string, services: Service[
 
 export default function InfrastructureView() {
   const { data: session } = useSession();
-  const [loading, setLoading] = useState(true); 
-  const [currentPage, setCurrentPage] = React.useState("infra");
   const router = useRouter();
+  const [currentPage, setCurrentPage] = React.useState("infra");
+
+  // loading state for fetching data
+  const [loading, setLoading] = useState(true);
   const service = router.query.currentService as string | undefined;
   const component = router.query.currentComponent as string;
   const componentDetails = findCountryAndNameByComponent(component!, data)
-  const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
-  const [metrics, setMetrics] = useState<Metric[]>([]);
-  const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
+
+  // System status
   const [systemStatus, setSystemStatus] = useState(true);
-  const [timeDiff, setTimeDiff] = useState(0);
-  const [minutes, setMinutes] = useState(0);
-  const [terminalLineData, setTerminalLineData] = useState<JSX.Element | null>(null);;
+
+  // Logs
+  const [terminalLineData, setTerminalLineData] = useState<JSX.Element | null>(null);
+  // Date range for metrics
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
+  const [metrics, setMetrics] = useState<Metric>({});
+  useEffect(() => {
+    console.log("Metrics:", metrics);
+  }, [metrics]);
+  const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
+  const [timeDiff, setTimeDiff] = useState(0); // time difference between current time and last metric
+  const [minutes, setMinutes] = useState(0); // minutes since last render
 
   useEffect(() => {
     // console.log("Session:", session);
@@ -156,7 +167,7 @@ export default function InfrastructureView() {
     const time = selectedDateRange; 
     const queries = {
       "Node.js Server 1": ["nifi_metrics | order by Datetime desc | take ", "3001" ],
-      "Node.js Server 2": ["prometheus_metrics_v3 | take ", "3002"]
+      "Node.js Server 2": ["prometheus_metrics | take ", "3002"]
     }
     const requestBody = {
       query: `${queries[component as keyof typeof queries][0]}${time}`
@@ -173,7 +184,7 @@ export default function InfrastructureView() {
     .then(data => {
       const transformedData = transformJSON(data.Tables[0]); 
       const transformedTrafficData = transformTrafficJSON(transformedData);
-      console.log(data.Tables[0])
+      // console.log(data.Tables[0])
       setMetrics(transformedData);
       setTrafficMetrics(transformedTrafficData);
       setLoading(false);
@@ -188,8 +199,7 @@ export default function InfrastructureView() {
   // ! Check if system is down
   useEffect(() => {
     if(loading == false){
-      const latestElement = metrics[0][parseInt(selectedDateRange) - 1];
-      console.log(latestElement)
+      const latestElement = metrics["Disk Usage"][parseInt(selectedDateRange) - 1];
       if('Disk Usage' in latestElement && 'Datetime' in latestElement){ // This line is necessary for typescript to verify that firstElement is of type DiskUsage
         const diskUsageElement = latestElement as DiskUsage;
         const metricTimestamp = new Date(diskUsageElement.Datetime);
@@ -206,51 +216,64 @@ export default function InfrastructureView() {
       }
     }
   }, [metrics, loading]);
+
+  // convert array to dictionary, key is the name of the metric
+  function convertToDictionary(arr: any[]) {
+    let result : Metric = {};
+    for(let subArray of arr){
+      let key = Object.keys(subArray[0])[0];
+      result[key] = subArray.reverse();
+    }
+    return result;
+  }
+
+  function formatDate(dateTimeString : number) {
+    // console.log("DateTimeString:", dateTimeString);
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let dateTime = new Date(dateTimeString * 1000);
+    const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
+    return formattedDate;
+  }
   
-  function transformJSON(rawData: RawData): Metric[] {
+  function transformJSON(rawData: RawData): Metric {
     const columnNames = rawData.Columns.map(column => column.ColumnName);
     const chartData = columnNames.map(columnName => {
       const metricData: any[] = [];
       const columnIndex = rawData.Columns.findIndex(column => column.ColumnName === columnName);
       rawData.Rows.forEach(row => {
         const dataPoint: any = { [columnName === "Cpu Usage" ? "CPU Usage" : columnName]: row[columnIndex] };
-        const dateTimeString = row[columnNames.indexOf("Datetime")];
+        const clockIndex = columnNames.indexOf("Clock");
+        const dateTimeString = row[clockIndex];
         if (dateTimeString) {
-          let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
-          const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-          const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
+          const formattedDate = formatDate(Number(dateTimeString));
           dataPoint["Datetime"] = formattedDate;
         }      
         metricData.push(dataPoint);
       });
       return metricData;
     });
-    // console.log("ChartData:", chartData);
-    return chartData.map(subArray => subArray.reverse());
+    console.log("Chart Data:", chartData);
+    return convertToDictionary(chartData);
   }
 
-  function transformTrafficJSON(transformedData : Metric[]) {
+  function transformTrafficJSON(transformedData : Metric) {
     let result = [];
-    for(let i=0; i<transformedData[0].length; i++){
-      let trafficInDataRow = transformedData[6][i] as unknown as TrafficIn;
+    console.log("Traffic In:", transformedData["Traffic In"]);
+    for(let i=0; i<(transformedData["Traffic In"]).length; i++){
+      let trafficInDataRow = transformedData[("Traffic In")][i] as unknown as TrafficIn;
       let trafficInDataPoint = trafficInDataRow['Traffic In'];
-      let trafficOutDataRow = transformedData[7][i] as unknown as TrafficOut;
+      let trafficOutDataRow = transformedData["Traffic Out"][i] as unknown as TrafficOut;
       let trafficOutDataPoint = trafficOutDataRow['Traffic Out'];
       let dateTimeString = trafficOutDataRow['Datetime'];
       if(trafficInDataPoint != null && trafficOutDataPoint != null){
-        let dateTime = new Date(String(dateTimeString).slice(0, -1)); // ! temporary fix for mistakingly adding 'Z' at the end of the date string
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const formattedDate = `${dateTime.getDate()} ${monthNames[dateTime.getMonth()]} ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
         let temp = {
-          'Datetime': formattedDate,
+          'Datetime': dateTimeString,
           'Traffic In': trafficInDataPoint,
           'Traffic Out': trafficOutDataPoint
         }
         result.push(temp);
       }
     }
-    // console.log("Result:", result);
-    console.log("Traffic Metrics:", result);
     return result;
   }
 
@@ -320,10 +343,11 @@ export default function InfrastructureView() {
                   <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
                     <p className="text-3xl flex justify-center items-end">
-                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
-                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
-                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
-                      {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).seconds}`}<span className='text-xl'>s </span>
+                      
+                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
+                      {`${formatTime((metrics["System Uptime"][0] as unknown as SystemUptime)['System Uptime']).seconds}`}<span className='text-xl'>s </span>
                     </p>
                   </div> 
                 </div>                
@@ -353,7 +377,7 @@ export default function InfrastructureView() {
                 <p className="text-base text-gray-600 font-bold mb-4">CPU Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
-                    data={metrics[2]}
+                    data={metrics["CPU Usage"]}
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["CPU Usage"]}
@@ -366,7 +390,7 @@ export default function InfrastructureView() {
                 <p className="text-base text-gray-600 font-bold mb-4">Memory Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
-                    data={metrics[4]}
+                    data={metrics["Memory Usage"]}
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Memory Usage"]}
@@ -379,7 +403,7 @@ export default function InfrastructureView() {
                 <p className="text-base text-gray-600 font-bold mb-4">Disk Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
-                    data={metrics[0]}
+                    data={metrics["Disk Usage"]}
                     index="Datetime"
                     yAxisWidth={65}
                     categories={["Disk Usage"]}
