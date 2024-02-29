@@ -159,7 +159,8 @@ export default function ServiceView() {
               return obj;
             }, {});
 
-          console.log("Overall Status:", sortedMetricStatus);
+          console.log("Overall Status:",sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
+          status = sortedMetricStatus[Object.keys(sortedMetricStatus)[0]];
         }
 
         // * 5. Create attribute to store highest priority status in componentData
@@ -186,7 +187,7 @@ export default function ServiceView() {
         country.vm.forEach((vm) =>
           vm.components.forEach((component) => {
             if (component.name === givenComponent) {
-              component.status = compareStatus(component.status, newStatus);
+              component.status = newStatus;
             }
           })
         )
