@@ -14,8 +14,10 @@ import { AreaChart } from '@tremor/react';
 import rawData from './../../public/vmInfo.json';
 import Terminal, { ColorMode, TerminalOutput } from 'react-terminal-ui';
 
-const terminalData = "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)"
-
+const rawTerminalData = [
+  "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)",
+  "/home/dashify-test/.pm2/logs/server-out.log last 15 lines:\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000"
+]
 
 const data: Service[] = rawData as Service[];
 type Status = "Critical" | "Warning" | "Normal";
@@ -123,9 +125,7 @@ export default function InfrastructureView() {
   const [systemStatus, setSystemStatus] = useState(true);
   const [timeDiff, setTimeDiff] = useState(0);
   const [minutes, setMinutes] = useState(0);
-  const [terminalLineData, setTerminalLineData] = useState([
-    <TerminalOutput key={0}>{terminalData}</TerminalOutput>
-  ]);
+  const [terminalLineData, setTerminalLineData] = useState<JSX.Element | null>(null);;
 
   useEffect(() => {
     // console.log("Session:", session);
@@ -137,7 +137,20 @@ export default function InfrastructureView() {
   // * Retrieve metrics from db on page load
   useEffect(() => {
     fetchData();
-  }, [selectedDateRange]); 
+    calculateTime();
+  }, [selectedDateRange]);
+
+  const calculateTime = () => {
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const currentTime = Date.now();
+      console.log(currentTime);
+      const elapsedTime = currentTime - startTime;
+      const minutesSinceRender = Math.floor(elapsedTime / 60000); 
+      setMinutes(minutesSinceRender);
+    }, 60000); 
+    return () => clearInterval(interval);
+  };
 
   const fetchData = () => {
     const time = selectedDateRange; 
@@ -164,7 +177,8 @@ export default function InfrastructureView() {
       setMetrics(transformedData);
       setTrafficMetrics(transformedTrafficData);
       setLoading(false);
-      setMinutes(0)
+      setMinutes(0);
+      calculateTime();
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -248,28 +262,18 @@ export default function InfrastructureView() {
     return { days, hours, minutes, seconds: remainingSeconds };
   }
 
+  // terminal data
   useEffect(() => {
-    const calculateTime = () => {
-      const startTime = Date.now();
-      const interval = setInterval(() => {
-        const currentTime = Date.now();
-        const elapsedTime = currentTime - startTime;
-        const minutesSinceRender = Math.floor(elapsedTime / 60000); 
-        setMinutes(minutesSinceRender);
-      }, 60000); 
-      return () => clearInterval(interval);
-    };
-    calculateTime();
-  }, []); 
+    const combinedTerminalData = rawTerminalData.join("\n\n");
+    setTerminalLineData(<TerminalOutput>{combinedTerminalData}</TerminalOutput>);
+  }, [rawTerminalData]);
 
-
-  console.log(metrics)
   if(loading === false && session && Object.keys(metrics).length > 0){
     return (
       <main>
         <div className="h-full flex flex-row">
           <Sidebar/>
-          <div className="w-full px-14 py-6 ml-16 h-full">
+          <div className="w-full pr-12 py-6 pl-28 h-full">
             <div id='top-menu' className="z-50">
               <Breadcrumbs 
                 size="lg" 
@@ -316,7 +320,6 @@ export default function InfrastructureView() {
                   <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Uptime</h2>
                     <p className="text-3xl flex justify-center items-end">
-                      
                       {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).days}`}<span className='text-xl pr-2'>d </span>
                       {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).hours}`}<span className='text-xl pr-2'>h </span>
                       {`${formatTime((metrics[3][0] as unknown as SystemUptime)['System Uptime']).minutes}`}<span className='text-xl pr-2'>m </span>
@@ -326,30 +329,28 @@ export default function InfrastructureView() {
                 </div>                
               ) : (
                 <div className='flex w-full'>
-                  <div className="bg-red-100 p-4 rounded-lg shadow mb-4">
+                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
                     <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Status</h2>
                     <p className="text-3xl flex justify-center items-center text-red-500">Down</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow">
-                    <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Downtime (In Seconds)</h2>
-                    <p className="text-3xl flex justify-center items-center">{timeDiff}</p>
+                  <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
+                    <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">System Downtime</h2>
+                    <p className="text-3xl flex justify-center items-end">
+                      {`${formatTime(timeDiff).days}`}<span className='text-xl pr-2'>d </span>
+                      {`${formatTime(timeDiff).hours}`}<span className='text-xl pr-2'>h </span>
+                      {`${formatTime(timeDiff).minutes}`}<span className='text-xl pr-2'>m </span>
+                      {`${formatTime(timeDiff).seconds}`}<span className='text-xl'>s </span>
+                    </p>
                   </div>
                 </div>
               )}
-              <div className='xl:flex lg:flex xl:flex-row lg:flex-row w-full mb-4'>
-                <div className="bg-white p-4 rounded-lg shadow w-full">
-                  <h2 className="text-lg text-gray-600 font-bold mb-4 w-full">Logs</h2>
-                  <Terminal colorMode={ ColorMode.Light }  height="px">
-                    { terminalLineData }
-                  </Terminal>
-                </div>
-              </div>
-              <div className='flex items-center w-full mb-4 mt-6'>
+              <p className="text-2xl  text-gray-700 font-bold mt-4">Metrics</p>
+              <div className='flex items-center w-full mb-4 mt-4'>
                 <InfraFilter selectedDateRange={selectedDateRange} setSelectedDateRange={setSelectedDateRange}/>
               </div>
               <div className='grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4'>
                 <div className="bg-white p-4 rounded-lg shadow">
-                  <h2 className="text-lg  text-gray-600 font-bold mb-4">CPU Usage</h2>
+                <p className="text-base text-gray-600 font-bold mb-4">CPU Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
                     data={metrics[2]}
@@ -362,7 +363,7 @@ export default function InfrastructureView() {
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
-                  <h2 className="text-lg text-gray-600 font-bold mb-4">Memory Usage</h2>
+                <p className="text-base text-gray-600 font-bold mb-4">Memory Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
                     data={metrics[4]}
@@ -375,7 +376,7 @@ export default function InfrastructureView() {
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
-                  <h2 className="text-lg text-gray-600 font-bold mb-4">Disk Usage</h2>
+                <p className="text-base text-gray-600 font-bold mb-4">Disk Usage</p>
                   <AreaChart
                     className="mt-4 h-72"
                     data={metrics[0]}
@@ -388,7 +389,7 @@ export default function InfrastructureView() {
                   />
                 </div>
                 <div className="bg-white p-4 rounded-lg border-t-4 border-amberish-200 shadow">
-                  <h2 className="text-lg  text-gray-600 font-bold mb-4">Traffic</h2>
+                  <p className="text-base text-gray-600 font-bold mb-4">Traffic</p>
                   <AreaChart
                     className="mt-4 h-72"
                     data={trafficMetrics}
@@ -400,6 +401,12 @@ export default function InfrastructureView() {
                     tickGap={50}
                   />
                 </div>
+              </div>
+              <p className="text-2xl  text-gray-700 font-bold mt-8">Real-time Logs</p>
+              <div className='xl:flex lg:flex xl:flex-row lg:flex-row w-full mt-4 mb-4'>
+                <Terminal  height="400px">
+                  { terminalLineData }
+                </Terminal>
               </div>
             </div>
           </div>
