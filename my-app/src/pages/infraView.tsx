@@ -476,6 +476,20 @@ export default function InfrastructureView() {
     wsUrl: string;
   }
 
+  const getCurrentSGTDateTime = () => {
+    const now = new Date();
+    const options: DateTimeFormatOptions = {
+      timeZone: "Asia/Singapore",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    };
+    return now.toLocaleString("en-SG", options);
+  };
+
   const LogViewer: React.FC<LogViewerProps> = ({ wsUrl }) => {
     const [logs, setLogs] = useState<string[]>([]);
 
@@ -499,19 +513,7 @@ export default function InfrastructureView() {
     // }, [rawTerminalData]);
 
     // last updated
-    const getCurrentSGTDateTime = () => {
-      const now = new Date();
-      const options: DateTimeFormatOptions = {
-        timeZone: "Asia/Singapore",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      };
-      return now.toLocaleString("en-SG", options);
-    };
+
     useEffect(() => {
       setLastUpdated(getCurrentSGTDateTime());
     }, []);
