@@ -19,6 +19,7 @@ import { AreaChart } from "@tremor/react";
 import rawData from "./../../public/vmInfo.json";
 import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
+import LogViewer from './components/terminal';
 
 const rawTerminalData = [
   "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)",
@@ -490,22 +491,6 @@ export default function InfrastructureView() {
     return now.toLocaleString("en-SG", options);
   };
 
-  const LogViewer: React.FC<LogViewerProps> = ({ wsUrl }) => {
-    const [logs, setLogs] = useState<string[]>([]);
-
-    useEffect(() => {
-      // Initialize WebSocket connection
-      const ws = new WebSocket(wsUrl);
-
-      ws.onmessage = (event) => {
-        setLogs((prevLogs) => [...prevLogs, event.data]);
-      };
-
-      // Clean up on component unmount
-      return () => {
-        ws.close();
-      };
-    }, [wsUrl]);
 
     // useEffect(() => {
     //   const combinedTerminalData = rawTerminalData.join("\n\n");
@@ -761,9 +746,7 @@ export default function InfrastructureView() {
                 <div className="mt-4 mb-4">
                   <Terminal height="400px">
                     {/* {terminalLineData} */}
-                    {logs.map((log, index) => (
-                      <p key={index}>{log}</p>
-                    ))}
+                    <LogViewer wsUrl="ws://20.82.137.238:8080" />
                   </Terminal>
                 </div>
               </div>
@@ -773,4 +756,3 @@ export default function InfrastructureView() {
       );
     }
   };
-}
