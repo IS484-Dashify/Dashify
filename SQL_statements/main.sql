@@ -14,5 +14,6 @@ CREATE TABLE User (
 -- Test Data for User
 INSERT INTO User (`email`) VALUES ('michaelong.2021@smu.edu.sg');
 INSERT INTO User (`email`) VALUES ('wanlin.tian.2021@smu.edu.sg');
+INSERT INTO User (`email`) VALUES ('lionel.goh.2021@smu.edu.sg');
 INSERT INTO User (`email`) VALUES ('rajendran2005@gmail.com');
 INSERT INTO User (`email`) VALUES ('bhaktikanta@gmail.com');
