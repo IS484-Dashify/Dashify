@@ -50,7 +50,7 @@ async function proxyApiCall (req, res) {
     query: `nifi_metrics | order by Datetime desc | take 1440`
   };
 
-  const response = await fetch(`https://dashify.vercel.app/api/proxy`, {
+  const response = await fetch(targetUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
