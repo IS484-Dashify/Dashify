@@ -35,12 +35,6 @@ interface Component {
   status: Status;
 }
 
-interface MetricStatus {
-  "CPU Usage": Status;
-  "Memory Usage": Status;
-  "Disk Usage": Status;
-}
-
 const data: serviceItem[] = rawData as serviceItem[];
 const order: { [key: string]: number } = { Critical: 0, Warning: 1, Normal: 2 };
 const sortedData: serviceItem[] = data.sort((a, b) => {
@@ -233,24 +227,23 @@ export default function ServiceView() {
   };
   const updateCountryStatusFromComponents = (data: any[]) => {
     data.forEach((service) => {
-      service.countries.forEach((country) => {
+      service.countries.forEach((country : Country) => {
         const countryComponents = country.vm.reduce(
           (components: any[], vm: any) => {
             return components.concat(vm.components);
           },
           []
         );
-        const highestPriorityStatus =
-          findHigherPriorityStatus(countryComponents);
+        const highestPriorityStatus = findHigherPriorityStatus(countryComponents) as Status;
         country.status = highestPriorityStatus;
       });
     });
   };
   const updateVMStatusFromComponents = (data: any[]) => {
     data.forEach((service) => {
-      service.countries.forEach((country) => {
+      service.countries.forEach((country : Country) => {
         country.vm.forEach((vm) => {
-          const highestPriorityStatus = findHigherPriorityStatus(vm.components);
+          const highestPriorityStatus = findHigherPriorityStatus(vm.components) as Status;
           vm.status = highestPriorityStatus;
         });
       });
@@ -269,7 +262,7 @@ export default function ServiceView() {
   // console.log(derivedData)
 
   // * 6. Update json file with json that has the correct
-  const updateInfo = async (newJson) => {
+  const updateInfo = async (newJson : any) => {
     try {
       const response = await fetch("api/updateInfo", {
         method: "POST",
