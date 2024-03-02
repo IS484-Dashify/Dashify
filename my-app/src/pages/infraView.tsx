@@ -149,15 +149,15 @@ export default function InfrastructureView() {
     console.log("Metrics Status:", metricsStatus);
     const order = { Critical: 0, Warning: 1, Normal: 2 };
     const sortedMetricStatus = Object.keys(metricsStatus).sort((a, b) => {
-      return order[metricsStatus[a]] - order[metricsStatus[b]];
+      return order[metricsStatus[a as keyof typeof metricsStatus] as keyof typeof order] - order[metricsStatus[b as keyof typeof metricsStatus] as keyof typeof order];
     }).reduce((obj, key) => {
-        obj[key] = metricsStatus[key];
+        obj[key] = metricsStatus[key as keyof typeof metricsStatus];
         return obj;
-    }, {});
+    }, {} as { [key: string]: string | undefined });
     
-    console.log("Overall Status:", sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
+    // console.log("Overall Status:", sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
     if(systemStatus){
-      setOverallStatus(sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
+      setOverallStatus(sortedMetricStatus[Object.keys(sortedMetricStatus)[0]] as string);
     } else {
       setOverallStatus('Critical');
       setMetricsStatus({"CPU Usage": "Critical", "Disk Usage": "Critical", "Memory Usage": "Critical", "Traffic": "Critical"});
@@ -226,7 +226,8 @@ export default function InfrastructureView() {
       let tempMetricStatus ={
         'CPU Usage': checkPercentageMetric((metrics['CPU Usage'] as unknown as {[key:string]:string, Datetime:string}[]), 'CPU Usage'),
         'Disk Usage': checkPercentageMetric((metrics['Disk Usage'] as unknown as {[key:string]:string, Datetime:string}[]), 'Disk Usage'),
-        'Memory Usage': checkPercentageMetric((metrics['Memory Usage'] as unknown as {[key:string]:string, Datetime:string}[]), 'Memory Usage')
+        'Memory Usage': checkPercentageMetric((metrics['Memory Usage'] as unknown as {[key:string]:string, Datetime:string}[]), 'Memory Usage'),
+        'Traffic': 'Normal'
       }
       setMetricsStatus(tempMetricStatus);
     }
@@ -257,6 +258,7 @@ export default function InfrastructureView() {
         return 'Normal'
       }
     }
+    return 'Unknown'
   }
 
   function convertNullToZero(arr: any[]) {
