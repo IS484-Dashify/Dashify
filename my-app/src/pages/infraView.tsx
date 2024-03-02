@@ -744,10 +744,10 @@ export default function InfrastructureView() {
                   Real-time Logs
                 </p>
                 <div className="mt-4 mb-4">
-                  {/* <Terminal height="400px">
-                    {terminalLineData}
-                  </Terminal> */}
-                  <LogViewer wsUrl="ws://20.82.137.238:8080" />
+                  <Terminal height="400px">
+                    {/* {terminalLineData} */}
+                    <LogViewer wsUrl="ws://20.82.137.238:8080" />
+                  </Terminal>
                 </div>
               </div>
             </div>
