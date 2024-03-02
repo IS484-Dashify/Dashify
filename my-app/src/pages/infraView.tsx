@@ -180,28 +180,20 @@ export default function InfrastructureView() {
   }, [selectedDateRange, systemStatus, loading]);
 
   const fetchData = () => {
+    // TODO: Create query for fetching data
     const queries: Queries = require('./../../data/queries.json');
-    
-    const requestBody = {
-      query: `${queries[component as keyof typeof queries][0]} 1440`
-    };
+    const proxyNifi = {
+      'endPoint' : `http://20.82.137.238:${queries[component][1]}/queryAdx`,
+      'query' : queries[component][0] + "129600"
+    }
   
-    // fetch(`http://20.82.137.238:${queries[component as keyof typeof queries][1]}/queryAdx`, {
     fetch(`https://dashify.vercel.app/api/proxy`) 
-    // {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(requestBody),
-    // })
     .then(response => response.json())
     .then(data => {
       const transformedData = transformJSON(data.Tables[0]);
       const transformedTrafficData = transformTrafficJSON(transformedData);
       console.log(data.Tables[0])
-      // const transformedData = data.metrics;
-      // const transformedTrafficData = data.trafficMetrics;
+
       setMetrics(transformedData);
       setTrafficMetrics(transformedTrafficData);
       setLastUpdated(getCurrentSGTDateTime())
