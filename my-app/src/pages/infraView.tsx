@@ -187,13 +187,14 @@ export default function InfrastructureView() {
     };
   
     // fetch(`http://20.82.137.238:${queries[component as keyof typeof queries][1]}/queryAdx`, {
-    fetch(`https://dashify.vercel.app/api/proxy`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    })
+    fetch(`https://dashify.vercel.app/api/proxy`) 
+    // {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify(requestBody),
+    // })
     .then(response => response.json())
     .then(data => {
       // const transformedData = transformJSON(data.Tables[0]);
