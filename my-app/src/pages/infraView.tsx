@@ -746,7 +746,7 @@ export default function InfrastructureView() {
                 <div className="mt-4 mb-4">
                   <Terminal height="400px">
                     {/* {terminalLineData} */}
-                    <LogViewer wsUrl="ws://20.82.137.238:8080" />
+                    <LogViewer wsUrl="wss://0230-20-82-137-238.ngrok-free.app" />
                   </Terminal>
                 </div>
               </div>
