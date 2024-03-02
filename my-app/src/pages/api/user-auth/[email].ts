@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASSWORD,
         database: 'dashify',
-        port: 3306
+        port: Number(process.env.MYSQL_PORT)
     });
     const { query, method } = req;
     const email = query.email;

@@ -375,6 +375,7 @@ export default function ServiceView() {
   // console.log(data)
   // console.log(sortedData)
   // console.log(renderedServices)
+  if(!session) return null;
   return (
     <main>
       <div className="h-screen min-h-full flex flex-row">
