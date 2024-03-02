@@ -35,6 +35,12 @@ interface Component {
   status: Status;
 }
 
+interface MetricStatus {
+  "CPU Usage": Status;
+  "Memory Usage": Status;
+  "Disk Usage": Status;
+}
+
 const data: serviceItem[] = rawData as serviceItem[];
 const order: { [key: string]: number } = { Critical: 0, Warning: 1, Normal: 2 };
 const sortedData: serviceItem[] = data.sort((a, b) => {
@@ -152,14 +158,14 @@ export default function ServiceView() {
           const order = { Critical: 0, Warning: 1, Normal: 2 };
           const sortedMetricStatus = Object.keys(metricStatus)
             .sort((a, b) => {
-              return order[metricStatus[a]] - order[metricStatus[b]];
+              return order[metricStatus[a as keyof typeof metricStatus] as keyof typeof order] - order[metricStatus[b as keyof typeof metricStatus] as keyof typeof order];
             })
             .reduce((obj, key) => {
-              obj[key] = metricStatus[key];
+              obj[key] = metricStatus[key as keyof typeof metricStatus];
               return obj;
-            }, {});
+            }, {} as { [key: string]: string | undefined });
 
-          console.log("Overall Status:",sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
+          // console.log("Overall Status:",sortedMetricSta  tus[Object.keys(sortedMetricStatus)[0]]);
           status = sortedMetricStatus[Object.keys(sortedMetricStatus)[0]];
         }
 
