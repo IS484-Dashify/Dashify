@@ -53,7 +53,7 @@ const Sidebar = () => {
 
 
   return (
-    <div className="border-r-2 px-3 pt-6 flex flex-col items-center bg-white">
+    <div className="border-r-2 px-3 pt-6 flex flex-col items-center bg-white fixed h-full">
       <Image src="/logo(down).png" alt="" width={35} height={35} />
       <div className="flex flex-col h-full items-center justify-center"> 
       {sidebarNavItems.map((item, index) => (
@@ -103,7 +103,7 @@ const Sidebar = () => {
           </div>
         </PopoverContent>
       </Popover>
-      <div className="opacity-50 mb-6 hover:opacity-100 hover:text-pri-500"><AiOutlineLogout size={25}/></div>
+      <button onClick={()=> signOut()}><div className="opacity-60 pb-6"><AiOutlineLogout size={25}/></div></button>
     </div>
   );
 };
