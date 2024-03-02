@@ -187,7 +187,13 @@ export default function InfrastructureView() {
       'query' : queries[component][0] + "129600"
     }
   
-    fetch(`https://dashify.vercel.app/api/proxy`) 
+    fetch(`https://dashify.vercel.app/api/proxy`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(proxyNifi)
+    })
     .then(response => response.json())
     .then(data => {
       const transformedData = transformJSON(data.Tables[0]);
