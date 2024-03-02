@@ -71,13 +71,13 @@ async function proxyApiCall (req, res) {
   //   console.error("Error:", error);
   // });
   const data = await response.json();
-  const transformedData = transformJSON(data.Tables[0]);
-  const transformedTrafficData = transformTrafficJSON(transformedData);
-  const returnJson = {
-    metrics: transformedData,
-    trafficMetrics: transformedTrafficData,
-  };
-  res.status(200).json(returnJson); // Send the data back to the client over HTTPS
+  // const transformedData = transformJSON(data.Tables[0]);
+  // const transformedTrafficData = transformTrafficJSON(transformedData);
+  // const returnJson = {
+  //   metrics: transformedData,
+  //   trafficMetrics: transformedTrafficData,
+  // };
+  res.status(200).json(data); // Send the data back to the client over HTTPS
 };
 
 export default proxyApiCall;

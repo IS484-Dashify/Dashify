@@ -197,11 +197,11 @@ export default function InfrastructureView() {
     // })
     .then(response => response.json())
     .then(data => {
-      // const transformedData = transformJSON(data.Tables[0]);
-      // const transformedTrafficData = transformTrafficJSON(transformedData);
-      // console.log(data.Tables[0])
-      const transformedData = data.metrics;
-      const transformedTrafficData = data.trafficMetrics;
+      const transformedData = transformJSON(data.Tables[0]);
+      const transformedTrafficData = transformTrafficJSON(transformedData);
+      console.log(data.Tables[0])
+      // const transformedData = data.metrics;
+      // const transformedTrafficData = data.trafficMetrics;
       setMetrics(transformedData);
       setTrafficMetrics(transformedTrafficData);
       setLastUpdated(getCurrentSGTDateTime())
