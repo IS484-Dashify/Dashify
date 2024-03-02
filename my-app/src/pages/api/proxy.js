@@ -77,7 +77,7 @@ async function proxyApiCall (req, res) {
     metrics: transformedData,
     trafficMetrics: transformedTrafficData,
   };
-  res.status(200).json(data); // Send the data back to the client over HTTPS
+  res.status(200).json(returnJson); // Send the data back to the client over HTTPS
 };
 
 export default proxyApiCall;
