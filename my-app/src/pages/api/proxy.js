@@ -46,6 +46,10 @@ function transformTrafficJSON(transformedData) {
 module.exports = async (req, res) => {
   const targetUrl = "http://20.82.137.238:3001/queryAdx"; // The HTTP URL you're trying to request
   //   const response = await fetch(targetUrl); // Use fetch API to make the HTTP request
+  const requestBody = {
+    query: `nifi_metrics | order by Datetime desc | take 1440`
+  };
+  
   const response = await fetch(`https://dashify.vercel.app/api/proxy`, {
     method: "POST",
     headers: {
