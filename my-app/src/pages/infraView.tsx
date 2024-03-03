@@ -549,6 +549,8 @@ export default function InfrastructureView() {
                       Last refreshed {lastUpdated}
                     </span>
                   </div>
+                </div>
+                <div>
                   <p className="flex items-center">
                     <MdOutlineLocationOn className="mr-2" />{" "}
                     {componentDetails[1]}
