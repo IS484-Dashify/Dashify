@@ -44,5 +44,4 @@ def get_component():
         return jsonify({'error': 'Component not found.'}), 404
 
 if __name__ == '__main__':
-    db.create_all()
     app.run(debug=True, port=5003)
