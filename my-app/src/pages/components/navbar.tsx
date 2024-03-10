@@ -83,8 +83,8 @@ const Sidebar = () => {
                 {notifications.map(notification => 
                   <div key={notification.id} className="pb-2 my-3 border-b flex items-center">
                     <div className={`w-3 h-3 rounded-full mr-2 ${notification.ragStatus === 'red' ? 'bg-reddish-100 border-2 border-reddish-200' : 
-                                    notification.ragStatus === 'amber' ? 'bg-amberish-100 border-2 border-amberish-200' : 
-                                    notification.ragStatus === 'green' ? 'bg-greenish-100 border-2 border-greenish-200' : ''}`}>
+                      notification.ragStatus === 'amber' ? 'bg-amberish-100 border-2 border-amberish-200' : 
+                      notification.ragStatus === 'green' ? 'bg-greenish-100 border-2 border-greenish-200' : ''}`}>
                     </div>
                     <div className="w-11/12">
                       <div className="break-all">{notification.message}</div>
