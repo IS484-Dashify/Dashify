@@ -9,6 +9,7 @@ import Sidebar from "./components/navbar";
 
 const notifications = [
   {
+    "id": 1,
     "service": "Service 1 (prometheus)",
     "vm": "VM1",
     "component": "component 1",
@@ -17,36 +18,40 @@ const notifications = [
     "status":"Critical"
   },
   {
-      "service": "Service 1 (prometheus)",
-      "vm": "VM1",
-      "component": "component 1",
-      "reason": "CPU down",
-      "datetime": "yyyy-MM-dd HH:mm:ss",
-      "status":"Warning"
+    "id": 3,
+    "service": "Service 1 (prometheus)",
+    "vm": "VM1",
+    "component": "component 1",
+    "reason": "CPU down",
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "status":"Warning"
   },
   {
-      "service": "Service 1 (prometheus)",
-      "vm": "VM1",
-      "component": "component 1",
-      "reason": "CPU down",
-      "datetime": "yyyy-MM-dd HH:mm:ss",
-      "status":"Warning"
+    "id": 4,
+    "service": "Service 1 (prometheus)",
+    "vm": "VM1",
+    "component": "component 1",
+    "reason": "CPU down",
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "status":"Warning"
   },
   {
-      "service": "Service 1 (prometheus)",
-      "vm": "VM1",
-      "component": "component 1",
-      "reason": "CPU down",
-      "datetime": "yyyy-MM-dd HH:mm:ss",
-      "status":"Critical"
+    "id": 5,
+    "service": "Service 1 (prometheus)",
+    "vm": "VM1",
+    "component": "component 1",
+    "reason": "CPU down",
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "status":"Warning"
   },
   {
-      "service": "Service 1 (prometheus)",
-      "vm": "VM1",
-      "component": "component 1",
-      "reason": "CPU down",
-      "datetime": "yyyy-MM-dd HH:mm:ss",
-      "status":"Critical"
+    "id": 6,
+    "service": "Service 1 (prometheus)",
+    "vm": "VM1",
+    "component": "component 1",
+    "reason": "CPU down",
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "status":"Warning"
   },
 ]
 
@@ -86,7 +91,7 @@ export default function WorldView() {
             {notifications && notifications.length > 0 ? (
               <>
                 {notifications?.map(notification =>
-                  <div className={`bg-white w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center ${
+                  <div key={notification.id} className={`bg-white w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center ${
                     notification.status === "Critical"
                       ? "border-reddish-200"
                       : "border-amberish-200"
