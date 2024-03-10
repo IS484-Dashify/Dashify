@@ -95,7 +95,12 @@ export default function WorldView() {
                       <div className='font-bold'>{notification.service} | {notification.vm} | {notification.component}</div>
                       {notification.reason}
                     </div>
-                    <div className='text-right'>{notification.datetime}</div>
+                    <div className='italic'>{notification.datetime}</div>
+                    <button
+                      className="h-[2.5rem] px-4 bg-pri-500 rounded-[4px] text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                    >
+                      View
+                    </button>
                   </div>
                 )}
               </>
