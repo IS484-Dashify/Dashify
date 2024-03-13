@@ -15,7 +15,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
-class Service(db.Model):
+class Services(db.Model):
     sid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
 
@@ -27,7 +27,7 @@ class Service(db.Model):
 
 @app.route('/get-all-services', methods=['GET'])
 def get_all_services():
-    all_services = Service.query.all()
+    all_services = Services.query.all()
     services = [service.json() for service in all_services]
     return jsonify(services)
 
