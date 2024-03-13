@@ -3,8 +3,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
 
+from dotenv import load_dotenv
+import os
+# Load environment variables from .env file
+load_dotenv()
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('dbURL')
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
@@ -15,7 +21,7 @@ class Service(db.Model):
 
     def json(self):
         return {
-            "sid": self.sid,
+            "sid": self.sid,    
             "name": self.name
         }
 
