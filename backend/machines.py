@@ -33,15 +33,11 @@ def get_all_machines():
     machines = [machine.json() for machine in all_machines]
     return jsonify(machines)
 
-@app.route('/get-data-from-app-b/<int:mid>', methods=['GET'])
-def get_component_status():
-    try:
-        
-        response = requests.get(f'http://localhost:5004/get-all-components/{cid}/{mid}')
-        response = response.json()
-        return response
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+@app.route('/get-mid-by-sid/<int:sid>', methods=['GET'])
+def get_mid_values_by_sid(sid):
+    machines = Machines.query.filter_by(sid=sid).all()
+    mids = [machine.mid for machine in machines]
+    return jsonify({'result': mids})
     
 
 if __name__ == '__main__':
