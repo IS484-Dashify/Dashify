@@ -36,15 +36,6 @@ def get_cid_values_by_mid(mid):
     components = Components.query.filter_by(mid=mid).all()
     cids = [component.cid for component in components]
     return jsonify({"results": cids})
-
-@app.route('/get-data-from-app-b/<int:cid>/<int:mid>', methods=['GET'])
-def get_component_status(cid, mid):
-    try:
-        response = requests.get(f'http://localhost:5004/get-all-components/{cid}/{mid}')
-        response = response.json()
-        return response
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
     
 if __name__ == '__main__':
     app.run(debug=True, port=5003)
