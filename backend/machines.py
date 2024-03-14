@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
+import requests
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
@@ -28,6 +29,17 @@ def get_all_machines():
     all_machines = Machine.query.all()
     machines = [machine.json() for machine in all_machines]
     return jsonify(machines)
+
+@app.route('/get-data-from-app-b/<int:mid>', methods=['GET'])
+def get_component_status():
+    try:
+        
+        response = requests.get(f'http://localhost:5004/get-all-components/{cid}/{mid}')
+        response = response.json()
+        return response
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)

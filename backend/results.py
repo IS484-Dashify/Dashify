@@ -2,6 +2,10 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
@@ -9,7 +13,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
-class Result(db.Model):
+class Results(db.Model):
     datetime = db.Column(db.DateTime, primary_key=True)
     mid = db.Column(db.Integer, db.ForeignKey('machine.mid'))
     cid = db.Column(db.Integer, db.ForeignKey('component.cid'))
@@ -37,17 +41,18 @@ class Result(db.Model):
 
 @app.route('/get-all-results', methods=['GET'])
 def get_all_results():
-    all_results = Result.query.all()
+    all_results = Results.query.all()
     results = [result.json() for result in all_results]
-    return jsonify(results)
+    return jsonify({"results": results})
 
 @app.route('/get-result-status/<int:cid>/<int:mid>', methods=['GET'])
 def get_last_result(cid, mid):
-    last_result = Result.query.filter_by(cid=cid, mid=mid).order_by(Result.datetime.desc()).first()
+    last_result = Results.query.filter_by(cid=cid, mid=mid).order_by(Results.datetime.desc()).first()
+    print(last_result)
     
     if last_result:
         if last_result.system_uptime == 0:
-            return {"status": "red"}
+            return jsonify({"status": "red"})
         
         statuses = []
 
@@ -65,9 +70,9 @@ def get_last_result(cid, mid):
         else:
             statuses.append('green')
 
-        if last_result.traffic_out > 1000:
+        if last_result.traffic_out > 100000:
             statuses.append('red')
-        elif last_result.traffic_out > 500:
+        elif last_result.traffic_out > 50000:
             statuses.append('amber')
         else:
             statuses.append('green')
@@ -85,13 +90,13 @@ def get_last_result(cid, mid):
             statuses.append('amber')
         else:
             statuses.append('green')
-        
+
         if 'red' in statuses:
-            return {"status": "red"}
+            return jsonify({"status": "red"})
         elif 'amber' in statuses:
-            return {"status": "amber"}
+            return jsonify({"status": "amber"})
         else:
-            return {"status": "green"}
+            return jsonify({"status": "green"})
 
     else:
         return jsonify({"message": "No result found for the specified cid and mid."})
