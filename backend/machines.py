@@ -2,7 +2,10 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
-import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
@@ -10,7 +13,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
-class Machine(db.Model):
+class Machines(db.Model):
     mid = db.Column(db.Integer, primary_key=True)
     sid = db.Column(db.Integer, db.ForeignKey('service.sid'))
     name = db.Column(db.Text)
@@ -26,7 +29,7 @@ class Machine(db.Model):
 
 @app.route('/get-all-machines', methods=['GET'])
 def get_all_machines():
-    all_machines = Machine.query.all()
+    all_machines = Machines.query.all()
     machines = [machine.json() for machine in all_machines]
     return jsonify(machines)
 

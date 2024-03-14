@@ -2,16 +2,18 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
+from dotenv import load_dotenv
 import requests
 
+load_dotenv()
+
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:rootroot@localhost:3306/IS484'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
-class Component(db.Model):
+class Components(db.Model):
     cid = db.Column(db.Integer, primary_key=True)
     mid = db.Column(db.Integer, db.ForeignKey('machine.mid'))
     name = db.Column(db.Text)
@@ -25,18 +27,18 @@ class Component(db.Model):
 
 @app.route('/get-all-components', methods=['GET'])
 def get_all_components():
-    all_components = Component.query.all()
+    all_components = Components.query.all()
     components = [component.json() for component in all_components]
     return jsonify({"results": components})
 
 @app.route('/get-cid-by-mid/<int:mid>', methods=['GET'])
 def get_cid_values_by_mid(mid):
-    components = Component.query.filter_by(mid=mid).all()
+    components = Components.query.filter_by(mid=mid).all()
     cids = [component.cid for component in components]
     return jsonify({"results": cids})
 
 @app.route('/get-data-from-app-b/<int:cid>/<int:mid>', methods=['GET'])
-def get_component_status():
+def get_component_status(cid, mid):
     try:
         response = requests.get(f'http://localhost:5004/get-all-components/{cid}/{mid}')
         response = response.json()
