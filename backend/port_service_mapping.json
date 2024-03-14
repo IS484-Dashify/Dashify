@@ -1,0 +1,7 @@
+{
+    "services": 5001,
+    "machines": 5002,
+    "components": 5003,
+    "results": 5004,
+    "threshold": 5005
+}
