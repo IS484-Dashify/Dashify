@@ -41,5 +41,61 @@ def get_all_results():
     results = [result.json() for result in all_results]
     return jsonify(results)
 
+@app.route('/get-result-status/<int:cid>/<int:mid>', methods=['GET'])
+def get_last_result(cid, mid):
+    last_result = Result.query.filter_by(cid=cid, mid=mid).order_by(Result.datetime.desc()).first()
+    
+    if last_result:
+        if last_result.system_uptime == 0:
+            return {"status": "red"}
+        
+        statuses = []
+
+        if last_result.disk_usage > 90:
+            statuses.append('red')
+        elif last_result.disk_usage > 70:
+            statuses.append('amber')
+        else:
+            statuses.append('green')
+
+        if last_result.traffic_in > 1000:
+            statuses.append('red')
+        elif last_result.traffic_in > 500:
+            statuses.append('amber')
+        else:
+            statuses.append('green')
+
+        if last_result.traffic_out > 1000:
+            statuses.append('red')
+        elif last_result.traffic_out > 500:
+            statuses.append('amber')
+        else:
+            statuses.append('green')
+
+        if last_result.cpu_usage > 90:
+            statuses.append('red')
+        elif last_result.cpu_usage > 70:
+            statuses.append('amber')
+        else:
+            statuses.append('green')
+
+        if last_result.memory_usage > 90:
+            statuses.append('red')
+        elif last_result.memory_usage > 70:
+            statuses.append('amber')
+        else:
+            statuses.append('green')
+        
+        if 'red' in statuses:
+            return {"status": "red"}
+        elif 'amber' in statuses:
+            return {"status": "amber"}
+        else:
+            return {"status": "green"}
+
+    else:
+        return jsonify({"message": "No result found for the specified cid and mid."})
+    
+
 if __name__ == '__main__':
     app.run(debug=True, port=5004)
