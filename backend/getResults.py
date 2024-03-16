@@ -74,12 +74,30 @@ def processResult():
         else:
             memoryUsageStatus='green'
         statuses['memory_usage'] = memoryUsageStatus
-
         # TODO: 2. if any status are red/amber, fire to notification system
         
         # TODO: 3. Store the data in the database
-        return jsonify(statuses)
-
+        response = requests.post("http://localhost:5004/add-result", 
+            json=rawResult, 
+            headers = {
+                'Content-Type': 'application/json', 
+            }
+        )
+        response = response.json()
+        print("Response status:", response)
+        if response["status_code"] == 200:
+            response_data = {
+                'message': 'Data processed successfully',
+                'status_code': response["status_code"]
+            }
+            return jsonify(response_data)   
+        else:
+            # Return relevant information from the response
+            response_data = {
+                'error': 'Failed to process data',
+                'status_code': response["status_code"]
+            }
+            return jsonify(response_data)
     else:
         return jsonify({"message": "No result found for the specified cid and mid."})
 

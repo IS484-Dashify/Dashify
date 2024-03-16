@@ -101,6 +101,30 @@ def get_last_result(cid, mid):
     else:
         return jsonify({"message": "No result found for the specified cid and mid."})
     
-
+@app.route('/add-result', methods=['POST'])
+def add_result():
+    data = request.json
+    newResult = Results(
+        datetime = data['datetime'],
+        mid = int(data['mid']),
+        cid = int(data['cid']),
+        disk_usage = float(data['disk_usage']),
+        traffic_in = int(data['traffic_in']),
+        traffic_out = int(data['traffic_out']),
+        clock = float(data['clock']),
+        cpu_usage = float(data['cpu_usage']),
+        system_uptime = float(data['system_uptime']),
+        memory_usage = float(data['memory_usage'])
+    )
+    
+    # TODO: Take care of foreign key error
+    try:
+        db.session.add(newResult)
+        db.session.commit()
+        
+        return jsonify({"message": "Result added successfully.", "data": data, "status_code": 200})
+    except Exception as e:  
+        return jsonify({"error": "An unexpected error occurred", "details": str(e), "status_code": 500})
+    
 if __name__ == '__main__':
     app.run(debug=True, port=5004)
