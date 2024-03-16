@@ -2,7 +2,7 @@ from flask import request, jsonify
 from models import *
 
 # .first() returns either the item or None, can't use len()
-def doesComponentExist(cid, mid):
+def doesComponentExist(cid):
     """
     A function that checks if a component exists in the database
 
@@ -13,14 +13,14 @@ def doesComponentExist(cid, mid):
     Returns:
     component (object): The component object if it exists, False otherwise
     """
-    component = Components.query.filter_by(cid=cid, mid=mid).first()
+    component = Components.query.filter_by(cid=cid).first()
     if component:
         return component
     else:
         return False
     
 # .first() returns either the item or None, can't use len()
-def doesThresholdExist(cid, mid):
+def doesThresholdExist(cid):
     """
     A function that checks if a threshold exists in the database
 
@@ -31,7 +31,7 @@ def doesThresholdExist(cid, mid):
     Returns:
     threshold (object): The threshold object if it exists, False otherwise
     """
-    threshold = Thresholds.query.filter_by(cid=cid, mid=mid).first()
+    threshold = Thresholds.query.filter_by(cid=cid).first()
     if threshold:
         return threshold
     else:
