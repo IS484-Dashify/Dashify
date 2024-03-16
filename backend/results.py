@@ -99,9 +99,9 @@ def add_result():
         db.session.add(newResult)
         db.session.commit()
         
-        return jsonify({"message": "Result added successfully.", "data": data, "status_code": 200})
+        return jsonify({"message": "Result added successfully.", "data": data, "status_code": 200}), 200
     except Exception as e:  
-        return jsonify({"error": "An unexpected error occurred", "details": str(e), "status_code": 500})
+        return jsonify({"error": "An unexpected error occurred", "details": str(e), "status_code": 500}), 500
     
 if __name__ == '__main__':
     app.run(debug=True, port=5004)

@@ -90,14 +90,14 @@ def processResult():
                 'message': 'Data processed successfully',
                 'status_code': response["status_code"]
             }
-            return jsonify(response_data)   
+            return jsonify(response_data), 200
         else:
             # Return relevant information from the response
             response_data = {
                 'error': 'Failed to process data',
                 'status_code': response["status_code"]
             }
-            return jsonify(response_data)
+            return jsonify(response_data), 500
     else:
         return jsonify({"message": "No result found for the specified cid and mid."})
 
