@@ -19,7 +19,7 @@ class Machines(db.Model):
         }
 
 class Results(db.Model):
-    datetime = db.Column(db.DateTime, primary_key=True)
+    datetime = db.Column(db.DateTime)
     mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
     cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
     disk_usage = db.Column(db.Float)
@@ -29,6 +29,10 @@ class Results(db.Model):
     cpu_usage = db.Column(db.Float)
     system_uptime = db.Column(db.Float)
     memory_usage = db.Column(db.Float)
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint(datetime, mid, cid),
+    )
 
     def json(self):
         return {
@@ -55,13 +59,9 @@ class Services(db.Model):
         }
     
 class Components(db.Model):
-    cid = db.Column(db.Integer)
+    cid = db.Column(db.Integer, primary_key=True)
     mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
     name = db.Column(db.Text)
-
-    __table_args__ = (
-        db.PrimaryKeyConstraint(mid, cid),
-    )
 
     def json(self):
         return {
@@ -71,14 +71,9 @@ class Components(db.Model):
         }
 
 class Thresholds(db.Model):
-    mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
-    cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
+    cid = db.Column(db.Integer, db.ForeignKey('components.cid'), primary_key=True)
     warning = db.Column(db.Float)
     critical = db.Column(db.Float)
-
-    __table_args__ = (
-        db.PrimaryKeyConstraint(mid, cid),
-    )
 
     def json(self):
         return {
