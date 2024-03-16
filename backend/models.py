@@ -77,7 +77,6 @@ class Thresholds(db.Model):
 
     def json(self):
         return {
-            "mid": self.mid,
             "cid": self.cid,
             "warning": self.warning,
             "critical": self.critical

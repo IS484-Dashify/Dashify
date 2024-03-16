@@ -4,26 +4,8 @@ from flask_cors import CORS
 from os import environ
 from dotenv import load_dotenv
 import requests
-
-load_dotenv()
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-CORS(app)
-
-class Components(db.Model):
-    cid = db.Column(db.Integer, primary_key=True)
-    mid = db.Column(db.Integer, db.ForeignKey('machine.mid'))
-    name = db.Column(db.Text)
-
-    def json(self):
-        return {
-            "cid": self.cid,
-            "mid": self.mid,
-            "name": self.name
-        }
+from models import Components
+from app import app
 
 @app.route('/get-all-components', methods=['GET'])
 def get_all_components():
