@@ -39,7 +39,8 @@ def get_all_machines():
 def get_mid_values_by_sid(sid):
     machines = Machines.query.filter_by(sid=sid).all()
     mids = [machine.mid for machine in machines]
-    return jsonify({'result': mids})
+    print(mids)
+    return jsonify({'results': mids})
     
 
 if __name__ == '__main__':

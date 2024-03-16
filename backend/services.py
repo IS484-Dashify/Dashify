@@ -27,6 +27,7 @@ class Services(db.Model):
 def get_all_services():
     all_services = Services.query.all()
     services = [service.json() for service in all_services]
+    print(services)
     return jsonify({'results': services})
 
 if __name__ == '__main__':
