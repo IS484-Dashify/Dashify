@@ -13,10 +13,28 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
+class Services(db.Model):
+    sid = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    
+class Machines(db.Model):
+    mid = db.Column(db.Integer, primary_key=True)
+    sid = db.Column(db.Integer, db.ForeignKey('services.sid'))
+    name = db.Column(db.Text)
+    location = db.Column(db.Text)
+    country = db.Column(db.Text)
+    service = db.relationship('Services', backref=db.backref('machines'))
+
+class Components(db.Model):
+    cid = db.Column(db.Integer, primary_key=True)
+    mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
+    name = db.Column(db.Text)
+    machine = db.relationship('Machines', backref=db.backref('components'))
+
 class Results(db.Model):
     datetime = db.Column(db.DateTime, primary_key=True)
-    mid = db.Column(db.Integer, db.ForeignKey('machine.mid'))
-    cid = db.Column(db.Integer, db.ForeignKey('component.cid'))
+    mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
+    cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
     disk_usage = db.Column(db.Float)
     traffic_in = db.Column(db.Integer)
     traffic_out = db.Column(db.Integer)
