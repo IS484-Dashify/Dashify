@@ -19,7 +19,7 @@ class Machines(db.Model):
         }
 
 class Results(db.Model):
-    datetime = db.Column(db.DateTime)
+    datetime = db.Column(db.DateTime, primary_key=True)
     mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
     cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
     disk_usage = db.Column(db.Float)
