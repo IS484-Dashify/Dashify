@@ -42,3 +42,4 @@ next-env.d.ts
 
 # virtual environment
 backend/venv/
+backend/__pycache__/
