@@ -31,6 +31,11 @@ def get_all_components():
     components = [component.json() for component in all_components]
     return jsonify({"results": components})
 
+@app.route('/get-component-details-by-cid/<int:cid>', methods=['GET'])
+def get_component_details_by_cid(cid):
+    component = Components.query.filter_by(cid=cid).first()
+    return jsonify(component.json())
+
 @app.route('/get-cid-by-mid/<int:mid>', methods=['GET'])
 def get_cid_values_by_mid(mid):
     components = Components.query.filter_by(mid=mid).all()

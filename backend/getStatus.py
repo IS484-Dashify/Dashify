@@ -3,42 +3,45 @@ import requests
 
 app = Flask(__name__)
 
-@app.route('/get-all-service-name-and-status', methods=['GET'])
-def get_all_service_name_and_status():
+@app.route('/get-service-status-details/<int:sid>', methods=['GET'])
+def get_all_service_name_and_status(sid):
     output = {}
+    response2 = requests.get(f'http://localhost:5002/get-mid-by-sid/{sid}')
+    mids = response2.json()['results']
 
-    response1 = requests.get('http://localhost:5001/get-all-services')
-    services = response1.json()['results']
+    for mid in mids:
+        component_statuses = {}
+        response3 = requests.get(f'http://localhost:5002/get-machine-details-by-mid/{mid}')
+        machine_details = response3.json()
+        response4 = requests.get(f'http://localhost:5003/get-cid-by-mid/{mid}')
+        cids = response4.json()['results']
 
-    for service in services:
-        sid = service['sid']
-        response2 = requests.get(f'http://localhost:5002/get-mid-by-sid/{sid}')
-        mids = response2.json()['results']
-        statuses = []
+        output[machine_details['name']] = {'status': 'red',
+                            'location': machine_details['location'],
+                            'country': machine_details['country']}
 
-        for mid in mids:
-            response3 = requests.get(f'http://localhost:5003/get-cid-by-mid/{mid}')
-            cids = response3.json()['results']
-
-            for cid in cids:
-                response4 = requests.get(f'http://localhost:5004/get-result-status/{cid}/{mid}')
-                component_status = response4.json()['status']
-                statuses.append(component_status)
+        for cid in cids:
+            response5 = requests.get(f'http://localhost:5004/get-result-status/{cid}/{mid}')
+            component_status = response5.json()['status']
+            response6 = requests.get(f'http://localhost:5003/get-component-details-by-cid/{cid}')
+            component_name = response6.json()['name']
+            component_statuses[component_name] = component_status
+    
+        if 'red' in component_statuses.values():
+            output[machine_details['name']]['status'] = 'red'
         
-        if 'red' in statuses:
-            output[service['name']] = 'red'
-        
-        elif 'amber' in statuses:
-            output[service['name']] = 'amber'
+        elif 'amber' in component_statuses.values():
+            output[machine_details['name']]['status'] = 'amber'
         
         else:
-            output[service['name']] = 'green'
+            output[machine_details['name']]['status'] = 'green'
 
+        output[machine_details['name']]['components'] = component_statuses
 
     # Return the final response
     return jsonify(output)
 
-@app.route('/get-service-status-details', methods=['GET'])
+@app.route('/get-all-service-name-and-status', methods=['GET'])
 def get_service_status_details():
     output = {}
 
@@ -60,14 +63,14 @@ def get_service_status_details():
                 component_status = response4.json()['status']
                 statuses.append(component_status)
         
-            if 'red' in statuses:
-                output[service['name']] = 'red'
-            
-            elif 'amber' in statuses:
-                output[service['name']] = 'amber'
-            
-            else:
-                output[service['name']] = 'green'
+        if 'red' in statuses:
+            output[service['name']] = 'red'
+        
+        elif 'amber' in statuses:
+            output[service['name']] = 'amber'
+        
+        else:
+            output[service['name']] = 'green'
 
 
     # Return the final response
