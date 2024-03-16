@@ -4,6 +4,9 @@ from flask_cors import CORS
 from os import environ
 from dotenv import load_dotenv
 
+from models import Results
+from app import app
+
 load_dotenv()
 
 
@@ -12,50 +15,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
-
-class Services(db.Model):
-    sid = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text)
-    
-class Machines(db.Model):
-    mid = db.Column(db.Integer, primary_key=True)
-    sid = db.Column(db.Integer, db.ForeignKey('services.sid'))
-    name = db.Column(db.Text)
-    location = db.Column(db.Text)
-    country = db.Column(db.Text)
-    service = db.relationship('Services', backref=db.backref('machines'))
-
-class Components(db.Model):
-    cid = db.Column(db.Integer, primary_key=True)
-    mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
-    name = db.Column(db.Text)
-    machine = db.relationship('Machines', backref=db.backref('components'))
-
-class Results(db.Model):
-    datetime = db.Column(db.DateTime, primary_key=True)
-    mid = db.Column(db.Integer, db.ForeignKey('machines.mid'))
-    cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
-    disk_usage = db.Column(db.Float)
-    traffic_in = db.Column(db.Integer)
-    traffic_out = db.Column(db.Integer)
-    clock = db.Column(db.Float)
-    cpu_usage = db.Column(db.Float)
-    system_uptime = db.Column(db.Float)
-    memory_usage = db.Column(db.Float)
-
-    def json(self):
-        return {
-            "datetime": self.datetime.strftime('%Y-%m-%d %H:%M:%S'),  # Format datetime as string
-            "mid": self.mid,
-            "cid": self.cid,
-            "disk_usage": self.disk_usage,
-            "traffic_in": self.traffic_in,
-            "traffic_out": self.traffic_out,
-            "clock": self.clock,
-            "cpu_usage": self.cpu_usage,
-            "system_uptime": self.system_uptime,
-            "memory_usage": self.memory_usage
-        }
 
 @app.route('/get-all-results', methods=['GET'])
 def get_all_results():

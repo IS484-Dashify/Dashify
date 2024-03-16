@@ -1,44 +1,84 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from os import environ
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-CORS(app)
-
-class Thresholds(db.Model):
-    tid = db.Column(db.Integer, primary=True)
-    mid = db.Column(db.Integer, db.ForeignKey('machine.mid'))
-    sid = db.Column(db.Integer, db.ForeignKey('service.sid'))    
-    cid = db.Column(db.Integer, db.ForeignKey('component.cid'))
-    threshold = db.Column(db.Float)
-
-    def json(self):
-        return {
-            "tid": self.tid,
-            "mid": self.mid,
-            "sid": self.sid,
-            "cid": self.cid,
-            "threshold": self.threshold
-        }
+from flask import request, jsonify
+from models import db, Thresholds, Components
+from helper import doesComponentExist, doesThresholdExist
+from app import app
 
 @app.route('/get-all-thresholds', methods=['GET'])
 def get_all_thresholds():
     all_thresholds = Thresholds.query.all()
-    thresholds = [thresholds.json() for threshold in all_thresholds]
+    thresholds = [threshold.json() for threshold in all_thresholds]
     return jsonify(thresholds)
 
-@app.route('/get-threshold-by-mid-sid-cid/<int:sid>/<int:mid>/<int:cid>', methods=['GET'])
-def get_threshold_by_mid_and_sid_and_cid(sid, mid, cid):
-    threshold = Thresholds.query.filter_by(sid=sid, mid=mid, cid=cid).all()
-    return jsonify({'result': threshold})
+@app.route('/get-thresholds-by-cid/<int:cid>', methods=['GET'])
+def get_thresholds_by_cid(cid):
+    threshold = Thresholds.query.filter_by(cid=cid).first()
+    threshold = threshold.json()
+    return jsonify({'results': threshold})
+
+@app.route('/create-threshold', methods=['POST'])
+def create_threshold():
+    data = request.get_json()
+    request_cid = data["cid"]
+    request_warning = data["warning"]
+    request_critical = data["critical"]
+
+    # check if component exists
+    # component = Components.query.filter_by(cid=request_cid, mid=request_mid).first()
+    componentExists = doesComponentExist(request_cid)
+    if componentExists:
+        component = componentExists.json()
+        thresholdExists = doesThresholdExist(request_cid)
+        # check if threshold already exists for this component
+        if thresholdExists:
+            return jsonify({'error': 'Threshold already exists'}), 400
+        try:
+            new_threshold = Thresholds(cid=request_cid, warning=request_warning, critical=request_critical)
+            db.session.add(new_threshold)
+            db.session.commit()
+            return_message = {
+                'message': 'New threshold for cid: ' + str(request_cid) + ' created!'
+            }
+
+            return jsonify(return_message)
+        
+        except Exception as e:
+            return_message = {
+                'error': 'There was an error adding the new threshold: ' + str(e)
+            }
+
+    else:
+        return jsonify({'error': 'Component not found'}), 404
+
+@app.route('/update-threshold', methods=['PUT'])
+def update_threshold():
+    data = request.get_json()
+    request_cid = data["cid"]
+    request_warning = data["warning"]
+    request_critical = data["critical"]
+    try:
+        # check if component exists
+        componentExists = doesComponentExist(request_cid)
+        if componentExists:
+            # check if threshold already exists for this component
+            thresholdExists = doesThresholdExist(request_cid)
+            if not thresholdExists:
+                return jsonify({'error': 'Threshold doesn\'t exist'}), 400
+            else:
+                thresholdExists.warning = request_warning
+                thresholdExists.critical = request_critical
+                db.session.commit()
+                return_message = {
+                    'message': 'Threshold for cid: ' + str(request_cid) + ' updated!'
+                }
+        else:
+            return jsonify({'error': 'Component not found'}), 404
+    
+    except Exception as e:
+        return_message = {
+            'error': 'There was an error updating the new threshold: ' + str(e)
+        }
+
+    return jsonify(return_message)
     
 if __name__ == '__main__':
     app.run(debug=True, port=5005)
