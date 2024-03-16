@@ -18,13 +18,15 @@ class Machines(db.Model):
     sid = db.Column(db.Integer, db.ForeignKey('service.sid'))
     name = db.Column(db.Text)
     location = db.Column(db.Text)
+    country = db.Column(db.Text)
 
     def json(self):
         return {
             "mid": self.mid,
             "sid": self.sid,
             "name": self.name,
-            "location": self.location
+            "location": self.location,
+            "country": self.country
         }
 
 @app.route('/get-all-machines', methods=['GET'])
