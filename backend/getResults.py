@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 import requests
-
-app = Flask(__name__)
+from app import app
 
 @app.route('/', methods=['GET'])
 def index():
