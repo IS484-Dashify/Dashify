@@ -81,3 +81,21 @@ class Thresholds(db.Model):
             "warning": self.warning,
             "critical": self.critical
         }
+    
+class Pusher(db.Model):
+    pid = db.Column(db.Integer, primary_key=True)
+    appId = db.Column(db.Text)
+    key = db.Column(db.Text)
+    secret = db.Column(db.Text)
+    cluster = db.Column(db.Text)
+    useTLS = db.Column(db.Boolean)
+
+    def json(self):
+        return {
+            "pid": self.pid,
+            "appId": self.appId,
+            "key": self.key,
+            "secret": self.secret,
+            "cluster": self.cluster,
+            "useTLS": self.useTLS
+        }
