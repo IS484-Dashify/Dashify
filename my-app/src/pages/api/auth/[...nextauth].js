@@ -25,6 +25,7 @@ export const authOptions = {
       // console.log("Verified: ", profile.email_verified);
 
       if (profile.email_verified) {
+        return true
         try {
           // 1. Check if email exists in database
           // console.log("EMAIL", `/api/user-auth/${user.email}`);

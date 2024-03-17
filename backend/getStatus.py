@@ -1,7 +1,6 @@
-from flask import Flask, jsonify, request
+from flask import jsonify, request
 import requests
-
-app = Flask(__name__)
+from app import app
 
 @app.route('/get-service-status-details/<int:sid>', methods=['GET'])
 def get_all_service_name_and_status(sid):
@@ -28,13 +27,13 @@ def get_all_service_name_and_status(sid):
             component_statuses[component_name] = component_status
     
         if 'red' in component_statuses.values():
-            output[machine_details['name']]['status'] = 'red'
+            output[machine_details['name']]['status'] = 'Critical'
         
         elif 'amber' in component_statuses.values():
-            output[machine_details['name']]['status'] = 'amber'
+            output[machine_details['name']]['status'] = 'Warning'
         
         else:
-            output[machine_details['name']]['status'] = 'green'
+            output[machine_details['name']]['status'] = 'Normal'
 
         output[machine_details['name']]['components'] = component_statuses
 
@@ -64,13 +63,13 @@ def get_service_status_details():
                 statuses.append(component_status)
         
         if 'red' in statuses:
-            output[service['name']] = 'red'
+            output[service['name']] = 'Critical'
         
         elif 'amber' in statuses:
-            output[service['name']] = 'amber'
+            output[service['name']] = 'Warning'
         
         else:
-            output[service['name']] = 'green'
+            output[service['name']] = 'Normal'
 
 
     # Return the final response

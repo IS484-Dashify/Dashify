@@ -1,7 +1,4 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from os import environ
+from flask import request, jsonify
 from dotenv import load_dotenv
 
 from models import db, Results
