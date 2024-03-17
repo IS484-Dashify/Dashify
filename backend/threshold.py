@@ -23,7 +23,6 @@ def create_threshold():
     request_critical = data["critical"]
 
     # check if component exists
-    # component = Components.query.filter_by(cid=request_cid, mid=request_mid).first()
     componentExists = doesComponentExist(request_cid)
     if componentExists:
         component = componentExists.json()
