@@ -749,7 +749,7 @@ export default function InfrastructureView() {
                 <div className="mt-4 mb-4">
                   <Terminal height="400px">
                     {/* {terminalLineData} */}
-                    <LogViewer channel="dashify-websocket" event="logs" />
+                    <LogViewer channel="dashify-logs" event="logs" /> {/* replace dashify-logs with dashify-[cid] where cid is from useParams() */}
                   </Terminal>
                 </div>
               </div>
