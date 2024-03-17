@@ -103,7 +103,7 @@ const Sidebar = () => {
           </div>
         </PopoverContent>
       </Popover>
-      <button onClick={()=> signOut()}><div className="opacity-60 pb-6"><AiOutlineLogout size={25}/></div></button>
+      <button onClick={()=> signOut()}><div className="opacity-50 pb-6 hover:opacity-100 hover:text-pri-500"><AiOutlineLogout size={25}/></div></button>
     </div>
   );
 };
