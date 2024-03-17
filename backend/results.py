@@ -1,20 +1,7 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from os import environ
+from flask import request, jsonify
 from dotenv import load_dotenv
-
 from models import Results
 from app import app
-
-load_dotenv()
-
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-CORS(app)
 
 @app.route('/get-all-results', methods=['GET'])
 def get_all_results():
