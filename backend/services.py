@@ -1,7 +1,23 @@
-from flask import jsonify
+from flask import jsonify, Flask
 from models import Services
-from app import app
+# from app import app
 import time
+
+from models import db
+from flask_cors import CORS
+from os import environ
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# db = SQLAlchemy(app)
+
+db.init_app(app)
+CORS(app)
 
 @app.route('/get-all-services', methods=['GET'])
 def get_all_services():
