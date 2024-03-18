@@ -28,7 +28,7 @@ interface Vm {
 }
 interface Component {
   name: string;
-  status: Status;
+  cStatus: Status;
   cid: number
 }
 interface Marker {
@@ -41,10 +41,11 @@ interface Marker {
 }
 
 
-const tooltipContent = (countryName: string, iso: string, component: Component[]) => {
+const tooltipContent = (countryName: string, iso: string, vms: Vm[]) => {
   const status_counts = {"Normal": 0, "Critical": 0, "Warning": 0};
   if (countries.includes(iso) && hasFlag(iso)) {
-    vm.forEach(({status}) => {
+    vms.forEach(({status}) => {
+      console.log("Status:", status);
       if (status === "Normal") {
         status_counts["Normal"] += 1;
       } else if (status === "Warning") {
@@ -58,7 +59,7 @@ const tooltipContent = (countryName: string, iso: string, component: Component[]
     <div className="px-1 py-2">
       <span className={"flag:" + iso} /><div className="text-md font-bold mb-2 ml-2 inline-flex">{countryName}</div>
       <div className="text-sm">
-        <span className="inline-flex items-center me-2"><AiOutlineBars className="me-1"/> {Object.keys(vm).length}</span>
+        <span className="inline-flex items-center me-2"><AiOutlineBars className="me-1"/> {Object.keys(vms).length}</span>
         <span className="inline-flex items-center me-2"><FaCircle className="text-reddish-200 me-1"/> {status_counts["Critical"]}</span>
         <span className="inline-flex items-center me-2"><FaCircle className="text-amberish-200 me-1"/> {status_counts["Warning"]}</span>
         <span className="inline-flex items-center me-2"><FaCircle className="text-greenish-200 me-1"/> {status_counts["Normal"]}</span>
@@ -126,28 +127,19 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, selectedService} :  {isO
   }, [popupRef, setIsOpen]);
   if (!isOpen || selectedMarker === null) return null;
   
-  const vmsToShow = selectedMarker?.vm
-  .map(vm => ({
-    name: vm.name,
-    status: vm.status,
-    components: vm.components.map(component => ({
-      componentName: component.name,
-      status: component.status
-    }))
-  }));
   return (
     <div ref={popupRef} className="fixed right-0 top-0 w-72 p-6 h-full bg-white shadow-lg z-50">
       <div className="flex flex-row items-center mb-6">
         <button onClick={() => setIsOpen(false)}>
           <IoArrowBackCircleOutline size="25px"/>
         </button>
-        <div className="flex items-center pl-12">
+        {/* <div className="flex items-center pl-12">
           <h2 className="font-bold text-lg">{selectedMarker.name}</h2>
-        </div>
+        </div> */}
       </div>
-      {vmsToShow.map(vm => 
+      {/* {dataByCountry[selectedMarker].map(vm => 
         <ToggleableList key={vm.name} items={vm.components} vmName={vm.name} status={vm.status} selectedService={selectedService}/>
-      )}
+      )} */}
     </div>
   );
 };
@@ -198,8 +190,10 @@ export default function WorldView() {
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
-          console.log(data);
+          // console.log(data);
           setApiData(data)
+          
+          // Format data from backend
           const groupedData: GroupedData = {}; 
           for (const key in data) { 
             const { country } = data[key]; 
@@ -207,9 +201,23 @@ export default function WorldView() {
               groupedData[country] = [];
             }
             const machineValue = { ...data[key] }; 
-            groupedData[country].push(machineValue);
+            groupedData[country].push(machineValue);    
           }
-          console.log(groupedData)
+          const order: { [key: string]: number } = { Critical: 0, Warning: 1, Normal: 2 };
+          for (const country in groupedData){
+            // Sort all VMs in a country by status
+            groupedData[country] = groupedData[country].sort((a:Vm, b:Vm) => {
+              return order[a["status"]] - order[b["status"]];
+            });
+
+            // Sort all Components in one VM by status
+            groupedData[country].forEach((vm: Vm) => {
+              vm.components = vm.components.sort((a: Component, b: Component) => {
+                return order[a.cStatus] - order[b.cStatus];
+              });
+            });
+          }
+          console.log("Grouped Data:", groupedData)
           setDataByCountry(groupedData)
         } else {
           throw new Error("Failed to perform server action");
@@ -290,7 +298,7 @@ export default function WorldView() {
                       onClick={() => handleMarkerClick({ components: vms[0]['components'], country: vms[0]['country'], iso: vms[0]['iso'], location: vms[0]['location'], mName: vms[0]['mName'], status: vms[0]['status'] })}
                     >
                       {vms[0]['status'] === "Critical" ? (
-                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['mName'], convertLocationToList(vms[0]['location']), vms[0]['components'])}>
+                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['country'], vms[0]['iso'], vms)}>
                           <circle
                             r={4.2}
                             fill="#ffa5a1"
@@ -299,7 +307,7 @@ export default function WorldView() {
                           />
                         </Tooltip>
                       ) : vms[0]['status'] === "Warning" ? (
-                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['mName'], convertLocationToList(vms[0]['location']), vms[0]['components'])}>
+                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['country'], vms[0]['iso'], vms)}>
                           <circle
                             r={4.2}
                             fill="#ffc17a"
@@ -308,7 +316,7 @@ export default function WorldView() {
                           />
                         </Tooltip>
                       ) : vms[0]['status'] === "Normal" ? (
-                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['mName'], convertLocationToList(vms[0]['location']), vms[0]['components'])}>
+                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['country'], vms[0]['iso'], vms)}>
                           <circle
                             r={4.2}
                             fill="#acdf87"
