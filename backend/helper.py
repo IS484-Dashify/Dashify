@@ -36,3 +36,7 @@ def doesThresholdExist(cid):
         return threshold
     else:
         return False
+    
+def convertLocationToList(location):
+    location = location.strip('[').strip(']').split(', ') 
+    return location

@@ -8,6 +8,7 @@ class Machines(db.Model):
     name = db.Column(db.Text)
     location = db.Column(db.Text)
     country = db.Column(db.Text)
+    iso = db.Column(db.Text)
 
     def json(self):
         return {
@@ -15,7 +16,8 @@ class Machines(db.Model):
             "sid": self.sid,
             "name": self.name,
             "location": self.location,
-            "country": self.country
+            "country": self.country,
+            "iso":self.iso,
         }
 
 class Results(db.Model):

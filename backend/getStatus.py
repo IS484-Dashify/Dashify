@@ -7,47 +7,55 @@ from flask_cors import CORS
 from os import environ
 
 @app.route('/get-service-status-details/<int:sid>', methods=['GET'])
-def get_all_service_name_and_status(sid):
+def get_service_status_details(sid):
     output = {}
     response2 = requests.get(f'http://127.0.0.1:5002/get-mid-by-sid/{sid}')
     mids = response2.json()['results']
 
     for mid in mids:
-        component_statuses = {}
+        component_statuses = []
+        all_statuses = []
         response3 = requests.get(f'http://127.0.0.1:5002/get-machine-details-by-mid/{mid}')
+        data = response3.json()
+        app.logger.info("Response 3:", data)
         machine_details = response3.json()
         response4 = requests.get(f'http://127.0.0.1:5003/get-cid-by-mid/{mid}')
         cids = response4.json()['results']
 
-        output[machine_details['name']] = {'status': 'red',
-                            'location': machine_details['location'],
-                            'country': machine_details['country']}
+        output[mid] = {'status': 'red',
+                        'location': machine_details['location'],
+                        'country': machine_details['country'],
+                        'mName' : machine_details['name'],
+                        'iso': machine_details['iso']}
 
         for cid in cids:
             response5 = requests.get(f'http://127.0.0.1:5004/get-result-status/{cid}/{mid}')
             component_status = response5.json()['status']
             response6 = requests.get(f'http://127.0.0.1:5003/get-component-details-by-cid/{cid}')
             component_name = response6.json()['name']
-            component_statuses[component_name] = component_status
+            component_statuses.append({'cName':component_name,
+                                       'cid': cid, 
+                                      'cStatus':component_status})
+            all_statuses.append(component_status)
     
-        if 'red' in component_statuses.values():
-            output[machine_details['name']]['status'] = 'Critical'
+        if 'Critical' in all_statuses:
+            output[mid]['status'] = 'Critical'
         
-        elif 'amber' in component_statuses.values():
-            output[machine_details['name']]['status'] = 'Warning'
+        elif 'Warning' in all_statuses:
+            output[mid]['status'] = 'Warning'
         
         else:
-            output[machine_details['name']]['status'] = 'Normal'
+            output[mid]['status'] = 'Normal'
 
-        output[machine_details['name']]['components'] = component_statuses
+        output[mid]['components'] = component_statuses
 
     # Return the final response
     return jsonify(output)
 
 @app.route('/get-all-service-name-and-status', methods=['GET'])
-def get_service_status_details():
+def get_all_service_name_and_status():
     overall_start_time = time.time()
-    output = {}
+    output = []
     service_start_time = time.time()
     response1 = requests.get('http://127.0.0.1:5001/get-all-services')
     services = response1.json()['results']
@@ -80,14 +88,14 @@ def get_service_status_details():
                 results_end_time = time.time()
                 app.logger.info(f"Result Request took {results_end_time - results_start_time:.6f} seconds")
         
-        if 'red' in statuses:
-            output[service['name']] = 'Critical'
+        if 'Critical' in statuses:
+            output.append({"sid": sid, "name":service['name'] ,"status" : 'Critical'})
         
-        elif 'amber' in statuses:
-            output[service['name']] = 'Warning'
+        elif 'Warning' in statuses:
+            output.append({"sid": sid, "name":service['name'] ,"status" : 'Warning'})
         
         else:
-            output[service['name']] = 'Normal'
+           output.append({"sid": sid, "name":service['name'] ,"status" : 'Normal'})
 
 
     # Return the final response

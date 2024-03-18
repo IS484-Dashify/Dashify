@@ -13,69 +13,35 @@ import Map from "../../public/map.json"
 import { hasFlag, countries } from 'country-flag-icons'
 import "country-flag-icons/3x2/flags.css";
 import Sidebar from "./components/navbar";
-import rawData from './../../public/vmInfo.json';
 
-const data: Service[] = rawData as Service[];
 type Status = "Critical" | "Warning" | "Normal";
-interface Service {
-  serviceName: string;
-  status: Status;
-  countries: Country[]; 
-}
-interface Country {
-  name: string;
-  iso: string;
-  coordinates: number[];
-  status: Status; 
-  vm:  Vm[];
+interface GroupedData {
+  [country: string]: Vm[];
 }
 interface Vm {
-  name: string;
-  status: Status;
-  components: Component[];
+  components: Component[], 
+  country: string, 
+  iso: string,
+  location: string, 
+  mName:string, 
+  status: string
 }
 interface Component {
   name: string;
   status: Status;
+  cid: number
 }
 interface Marker {
-  name: string;
-  iso: string;
-  coordinates: number[];
-  status: Status;
-  vm: Vm[];
+  components: Component[], 
+  country: string, 
+  iso: string,
+  location: string, 
+  mName:string, 
+  status: string
 }
 
-// Define the order object with keys of type Status
-const order: Record<Status, number> = { Critical: 0, Warning: 1, Normal: 2 }
 
-const sortVMsByStatus = (vms: Vm[]): Vm[] => {
-  return vms.sort((a, b) => order[a.status] - order[b.status]);
-};
-
-const sortComponentsByStatus = (components: Component[]): Component[] => {
-  return components.sort((a, b) => order[a.status] - order[b.status]);
-};
-
-const sortedServices = data.map((service: Service) => {
-  if (service.countries) {
-    const sortedCountries = service.countries.map((country: Country) => {
-      const sortedVMs = sortVMsByStatus(country.vm).map((vm: Vm): Vm => {
-        return {
-          ...vm,
-          components: sortComponentsByStatus(vm.components),
-        };
-      });
-
-      return { ...country, vm: sortedVMs };
-    }).sort((a: Country, b: Country) => order[a.status] - order[b.status]);
-
-    return { ...service, countries: sortedCountries };
-  }
-  return service;
-}).sort((a: Service, b: Service) => order[a.status] - order[b.status]);
-
-const tooltipContent = (countryName: string, iso: string, vm: Vm[]) => {
+const tooltipContent = (countryName: string, iso: string, component: Component[]) => {
   const status_counts = {"Normal": 0, "Critical": 0, "Warning": 0};
   if (countries.includes(iso) && hasFlag(iso)) {
     vm.forEach(({status}) => {
@@ -88,7 +54,6 @@ const tooltipContent = (countryName: string, iso: string, vm: Vm[]) => {
       }
     });
   }
-
   return(
     <div className="px-1 py-2">
       <span className={"flag:" + iso} /><div className="text-md font-bold mb-2 ml-2 inline-flex">{countryName}</div>
@@ -110,7 +75,6 @@ const statusColors = {
 
 const ToggleableList = ({ items, vmName, status, selectedService } : {items : {componentName: string; status: Status;}[], vmName : string, status : Status, selectedService : string | string[] | null | undefined  }) => {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="border-b-2 py-3">
       <div className="flex justify-between items-center">
@@ -171,7 +135,6 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, selectedService} :  {isO
       status: component.status
     }))
   }));
-
   return (
     <div ref={popupRef} className="fixed right-0 top-0 w-72 p-6 h-full bg-white shadow-lg z-50">
       <div className="flex flex-row items-center mb-6">
@@ -190,10 +153,8 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, selectedService} :  {isO
 };
 
 export default function WorldView() {
-  const { data: session } = useSession();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const { data: session } = useSession(); // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // console.log("Session:", session);
     if(!session){
       router.push("/auth/login");
     }
@@ -201,16 +162,77 @@ export default function WorldView() {
   
   const [currentPage, setCurrentPage] = React.useState("world");
   const router = useRouter();
-  const { currentService } = router.query;
+  const sid = parseInt(router.query.sid as string);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);  
-  // console.log(currentService);
+  const [apiData, setApiData] = useState<Vm[]>() ;
+  const [dataByCountry, setDataByCountry] = useState<GroupedData>({});
+  const [serviceName, setServiceName] = useState('');
+
+  useEffect(() => {
+    const fetchAllStatuses = async () => {
+      try {
+        const endpoint = `get-service-by-sid/${sid}`; 
+        const port = '5001'
+        const ipAddress = '127.0.0.1'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          setServiceName(data["results"]["name"])
+        } else {
+          throw new Error("Failed to perform server action");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchAllStatuses();
+  }, []);
+
+  useEffect(() => {
+    const fetchAllStatuses = async () => {
+      try {
+        const endpoint = `get-service-status-details/${sid}`; 
+        const port = '5006'
+        const ipAddress = '127.0.0.1'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setApiData(data)
+          const groupedData: GroupedData = {}; 
+          for (const key in data) { 
+            const { country } = data[key]; 
+            if (!groupedData[country]) {
+              groupedData[country] = [];
+            }
+            const machineValue = { ...data[key] }; 
+            groupedData[country].push(machineValue);
+          }
+          console.log(groupedData)
+          setDataByCountry(groupedData)
+        } else {
+          throw new Error("Failed to perform server action");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchAllStatuses();
+  }, []);
 
   const handleMarkerClick = (marker : Marker) => {
     setSelectedMarker(marker);
     setIsPopupOpen(true);
   };
-  if(session){
+
+  function convertLocationToList(location: any) {
+    location = location.replace('[', '').replace(']', '').split(', ');
+    location = location.map(Number);
+    return location;
+  }
+
+  if(session && apiData){
     return (
       <main>
         <div className="h-screen min-h-full overflow-hidden flex flex-row">
@@ -225,11 +247,11 @@ export default function WorldView() {
                 <BreadcrumbItem key="services" startContent={<AiOutlineHome/>} href="/servicesView">
                   Services
                 </BreadcrumbItem>
-                <BreadcrumbItem key="world" href={`/worldView?service=${currentService}`}  startContent={<GiWorld/>} isCurrent={currentPage === "world"}>
-                  {currentService}
+                <BreadcrumbItem key="world" href={`/worldView?service=${sid}`}  startContent={<GiWorld/>} isCurrent={currentPage === "world"}>
+                  {serviceName}
                 </BreadcrumbItem>
               </Breadcrumbs>
-              <h1 className='text-4xl font-bold text-pri-500 mt-1 pt-2'>{currentService}</h1>
+              <h1 className='text-4xl font-bold text-pri-500 mt-1 pt-2'>{serviceName}</h1>
             </div>
             <div className="flex h-full">
               <div 
@@ -260,31 +282,47 @@ export default function WorldView() {
                       ))
                     }
                   </Geographies>
-                  {sortedServices.map(service => service.serviceName === currentService ? (
-                    service.countries.map(({ name, iso, coordinates, status, vm }) => (
-                      <Marker key={iso} coordinates={[coordinates[0], coordinates[1]]} className="map-marker cursor-pointer " onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })}>
-                        {
-                            status === "Critical" 
-                            ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                                <circle r={4.2} fill="#ffa5a1" stroke="#f01e2c" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                              </Tooltip>
-                            ): status === "Warning"
-                            ? (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                                <circle r={4.2} fill="#ffc17a" stroke="#ff7e00" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                              </Tooltip>
-                            ): status === "Normal"
-                            ?  (<Tooltip showArrow={true} content={tooltipContent(name, iso, vm)}>
-                                <circle r={4.2} fill="#acdf87" stroke="#4c9a2a" strokeWidth={1} onClick={() => handleMarkerClick({ name, iso, coordinates, status, vm })} />
-                              </Tooltip>
-                            ): null
-                          }
-                      </Marker>
-                    ))
-                  ) : null)}
+                  {Object.values(dataByCountry).map((vms) =>
+                    <Marker
+                      key={convertLocationToList(vms[0]['location'])}
+                      coordinates={[convertLocationToList(vms[0]['location'])[0], convertLocationToList(vms[0]['location'])[1]]}
+                      className="map-marker cursor-pointer"
+                      onClick={() => handleMarkerClick({ components: vms[0]['components'], country: vms[0]['country'], iso: vms[0]['iso'], location: vms[0]['location'], mName: vms[0]['mName'], status: vms[0]['status'] })}
+                    >
+                      {vms[0]['status'] === "Critical" ? (
+                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['mName'], convertLocationToList(vms[0]['location']), vms[0]['components'])}>
+                          <circle
+                            r={4.2}
+                            fill="#ffa5a1"
+                            stroke="#f01e2c"
+                            strokeWidth={1}
+                          />
+                        </Tooltip>
+                      ) : vms[0]['status'] === "Warning" ? (
+                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['mName'], convertLocationToList(vms[0]['location']), vms[0]['components'])}>
+                          <circle
+                            r={4.2}
+                            fill="#ffc17a"
+                            stroke="#ff7e00"
+                            strokeWidth={1}
+                          />
+                        </Tooltip>
+                      ) : vms[0]['status'] === "Normal" ? (
+                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['mName'], convertLocationToList(vms[0]['location']), vms[0]['components'])}>
+                          <circle
+                            r={4.2}
+                            fill="#acdf87"
+                            stroke="#4c9a2a"
+                            strokeWidth={1}
+                          />
+                        </Tooltip>
+                      ) : null}
+                    </Marker>
+                  )}
                 </ComposableMap>
               </div>
               <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
-                <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} selectedService={currentService}/>
+                <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} selectedService={serviceName}/>
               </div>
             </div>
           </div>

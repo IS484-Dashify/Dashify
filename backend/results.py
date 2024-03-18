@@ -17,51 +17,51 @@ def get_last_result(cid, mid):
     
     if last_result:
         if last_result.system_uptime == 0:
-            return jsonify({"status": "red"})
+            return jsonify({"status": "Critical"})
         
         statuses = []
 
         if last_result.disk_usage > 90:
-            statuses.append('red')
+            statuses.append('Critical')
         elif last_result.disk_usage > 70:
-            statuses.append('amber')
+            statuses.append('Warning')
         else:
-            statuses.append('green')
+            statuses.append('Normal')
 
         if last_result.traffic_in > 1000:
-            statuses.append('red')
+            statuses.append('Critical')
         elif last_result.traffic_in > 500:
-            statuses.append('amber')
+            statuses.append('Warning')
         else:
-            statuses.append('green')
+            statuses.append('Normal')
 
         if last_result.traffic_out > 100000:
-            statuses.append('red')
+            statuses.append('Critical')
         elif last_result.traffic_out > 50000:
-            statuses.append('amber')
+            statuses.append('Warning')
         else:
-            statuses.append('green')
+            statuses.append('Normal')
 
         if last_result.cpu_usage > 90:
-            statuses.append('red')
+            statuses.append('Critical')
         elif last_result.cpu_usage > 70:
-            statuses.append('amber')
+            statuses.append('Warning')
         else:
-            statuses.append('green')
+            statuses.append('Normal')
 
         if last_result.memory_usage > 90:
-            statuses.append('red')
+            statuses.append('Critical')
         elif last_result.memory_usage > 70:
-            statuses.append('amber')
+            statuses.append('Warning')
         else:
-            statuses.append('green')
+            statuses.append('Normal')
 
-        if 'red' in statuses:
-            return jsonify({"status": "red"})
-        elif 'amber' in statuses:
-            return jsonify({"status": "amber"})
+        if 'Critical' in statuses:
+            return jsonify({"status": "Critical"})
+        elif 'Warning' in statuses:
+            return jsonify({"status": "Warning"})
         else:
-            return jsonify({"status": "green"})
+            return jsonify({"status": "Normal"})
 
     else:
         return jsonify({"message": "No result found for the specified cid and mid."})
@@ -89,7 +89,7 @@ def add_result():
         
         return jsonify({"message": "Result added successfully.", "data": data, "status_code": 200}), 200
     except Exception as e:  
-        return jsonify({"error": "An unexpected error occurred", "details": str(e), "status_code": 500}), 500
+        return jsonify({"error": "An unexpected error occurCritical", "details": str(e), "status_code": 500}), 500
     
 if __name__ == '__main__':
     app.run(debug=True, port=5004)

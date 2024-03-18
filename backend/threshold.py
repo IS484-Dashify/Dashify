@@ -19,8 +19,8 @@ def get_thresholds_by_cid(cid):
 def create_threshold():
     data = request.get_json()
     request_cid = data["cid"]
-    request_warning = data["warning"]
-    request_critical = data["critical"]
+    request_warning = data["Warning"]
+    request_critical = data["Critical"]
 
     # check if component exists
     componentExists = doesComponentExist(request_cid)
@@ -52,8 +52,8 @@ def create_threshold():
 def update_threshold():
     data = request.get_json()
     request_cid = data["cid"]
-    request_warning = data["warning"]
-    request_critical = data["critical"]
+    request_warning = data["Warning"]
+    request_critical = data["Critical"]
     try:
         # check if component exists
         componentExists = doesComponentExist(request_cid)

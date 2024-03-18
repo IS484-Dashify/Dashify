@@ -28,52 +28,52 @@ def processResult():
         statuses = {}
         
         if rawResult['system_uptime'] == 0:
-            statuses['system_uptime'] = 'red'
+            statuses['system_uptime'] = 'Critical'
             return jsonify(statuses)
         else:
-            statuses['system_uptime'] = 'green'
+            statuses['system_uptime'] = 'Normal'
         
         if rawResult['disk_usage'] > 90:
-            diskUsageStatus = 'red'
+            diskUsageStatus = 'Critical'
         elif rawResult['disk_usage'] > 70:
-            diskUsageStatus = 'amber'
+            diskUsageStatus = 'Warning'
         else:
-            diskUsageStatus = 'green'
+            diskUsageStatus = 'Normal'
         statuses['disk_usage'] = diskUsageStatus
         
         if rawResult['traffic_in'] > 1000:
-            trafficInStatus='red'
+            trafficInStatus='Critical'
         elif rawResult['traffic_in'] > 500:
-            trafficInStatus='amber'
+            trafficInStatus='Warning'
         else:
-            trafficInStatus='green'
+            trafficInStatus='Normal'
         statuses['traffic_in'] = trafficInStatus
 
         if rawResult['traffic_out'] > 100000:
-            trafficOutStatus='red'
+            trafficOutStatus='Critical'
         elif rawResult['traffic_out'] > 50000:
-            trafficOutStatus='amber'
+            trafficOutStatus='Warning'
         else:
-            trafficOutStatus='green'
+            trafficOutStatus='Normal'
         statuses['traffic_out'] = trafficOutStatus
 
 
         if rawResult['cpu_usage'] > 90:
-            cpuUsageStatus='red'
+            cpuUsageStatus='Critical'
         elif rawResult['cpu_usage'] > 70:
-            cpuUsageStatus='amber'
+            cpuUsageStatus='Warning'
         else:
-            cpuUsageStatus='green'
+            cpuUsageStatus='Normal'
         statuses['traffic_out'] = cpuUsageStatus
 
         if rawResult['memory_usage'] > 90:
-            memoryUsageStatus='red'
+            memoryUsageStatus='Critical'
         elif rawResult['memory_usage'] > 70:
-            memoryUsageStatus='amber'
+            memoryUsageStatus='Warning'
         else:
-            memoryUsageStatus='green'
+            memoryUsageStatus='Normal'
         statuses['memory_usage'] = memoryUsageStatus
-        # TODO: 2. if any status are red/amber, fire to notification system
+        # TODO: 2. if any status are Critical/Warning, fire to notification system
         
         # TODO: 3. Store the data in the database
         response = requests.post("http://127.0.0.1:5004/add-result", 

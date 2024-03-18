@@ -40,30 +40,28 @@ export default function ServiceView() {
   useEffect(() => {
     const fetchAllServices = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:5006/get-all-service-name-and-status`);
+        const endpoint = 'get-all-service-name-and-status'; 
+        const port = '5006'
+        const ipAddress = '127.0.0.1'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
-          const transformedData: ServiceItem[] = Object.entries(data).map(([serviceName, status]) => ({
-            serviceName: serviceName,
-            status: status as string 
-          }));
           const order: { [key: string]: number } = { Critical: 0, Warning: 1, Normal: 2 };
-          const sortedData = transformedData.sort((a, b) => {
-            return order[a.status] - order[b.status];
+          const sortedData = data.sort((a:any, b:any) => {
+            return order[a["status"]] - order[b["status"]];
           });
           setServices(sortedData);
           setRenderedServices(sortedData);
           setSearchedServices(sortedData);
           setFilteredServices(sortedData);
         } else {
-          throw new Error("Failed to fetch service status details");
+          throw new Error("Failed to perform server action");
         }
       } catch (error) {
         console.error(error);
       }
     };
     fetchAllServices();
-    console.log(renderedServices)
   }, []);
 
   // handle search & filter
@@ -73,7 +71,7 @@ export default function ServiceView() {
     if (services) {
       for (let service of services) {
         if (
-          service.serviceName.toLowerCase().includes(searchQuery.toLowerCase())
+          service.name.toLowerCase().includes(searchQuery.toLowerCase())
         ) {
           result.push(service);
         }
@@ -184,7 +182,7 @@ export default function ServiceView() {
             </div>
             {renderedServices.length > 0 ? (
               <div className="grid grid-cols-4 gap-7">
-                {renderedServices.map(({ serviceName, status }: { serviceName: string, status: string }, index: number) => (
+                {renderedServices.map(({ sid, name, status }: { sid: string, name: string, status: string }, index: number) => (
                   <div
                     className={`py-4 px-6 cursor-pointer z-0 border-l-4 rounded-lg bg-white shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring ${
                       status === "Critical"
@@ -195,10 +193,10 @@ export default function ServiceView() {
                     }`}
                     key={index}
                   >
-                    <Link href={`/worldView?currentService=${serviceName}`}>
+                    <Link href={`/worldView?sid=${sid}`}>
                       <div id="serviceCard" className="flex justify-between">
                         <h4 className="font-bold text-md text-text">
-                          {serviceName}
+                          {name}
                         </h4>
                         <div>
                           <MdOutlineArrowForwardIos
