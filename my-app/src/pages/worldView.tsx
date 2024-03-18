@@ -24,28 +24,20 @@ interface Vm {
   iso: string,
   location: string, 
   mName:string, 
-  status: string
+  status: Status
 }
 interface Component {
-  name: string;
+  cName: string;
   cStatus: Status;
   cid: number
 }
-interface Marker {
-  components: Component[], 
-  country: string, 
-  iso: string,
-  location: string, 
-  mName:string, 
-  status: string
-}
-
+type Marker = Vm[];
 
 const tooltipContent = (countryName: string, iso: string, vms: Vm[]) => {
   const status_counts = {"Normal": 0, "Critical": 0, "Warning": 0};
   if (countries.includes(iso) && hasFlag(iso)) {
     vms.forEach(({status}) => {
-      console.log("Status:", status);
+      // console.log("Status:", status);
       if (status === "Normal") {
         status_counts["Normal"] += 1;
       } else if (status === "Warning") {
@@ -74,7 +66,7 @@ const statusColors = {
   Critical: "text-reddish-200 me-1"
 };
 
-const ToggleableList = ({ items, vmName, status, selectedService } : {items : {componentName: string; status: Status;}[], vmName : string, status : Status, selectedService : string | string[] | null | undefined  }) => {
+const ToggleableList = ({ components, vmName, status, selectedService } : {components : Component[], vmName : string, status : Status, selectedService : string | string[] | null | undefined  }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="border-b-2 py-3">
@@ -89,15 +81,16 @@ const ToggleableList = ({ items, vmName, status, selectedService } : {items : {c
       </div>
       {(
         <div className={`mt-3 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-fit" : "h-0"}`}>
-          {items.map((item, index) => (
-            <Link key={index} href={`/infraView?currentService=${selectedService}&currentComponent=${item.componentName}`}>
+          {components.map((component, index) => (
+            <Link key={index} href={`/infraView?currentService=${selectedService}&currentComponent=${component.cName}`}>
               <div className="pb-1">
                 <div key={index} className="flex items-center justify-between">
-                  <span>{item.componentName}</span>
-                  <FaCircle className={statusColors[item.status]} />
+                  <span>{component.cName}</span>
+                  <FaCircle className={statusColors[component.cStatus]} />
                 </div>
-                {item.status === 'Critical' || item.status === 'Warning' ? (
+                {component.cStatus === 'Critical' || component.cStatus === 'Warning' ? (
                   <div className="flex justify-between text-xs italic mb-2">
+                    {/* TODO: Critical/ Warning */}
                     <span>CPU down</span>
                     <span>3 hours ago</span> 
                   </div>
@@ -133,13 +126,13 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, selectedService} :  {isO
         <button onClick={() => setIsOpen(false)}>
           <IoArrowBackCircleOutline size="25px"/>
         </button>
-        {/* <div className="flex items-center pl-12">
-          <h2 className="font-bold text-lg">{selectedMarker.name}</h2>
-        </div> */}
+        <div className="flex items-center pl-12">
+          <h2 className="font-bold text-lg">{selectedMarker[0]["country"]}</h2>
+        </div>
       </div>
-      {/* {dataByCountry[selectedMarker].map(vm => 
-        <ToggleableList key={vm.name} items={vm.components} vmName={vm.name} status={vm.status} selectedService={selectedService}/>
-      )} */}
+      {selectedMarker.map(vm => 
+        <ToggleableList key={vm.mName} components={vm.components} vmName={vm.mName} status={vm.status} selectedService={selectedService}/>
+      )}
     </div>
   );
 };
@@ -230,6 +223,7 @@ export default function WorldView() {
   }, []);
 
   const handleMarkerClick = (marker : Marker) => {
+    console.log("Marker:", marker);
     setSelectedMarker(marker);
     setIsPopupOpen(true);
   };
@@ -290,15 +284,17 @@ export default function WorldView() {
                       ))
                     }
                   </Geographies>
-                  {Object.values(dataByCountry).map((vms) =>
+                  {Object.values(dataByCountry).map((dataByCountryElement) =>
+                    // TODO:  For each marker, pass in a list of VMs + their components
                     <Marker
-                      key={convertLocationToList(vms[0]['location'])}
-                      coordinates={[convertLocationToList(vms[0]['location'])[0], convertLocationToList(vms[0]['location'])[1]]}
+                      key={convertLocationToList(dataByCountryElement[0]['country'])}
+                      coordinates={[convertLocationToList(dataByCountryElement[0]['location'])[0], convertLocationToList(dataByCountryElement[0]['location'])[1]]}
                       className="map-marker cursor-pointer"
-                      onClick={() => handleMarkerClick({ components: vms[0]['components'], country: vms[0]['country'], iso: vms[0]['iso'], location: vms[0]['location'], mName: vms[0]['mName'], status: vms[0]['status'] })}
+                      // onClick={() => {console.log("VMs:", dataByCountryElement)}}
+                      onClick={() => handleMarkerClick(dataByCountryElement)}
                     >
-                      {vms[0]['status'] === "Critical" ? (
-                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['country'], vms[0]['iso'], vms)}>
+                      {dataByCountryElement[0]['status'] === "Critical" ? (
+                        <Tooltip showArrow={true} content={tooltipContent(dataByCountryElement[0]['country'], dataByCountryElement[0]['iso'], dataByCountryElement)}>
                           <circle
                             r={4.2}
                             fill="#ffa5a1"
@@ -306,8 +302,8 @@ export default function WorldView() {
                             strokeWidth={1}
                           />
                         </Tooltip>
-                      ) : vms[0]['status'] === "Warning" ? (
-                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['country'], vms[0]['iso'], vms)}>
+                      ) : dataByCountryElement[0]['status'] === "Warning" ? (
+                        <Tooltip showArrow={true} content={tooltipContent(dataByCountryElement[0]['country'], dataByCountryElement[0]['iso'], dataByCountryElement)}>
                           <circle
                             r={4.2}
                             fill="#ffc17a"
@@ -315,8 +311,8 @@ export default function WorldView() {
                             strokeWidth={1}
                           />
                         </Tooltip>
-                      ) : vms[0]['status'] === "Normal" ? (
-                        <Tooltip showArrow={true} content={tooltipContent(vms[0]['country'], vms[0]['iso'], vms)}>
+                      ) : dataByCountryElement[0]['status'] === "Normal" ? (
+                        <Tooltip showArrow={true} content={tooltipContent(dataByCountryElement[0]['country'], dataByCountryElement[0]['iso'], dataByCountryElement)}>
                           <circle
                             r={4.2}
                             fill="#acdf87"
