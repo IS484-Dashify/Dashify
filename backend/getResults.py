@@ -76,7 +76,7 @@ def processResult():
         # TODO: 2. if any status are red/amber, fire to notification system
         
         # TODO: 3. Store the data in the database
-        response = requests.post("http://localhost:5004/add-result", 
+        response = requests.post("http://127.0.0.1:5004/add-result", 
             json=rawResult, 
             headers = {
                 'Content-Type': 'application/json', 

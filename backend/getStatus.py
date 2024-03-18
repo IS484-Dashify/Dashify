@@ -9,14 +9,14 @@ from os import environ
 @app.route('/get-service-status-details/<int:sid>', methods=['GET'])
 def get_all_service_name_and_status(sid):
     output = {}
-    response2 = requests.get(f'http://localhost:5002/get-mid-by-sid/{sid}')
+    response2 = requests.get(f'http://127.0.0.1:5002/get-mid-by-sid/{sid}')
     mids = response2.json()['results']
 
     for mid in mids:
         component_statuses = {}
-        response3 = requests.get(f'http://localhost:5002/get-machine-details-by-mid/{mid}')
+        response3 = requests.get(f'http://127.0.0.1:5002/get-machine-details-by-mid/{mid}')
         machine_details = response3.json()
-        response4 = requests.get(f'http://localhost:5003/get-cid-by-mid/{mid}')
+        response4 = requests.get(f'http://127.0.0.1:5003/get-cid-by-mid/{mid}')
         cids = response4.json()['results']
 
         output[machine_details['name']] = {'status': 'red',
@@ -24,9 +24,9 @@ def get_all_service_name_and_status(sid):
                             'country': machine_details['country']}
 
         for cid in cids:
-            response5 = requests.get(f'http://localhost:5004/get-result-status/{cid}/{mid}')
+            response5 = requests.get(f'http://127.0.0.1:5004/get-result-status/{cid}/{mid}')
             component_status = response5.json()['status']
-            response6 = requests.get(f'http://localhost:5003/get-component-details-by-cid/{cid}')
+            response6 = requests.get(f'http://127.0.0.1:5003/get-component-details-by-cid/{cid}')
             component_name = response6.json()['name']
             component_statuses[component_name] = component_status
     
