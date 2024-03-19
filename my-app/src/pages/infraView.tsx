@@ -16,7 +16,6 @@ import {
 import Sidebar from "./components/navbar";
 import InfraFilter from "./components/infraFilter";
 import { AreaChart } from "@tremor/react";
-import rawData from "./../../public/vmInfo.json";
 import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
 import LogViewer from "./components/LogViewer";
@@ -27,7 +26,6 @@ const rawTerminalData = [
   "/home/dashify-test/.pm2/logs/server-out.log last 15 lines:\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000",
 ];
 
-const data: Service[] = rawData as Service[];
 type Status = "Critical" | "Warning" | "Normal";
 interface Service {
   serviceName: string;
@@ -50,19 +48,19 @@ interface Component {
   name: string;
   status: Status;
 }
-interface Column {
-  ColumnName: string;
-  DataType: string;
-  ColumnType: string;
+interface Result {
+  datetime : string;
+  cid : number;
+  mid : number;
+  clock : number;
+  cpu_usage : number;
+  disk_usage : number;
+  memory_usage : number;
+  traffic_in : number;
+  traffic_out : number;
+  system_uptime : number;
 }
-interface Row {
-  [index: number]: number | string | null;
-}
-interface RawData {
-  TableName: string;
-  Columns: Column[];
-  Rows: Row[];
-}
+interface FetchedData extends Array<Result> {}
 interface Metric {
   [key: string]:
     | DiskUsage[]
@@ -139,6 +137,12 @@ interface Queries {
 
 export default function InfrastructureView() {
   const { data: session } = useSession();
+  useEffect(() => {
+    // console.log("Session:", session);
+    if (!session) {
+      router.push("/auth/login");
+    }
+  }, [session]);
   const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState("infra");
 
@@ -160,9 +164,9 @@ export default function InfrastructureView() {
   // Date range for metrics
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
   const [metrics, setMetrics] = useState<Metric>({});
-  // useEffect(() => {
-  //   console.log("Metrics:", metrics);
-  // }, [metrics]);
+  useEffect(() => {
+    console.log("Metrics:", metrics);
+  }, [metrics]);
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [downtime, setDowntime] = useState(0); // time difference between current time and last metric
   const [uptime, setUptime] = useState(0);
@@ -211,13 +215,6 @@ export default function InfrastructureView() {
   // Last Updated
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
-  useEffect(() => {
-    // console.log("Session:", session);
-    if (!session) {
-      router.push("/auth/login");
-    }
-  }, [session, router]);
-
   // * Retrieve metrics from db on page load
   useEffect(() => {
     fetchData();
@@ -225,7 +222,6 @@ export default function InfrastructureView() {
   
   const fetchData = async () => {
     try {
-      console.log("CID:", cid);
       if (cid != null){
         const endpoint = `get-result/${cid}/${selectedDateRange}`; 
         const port = '5004'
@@ -233,7 +229,18 @@ export default function InfrastructureView() {
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
-          console.log("Data:", data);
+          console.log("Fetched Data:", data);
+          const transformedData = transformJSON(data);
+          const transformedTrafficData = transformTrafficJSON(transformedData['trafficIn'], transformedData['trafficOut']);
+          const transformedMetricsData = {
+            'CPU Usage': transformedData['cpuUsageArr'],
+            'Disk Usage': transformedData['diskUsageArr'],
+            'Memory Usage': transformedData['memoryUsageArr'],
+            'Traffic': transformedTrafficData
+          }
+          setMetrics(transformedMetricsData);
+          setTrafficMetrics(transformedTrafficData);
+          // setLastUpdated(getCurrentSGTDateTime());
           setLoading(false);
         } else {
           console.error("fetchData error: response")
@@ -243,108 +250,120 @@ export default function InfrastructureView() {
     } catch (error) {
       console.error(error);
     }
-    // const queries: Queries = require("./../../data/queries.json");
-    // const proxyNifi = {
-    //   endPoint: `http://20.82.137.238:${queries[component][1]}/queryAdx`,
-    //   query: queries[component][0] + "129600",
-    // };
-
-    // fetch(`/api/proxy`, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(proxyNifi),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     const transformedData = transformJSON(data.Tables[0]);
-    //     const transformedTrafficData = transformTrafficJSON(transformedData);
-    //     console.log(data.Tables[0]);
-
-    //     setMetrics(transformedData);
-    //     setTrafficMetrics(transformedTrafficData);
-    //     setLastUpdated(getCurrentSGTDateTime());
-    //     setLoading(false);
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error);
-    //   });
   };
 
 
-  // useEffect(() => {
-  //   if (loading == false && metrics) {
-  //     // ! Check if system is down
-  //     const latestElement =
-  //       metrics["System Uptime"][parseInt(selectedDateRange) - 1];
-  //     if ("System Uptime" in latestElement && "Datetime" in latestElement) {
-  //       // This line is necessary for typescript to verify that firstElement is of type DiskUsage
-  //       const systemUptimeElement = latestElement as SystemUptime;
-  //       if (systemUptimeElement["System Uptime"] !== 0) {
-  //         setSystemStatus(true);
-  //       } else {
-  //         setSystemStatus(false);
-  //       }
-  //     }
-
-  //     // ! Check RAG status of each metric
-  //     let tempMetricStatus = {
-  //       "CPU Usage": checkPercentageMetric(
-  //         metrics["CPU Usage"] as unknown as {
-  //           [key: string]: string;
-  //           Datetime: string;
-  //         }[],
-  //         "CPU Usage"
-  //       ),
-  //       "Disk Usage": checkPercentageMetric(
-  //         metrics["Disk Usage"] as unknown as {
-  //           [key: string]: string;
-  //           Datetime: string;
-  //         }[],
-  //         "Disk Usage"
-  //       ),
-  //       "Memory Usage": checkPercentageMetric(
-  //         metrics["Memory Usage"] as unknown as {
-  //           [key: string]: string;
-  //           Datetime: string;
-  //         }[],
-  //         "Memory Usage"
-  //       ),
-  //       Traffic: "Normal",
-  //     };
-  //     setMetricsStatus(tempMetricStatus);
-  //   }
-  // }, [metrics, loading]);
-
-  function checkPercentageMetric(
-    metricList: { [key: string]: string; Datetime: string }[],
-    metricName: "CPU Usage" | "Disk Usage" | "Memory Usage"
-  ) {
-    const thresholdList = [[80, 60]];
-    // find the latest (non-null) metric
-    let latestMetric;
-    for (let i = metricList.length - 1; i >= 0; i--) {
-      let dataPoint = metricList[i];
-      if (dataPoint[metricName] != null) {
-        latestMetric = dataPoint[metricName];
-        break;
+  useEffect(() => {
+    if (loading == false && metrics) {
+      // ! Check if system is down
+      const latestElement =
+        metrics["System Uptime"][parseInt(selectedDateRange) - 1];
+      if ("System Uptime" in latestElement && "Datetime" in latestElement) {
+        // This line is necessary for typescript to verify that firstElement is of type DiskUsage
+        const systemUptimeElement = latestElement as SystemUptime;
+        if (systemUptimeElement["System Uptime"] !== 0) {
+          setSystemStatus(true);
+        } else {
+          setSystemStatus(false);
+        }
       }
     }
-    // check metric against threshold
-    if (latestMetric != null) {
-      let threshold = thresholdList[0];
-      const metricValue = Number(latestMetric) as number;
-      if (metricValue > threshold[0]) {
-        return "Critical";
-      } else if (metricValue > threshold[1]) {
-        return "Warning";
-      } else {
-        return "Normal";
+  },[]);
+
+  function transformJSON (fetchedData : FetchedData) : { cpuUsageArr: CPUUsage[], diskUsageArr: DiskUsage[], memoryUsageArr: MemoryUsage[], trafficIn: TrafficIn[], trafficOut: TrafficOut[] } {
+    // * transformJSON is a function that takes in the fetchedData and creates an array of data points for each metric (CPU Usage, Disk Usage and Memory Usage) - TrafficInOut is calculated separately
+    const cpuUsageArr : CPUUsage[] = []
+    const diskUsageArr : DiskUsage[] = []
+    const memoryUsageArr : MemoryUsage[] = []
+    const trafficIn : TrafficIn[] = []
+    const trafficOut : TrafficOut[] = []
+    fetchedData.forEach((dataPoint) => {
+      // console.log("DataPoint:", dataPoint);
+      const datetime = formatDate(dataPoint['datetime']);
+      if (dataPoint['cpu_usage'] != null || dataPoint['cpu_usage'] != 0){
+        cpuUsageArr.push({ 'CPU Usage': dataPoint['cpu_usage'], 'Datetime': datetime })
       }
-    }
-    return "Unknown";
+      if (dataPoint['disk_usage'] != null || dataPoint['disk_usage'] != 0){
+        diskUsageArr.push({ 'Disk Usage': dataPoint['disk_usage'], 'Datetime': datetime })
+      }
+      if (dataPoint['memory_usage'] != null || dataPoint['memory_usage'] != 0){
+        memoryUsageArr.push({ 'Memory Usage': dataPoint['memory_usage'], 'Datetime': datetime })
+      }
+      if (dataPoint['traffic_in'] != null || dataPoint['traffic_in'] != 0){
+        trafficIn.push({ 'Traffic In': dataPoint['traffic_in'], 'Datetime': datetime })
+      }
+      if (dataPoint['traffic_out'] != null || dataPoint['traffic_out'] != 0){
+        trafficOut.push({ 'Traffic Out': dataPoint['traffic_out'], 'Datetime': datetime })
+      }
+    })
+    return {"cpuUsageArr": cpuUsageArr, "diskUsageArr": diskUsageArr, "memoryUsageArr": memoryUsageArr, "trafficIn": trafficIn, "trafficOut": trafficOut}
   }
+
+  function transformTrafficJSON(trafficInArr : TrafficIn[], trafficOutArr : TrafficOut[]) {
+    let result : TrafficMetric[] = [];
+    for (let i=0; i < trafficInArr.length; i++){
+        result.push({
+          "Traffic In": trafficInArr[i]["Traffic In"], 
+          "Traffic Out": trafficOutArr[i]["Traffic Out"], 
+          "Datetime": trafficOutArr[i]["Datetime"]
+      })
+    }
+    return result;
+  }
+
+  function formatDate(dateTimeString: string) {
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    let dateTime = new Date(dateTimeString);
+    const formattedDate = `${dateTime.getDate()} ${
+      monthNames[dateTime.getMonth()]
+    } ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime
+      .getHours()
+      .toString()
+      .padStart(2, "0")}:${dateTime.getMinutes().toString().padStart(2, "0")}`;
+    return formattedDate;
+  }
+
+  // function checkPercentageMetric(
+  //   metricList: { [key: string]: string; Datetime: string }[],
+  //   metricName: "CPU Usage" | "Disk Usage" | "Memory Usage"
+  // ) {
+  //   const thresholdList = [[80, 60]];
+  //   // find the latest (non-null) metric
+  //   let latestMetric;
+  //   for (let i = metricList.length - 1; i >= 0; i--) {
+  //     let dataPoint = metricList[i];
+  //     if (dataPoint[metricName] != null) {
+  //       latestMetric = dataPoint[metricName];
+  //       break;
+  //     }
+  //   }
+  //   // check metric against threshold
+  //   if (latestMetric != null) {
+  //     let threshold = thresholdList[0];
+  //     const metricValue = Number(latestMetric) as number;
+  //     if (metricValue > threshold[0]) {
+  //       return "Critical";
+  //     } else if (metricValue > threshold[1]) {
+  //       return "Warning";
+  //     } else {
+  //       return "Normal";
+  //     }
+  //   }
+  //   return "Unknown";
+  // }
 
   // function convertNullToZero(arr: any[]) {
   //   let result = [];
@@ -384,19 +403,19 @@ export default function InfrastructureView() {
   //   for (let metric of metricsToCleanup) {
   //     result[metric] = convertNullToZero(result[metric]);
   //   }
-  //   if (systemStatus === false) {
-  //     // if system down, calc downtime
-  //     const downtimeTime = findHighestZeroDatetime(
-  //       result["System Uptime"] as unknown as SystemUptime[]
-  //     );
-  //     if (downtimeTime && typeof downtimeTime === "string") {
-  //       const currentTime = new Date();
-  //       const timeDiff =
-  //         currentTime.getTime() - new Date(downtimeTime).getTime();
-  //       setDowntime(timeDiff / 1000);
-  //     }
-  //   }
-  //   // filter data based on filter time
+    // if (systemStatus === false) {
+    //   // if system down, calc downtime
+    //   const downtimeTime = findHighestZeroDatetime(
+    //     result["System Uptime"] as unknown as SystemUptime[]
+    //   );
+    //   if (downtimeTime && typeof downtimeTime === "string") {
+    //     const currentTime = new Date();
+    //     const timeDiff =
+    //       currentTime.getTime() - new Date(downtimeTime).getTime();
+    //     setDowntime(timeDiff / 1000);
+    //   }
+    // }
+    // filter data based on filter time
   //   for (let metric of Object.keys(result)) {
   //     result[metric] = result[metric].slice(-filterTime);
   //   }
@@ -408,80 +427,6 @@ export default function InfrastructureView() {
   //     )["System Uptime"]
   //   );
   //   return result;
-  // }
-
-  // function transformJSON(rawData: RawData): Metric {
-  //   const columnNames = rawData.Columns.map((column) => column.ColumnName);
-  //   const chartData = columnNames.map((columnName) => {
-  //     const metricData: any[] = [];
-  //     const columnIndex = rawData.Columns.findIndex(
-  //       (column) => column.ColumnName === columnName
-  //     );
-  //     rawData.Rows.forEach((row) => {
-  //       const dataPoint: any = {
-  //         [columnName === "Cpu Usage" ? "CPU Usage" : columnName]:
-  //           row[columnIndex],
-  //       };
-  //       const clockIndex = columnNames.indexOf("Clock");
-  //       const dateTimeString = row[clockIndex];
-  //       if (dateTimeString) {
-  //         const formattedDate = formatDate(Number(dateTimeString));
-  //         dataPoint["Datetime"] = formattedDate;
-  //       }
-  //       metricData.push(dataPoint);
-  //     });
-  //     return metricData;
-  //   });
-  //   return convertToDictionary(chartData);
-  // }
-
-  // function transformTrafficJSON(transformedData: Metric) {
-  //   let result = [];
-  //   for (let i = 0; i < transformedData["Traffic In"].length; i++) {
-  //     let trafficInDataRow = transformedData["Traffic In"][
-  //       i
-  //     ] as unknown as TrafficIn;
-  //     let trafficInDataPoint = trafficInDataRow["Traffic In"];
-  //     let trafficOutDataRow = transformedData["Traffic Out"][
-  //       i
-  //     ] as unknown as TrafficOut;
-  //     let trafficOutDataPoint = trafficOutDataRow["Traffic Out"];
-  //     let dateTimeString = trafficOutDataRow["Datetime"];
-  //     if (trafficInDataPoint != null && trafficOutDataPoint != null) {
-  //       let temp = {
-  //         Datetime: dateTimeString,
-  //         "Traffic In": trafficInDataPoint,
-  //         "Traffic Out": trafficOutDataPoint,
-  //       };
-  //       result.push(temp);
-  //     }
-  //   }
-  //   return result;
-  // }
-
-  // function formatDate(dateTimeString: number) {
-  //   const monthNames = [
-  //     "Jan",
-  //     "Feb",
-  //     "Mar",
-  //     "Apr",
-  //     "May",
-  //     "Jun",
-  //     "Jul",
-  //     "Aug",
-  //     "Sep",
-  //     "Oct",
-  //     "Nov",
-  //     "Dec",
-  //   ];
-  //   let dateTime = new Date(dateTimeString * 1000);
-  //   const formattedDate = `${dateTime.getDate()} ${
-  //     monthNames[dateTime.getMonth()]
-  //   } ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime
-  //     .getHours()
-  //     .toString()
-  //     .padStart(2, "0")}:${dateTime.getMinutes().toString().padStart(2, "0")}`;
-  //   return formattedDate;
   // }
 
   // function formatTime(seconds: number) {
@@ -518,7 +463,7 @@ export default function InfrastructureView() {
     setLastUpdated(getCurrentSGTDateTime());
   }, []);
 
-  if (loading === false && session && Object.keys(metrics).length > 0) {
+  if (loading === false && session) {
     return (
       <main>
         <div className="h-full flex flex-row">
@@ -650,17 +595,20 @@ export default function InfrastructureView() {
                     </div>
                   </div>
                 )}
-                <p className="text-2xl  text-gray-700 font-bold mt-4">
-                  Simulations
-                </p>
-                <div className="flex items-center w-full mb-4 mt-4">
-                  {/* Hardcoded simulations */}
-                  <ServerActions ipAddress={"20.82.137.238"} />
-                  {/* Other content */}
-                </div>
-                <p className="text-2xl  text-gray-700 font-bold mt-4">
+                {/* Don't Delete */}
+                {/* <div id="simulations"> */}
+                  {/* <p className="text-2xl  text-gray-700 font-bold mt-4"> */}
+                    {/* Simulations */}
+                  {/* </p> */}
+                  {/* <div className="flex items-center w-full mb-4 mt-4"> */}
+                    {/* Hardcoded simulations */}
+                    {/* <ServerActions ipAddress={"20.82.137.238"} /> */}
+                    {/* Other content */}
+                  {/* </div> */}
+                {/* </div> */}
+                <h3 className="text-2xl  text-gray-700 font-bold mt-4">
                   Metrics
-                </p>
+                </h3>
                 <div className="flex items-center w-full mb-4 mt-4">
                   <InfraFilter
                     selectedDateRange={selectedDateRange}
@@ -779,10 +727,5 @@ export default function InfrastructureView() {
         </div>
       </main>
     );
-  }
-  else {
-    return(
-      <p>infra</p>
-    )
   }
 }
