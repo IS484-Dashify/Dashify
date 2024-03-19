@@ -6,5 +6,6 @@
     "results": 5004,
     "threshold": 5005,
     "getStatus": 5006,
-    "getResults": 5007
+    "getResults": 5007,
+    "notifications": 5008
 }

@@ -101,3 +101,17 @@ class Pusher(db.Model):
             "cluster": self.cluster,
             "useTLS": self.useTLS
         }
+    
+class Notifications(db.Model):
+    nid = db.Column(db.Integer, primary_key=True)
+    cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
+    isRead = db.Column(db.Boolean)
+    reason = db.Column(db.Text)
+
+    def json(self):
+        return {
+            "nid": self.nid,
+            "cid": self.cid,
+            "isRead": self.isRead,
+            "reason": self.reason
+        }
