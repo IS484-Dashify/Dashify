@@ -103,7 +103,6 @@ def add_result():
         system_uptime = float(data['system_uptime']),
         memory_usage = float(data['memory_usage'])
     )
-    
     # TODO: Take care of foreign key error
     try:
         db.session.add(newResult)
@@ -111,6 +110,7 @@ def add_result():
         
         return jsonify({"message": "Result added successfully.", "data": data, "status_code": 200}), 200
     except Exception as e:  
+        app.logger.error('An error occurred: %s', e)
         return jsonify({"error": "An unexpected error occurCritical", "details": str(e), "status_code": 500}), 500
     
 if __name__ == '__main__':
