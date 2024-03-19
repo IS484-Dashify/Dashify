@@ -10,6 +10,28 @@ def get_all_results():
     results = [result.json() for result in all_results]
     return jsonify({"results": results})
 
+@app.route('/get-result/<int:cid>/<int:mid>/<int:rows>', methods=['GET'])
+def get_metrics_by_cid_mid(cid, mid, rows):
+    try:
+        results = Results.query.filter_by(cid=cid, mid=mid).order_by(Results.datetime.desc()).limit(rows)
+        results_json = []
+        if results:
+
+            for row in results:
+                results_json.append(row.json())
+                
+            # Return JSON response with the single result
+            return jsonify(results_json), 200
+        else:
+            # Return an empty response with status code 404 if no results are found
+            return jsonify({}), 404
+
+    except Exception as e:
+        # Handle any exceptions that occur during query execution
+        error_message = str(e)
+        return jsonify({'error': error_message}), 500
+
+
 @app.route('/get-result-status/<int:cid>/<int:mid>', methods=['GET'])
 def get_last_result(cid, mid):
     last_result = Results.query.filter_by(cid=cid, mid=mid).order_by(Results.datetime.desc()).first()
