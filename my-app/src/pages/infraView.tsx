@@ -149,6 +149,7 @@ export default function InfrastructureView() {
   // loading state for fetching data
   const [loading, setLoading] = useState(true);
   const cid = router.query.cid;
+  const country = router.query.country as string;
   const service = router.query.currentService as string | undefined;
   const component = router.query.currentComponent as string;
   // const componentDetails = findCountryAndNameByComponent(component!, data);
@@ -256,17 +257,17 @@ export default function InfrastructureView() {
   useEffect(() => {
     if (loading == false && metrics) {
       // ! Check if system is down
-      const latestElement =
-        metrics["System Uptime"][parseInt(selectedDateRange) - 1];
-      if ("System Uptime" in latestElement && "Datetime" in latestElement) {
-        // This line is necessary for typescript to verify that firstElement is of type DiskUsage
-        const systemUptimeElement = latestElement as SystemUptime;
-        if (systemUptimeElement["System Uptime"] !== 0) {
-          setSystemStatus(true);
-        } else {
-          setSystemStatus(false);
-        }
-      }
+      // const latestElement =
+      //   metrics["System Uptime"][parseInt(selectedDateRange) - 1];
+      // if ("System Uptime" in latestElement && "Datetime" in latestElement) {
+      //   // This line is necessary for typescript to verify that firstElement is of type DiskUsage
+      //   const systemUptimeElement = latestElement as SystemUptime;
+      //   if (systemUptimeElement["System Uptime"] !== 0) {
+      //     setSystemStatus(true);
+      //   } else {
+      //     setSystemStatus(false);
+      //   }
+      // }
     }
   },[]);
 
@@ -519,11 +520,11 @@ export default function InfrastructureView() {
                 <div>
                   <p className="flex items-center">
                     <MdOutlineLocationOn className="mr-2" />{" "}
-                    {/* {componentDetails[1]} */}
+                    {country}
                   </p>
                   <p className="flex items-center">
                     <HiOutlineComputerDesktop className="mr-2" />{" "}
-                    {/* {componentDetails[0]} */}
+                    {component}
                   </p>
                 </div>
               </div>
@@ -718,7 +719,7 @@ export default function InfrastructureView() {
                 <div className="mt-4 mb-4">
                   <Terminal height="400px">
                     {/* {terminalLineData} */}
-                    <LogViewer channel="dashify-logs" event="logs" /> {/* replace dashify-logs with dashify-[cid] where cid is from useParams() */}
+                    <LogViewer channel={`dashify-${cid}`} event="logs" /> {/* replace dashify-logs with dashify-[cid] where cid is from useParams() */}
                   </Terminal>
                 </div>
               </div>
