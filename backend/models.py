@@ -103,15 +103,21 @@ class Pusher(db.Model):
         }
     
 class Notifications(db.Model):
+    __tablename__ = 'notifications'
+
     nid = db.Column(db.Integer, primary_key=True)
     cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
     isRead = db.Column(db.Boolean)
     reason = db.Column(db.Text)
+    datetime = db.Column(db.DateTime)
+    status = db.Column(db.Text)
 
     def json(self):
         return {
             "nid": self.nid,
             "cid": self.cid,
             "isRead": self.isRead,
-            "reason": self.reason
+            "reason": self.reason,
+            "datetime": self.datetime.strftime('%Y-%m-%d %H:%M:%S'),  # Format datetime as string
+            "status": self.status
         }

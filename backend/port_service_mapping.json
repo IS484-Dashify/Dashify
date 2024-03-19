@@ -7,5 +7,6 @@
     "threshold": 5005,
     "getStatus": 5006,
     "getResults": 5007,
-    "notifications": 5008
+    "notifications": 5008,
+    "getNotifications": 5009
 }

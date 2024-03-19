@@ -10,4 +10,5 @@ start "getResults.py" cmd /k "python getResults.py"
 start "getStatus.py" cmd /k "python getStatus.py"
 start "machines.py" cmd /k "python machines.py"
 start "notifications.py" cmd /k "python notifications.py"
+start "getNotifications.py" cmd /k "python getNotifications.py"
 
