@@ -9,11 +9,6 @@ import * as Label from "@radix-ui/react-label";
 import Link from "next/link";
 import Sidebar from "./components/navbar";
 
-interface ServiceItem {
-  serviceName: string;
-  status: string;
-}
-
 export default function ServiceView() {
   const { data: session } = useSession();
   const router = useRouter();
