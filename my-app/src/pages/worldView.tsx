@@ -66,7 +66,7 @@ const statusColors = {
   Critical: "text-reddish-200 me-1"
 };
 
-const ToggleableList = ({ components, vmName, status, selectedService } : {components : Component[], vmName : string, status : Status, selectedService : string | string[] | null | undefined  }) => {
+const ToggleableList = ({ components, vmName, country, status, selectedService } : {components : Component[], vmName : string, country : string, status : Status, selectedService : string | string[] | null | undefined  }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="border-b-2 py-3">
@@ -82,7 +82,7 @@ const ToggleableList = ({ components, vmName, status, selectedService } : {compo
       {(
         <div className={`mt-3 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-fit" : "h-0"}`}>
           {components.map((component, index) => (
-            <Link key={index} href={`/infraView?cid=${component.cid}&currentService=${selectedService}&currentComponent=${component.cName}`}>
+            <Link key={index} href={`/infraView?cid=${component.cid}&country=${country}&currentService=${selectedService}&currentComponent=${component.cName}`}>
               <div className="pb-1">
                 <div key={index} className="flex items-center justify-between">
                   <span>{component.cName}</span>
@@ -131,7 +131,7 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, selectedService} :  {isO
         </div>
       </div>
       {selectedMarker.map(vm => 
-        <ToggleableList key={vm.mName} components={vm.components} vmName={vm.mName} status={vm.status} selectedService={selectedService}/>
+        <ToggleableList key={vm.mName} components={vm.components} vmName={vm.mName} country={vm.country} status={vm.status} selectedService={selectedService}/>
       )}
     </div>
   );
