@@ -147,32 +147,12 @@ export default function WorldView() {
   
   const [currentPage, setCurrentPage] = React.useState("world");
   const router = useRouter();
-  const sid = parseInt(router.query.sid as string);
+  const sid = router.query.sid;
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);  
   const [apiData, setApiData] = useState<Vm[]>() ;
   const [dataByCountry, setDataByCountry] = useState<GroupedData>({});
   const [serviceName, setServiceName] = useState('');
-
-  useEffect(() => {
-    const fetchAllStatuses = async () => {
-      try {
-        const endpoint = `get-service-by-sid/${sid}`; 
-        const port = '5001'
-        const ipAddress = '127.0.0.1'; 
-        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
-        if (response.ok) {
-          const data = await response.json();
-          setServiceName(data["results"]["name"])
-        } else {
-          throw new Error("Failed to perform server action");
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchAllStatuses();
-  }, []);
 
   useEffect(() => {
     const fetchAllStatuses = async () => {
@@ -202,7 +182,7 @@ export default function WorldView() {
             groupedData[country] = groupedData[country].sort((a:Vm, b:Vm) => {
               return order[a["status"]] - order[b["status"]];
             });
-
+  
             // Sort all Components in one VM by status
             groupedData[country].forEach((vm: Vm) => {
               vm.components = vm.components.sort((a: Component, b: Component) => {
@@ -219,7 +199,28 @@ export default function WorldView() {
         console.error(error);
       }
     };
-    fetchAllStatuses();
+    const fetchAllServices = async () => {
+      try {
+        const endpoint = `get-service-by-sid/${sid}`; 
+        const port = '5001'
+        const ipAddress = '127.0.0.1'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          setServiceName(data["results"]["name"])
+          fetchAllStatuses();
+        } else {
+          throw new Error("Failed to perform server action");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    if(sid != null){
+      console.log("Fetch all Services")
+      console.log("useEffect sid:", sid)
+      fetchAllServices();
+    }
   }, []);
 
   const handleMarkerClick = (marker : Marker) => {

@@ -1,0 +1,50 @@
+[
+    {
+        "components": [
+            {
+                "cName": "Node.js Server 1",
+                "cStatus": "Normal",
+                "cid": 1
+            },
+            {
+                "cName": "SQL Server 1",
+                "cStatus": "Normal",
+                "cid": 2
+            },
+            {
+                "cName": "Machine 1",
+                "cStatus": "Normal",
+                "cid": 3
+            }
+        ],
+        "country": "Denmark",
+        "iso": "DK",
+        "location": "[9.5018, 562639]",
+        "mName": "VM1",
+        "status": "Normal"
+    },
+    {
+        "components": [
+            {
+                "cName": "Node.js Server 2",
+                "cStatus": "Normal",
+                "cid": 4
+            },
+            {
+                "cName": "SQL Server 2",
+                "cStatus": "Normal",
+                "cid": 5
+            },
+            {
+                "cName": "Machine 2",
+                "cStatus": "Normal",
+                "cid": 6
+            }
+        ],
+        "country": "Denmark",
+        "iso": "DK",
+        "location": "[9.5018, 562639]",
+        "mName": "VM2",
+        "status": "Normal"
+    }
+]
