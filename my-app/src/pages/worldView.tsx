@@ -82,7 +82,7 @@ const ToggleableList = ({ components, vmName, status, selectedService } : {compo
       {(
         <div className={`mt-3 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-fit" : "h-0"}`}>
           {components.map((component, index) => (
-            <Link key={index} href={`/infraView?currentService=${selectedService}&currentComponent=${component.cName}`}>
+            <Link key={index} href={`/infraView?cid=${component.cid}&currentService=${selectedService}&currentComponent=${component.cName}`}>
               <div className="pb-1">
                 <div key={index} className="flex items-center justify-between">
                   <span>{component.cName}</span>
@@ -217,14 +217,14 @@ export default function WorldView() {
       }
     };
     if(sid != null){
-      console.log("Fetch all Services")
-      console.log("useEffect sid:", sid)
+      // console.log("Fetch all Services")
+      // console.log("useEffect sid:", sid)
       fetchAllServices();
     }
   }, []);
 
   const handleMarkerClick = (marker : Marker) => {
-    console.log("Marker:", marker);
+    // console.log("Marker:", marker);
     setSelectedMarker(marker);
     setIsPopupOpen(true);
   };
