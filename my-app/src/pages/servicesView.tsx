@@ -14,6 +14,7 @@ export default function ServiceView() {
   const router = useRouter();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    // console.log("Session:", session);
     if (!session) {
       router.push("/auth/login");
     }
