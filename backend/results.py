@@ -10,10 +10,10 @@ def get_all_results():
     results = [result.json() for result in all_results]
     return jsonify({"results": results})
 
-@app.route('/get-result/<int:cid>/<int:mid>/<int:rows>', methods=['GET'])
-def get_metrics_by_cid_mid(cid, mid, rows):
+@app.route('/get-result/<int:cid>/<int:rows>', methods=['GET'])
+def get_metrics_by_cid(cid, rows):
     try:
-        results = Results.query.filter_by(cid=cid, mid=mid).order_by(Results.datetime.desc()).limit(rows)
+        results = Results.query.filter_by(cid=cid).order_by(Results.datetime.desc()).limit(rows)
         results_json = []
         if results:
 
