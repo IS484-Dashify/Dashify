@@ -30,7 +30,7 @@ export const authOptions = {
           // 1. Check if email exists in database
           // console.log("EMAIL", `/api/user-auth/${user.email}`);
           const response = await fetch(
-            `http://${process.env.NEXTAUTH_URL}/api/user-auth/${user.email}`
+            `http://localhost:3000/api/user-auth/${user.email}`
           );
           const data = await response.json();
           // console.log("DATA", data);
