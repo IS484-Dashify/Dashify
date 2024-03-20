@@ -232,19 +232,29 @@ export default function InfrastructureView() {
           const data = await response.json();
           console.log("Fetched Data:", data);
 
-          // * 1. Tranform fetched data
+          // * 1. Transform fetched data
           const transformedData = transformJSON(data);
           const transformedTrafficData = transformTrafficJSON(transformedData['trafficIn'], transformedData['trafficOut']);
           const transformedMetricsData = {
             'CPU Usage': transformedData['cpuUsageArr'],
             'Disk Usage': transformedData['diskUsageArr'],
             'Memory Usage': transformedData['memoryUsageArr'],
-            'Traffic': transformedTrafficData
+            'Traffic': transformedTrafficData,
+            'System Uptime' : transformedData['systemUptimeArr']
           }
           setMetrics(transformedMetricsData);
           setTrafficMetrics(transformedTrafficData);
 
-          // TODO: * 2. Check if system is up, if system is down calculate downtime
+          // * 2. Check if system is up get uptime, if system is down calculate downtime
+          if (checkSystemStatus(transformedData['systemUptimeArr'])){
+            setSystemStatus(true);
+            setDowntime(0);
+            setUptime(transformedData['systemUptimeArr'][transformedData['systemUptimeArr'].length - 1]["System Uptime"]);
+          } else {
+            setSystemStatus(false);
+            // TODO: Calculate downtime
+          }
+          
           // TODO: setLastUpdated Time          
           // setLastUpdated(getCurrentSGTDateTime());
           setLoading(false);
@@ -276,13 +286,14 @@ export default function InfrastructureView() {
     }
   },[]);
 
-  function transformJSON (fetchedData : FetchedData) : { cpuUsageArr: CPUUsage[], diskUsageArr: DiskUsage[], memoryUsageArr: MemoryUsage[], trafficIn: TrafficIn[], trafficOut: TrafficOut[] } {
+  function transformJSON (fetchedData : FetchedData) : { cpuUsageArr: CPUUsage[], diskUsageArr: DiskUsage[], memoryUsageArr: MemoryUsage[], trafficIn: TrafficIn[], trafficOut: TrafficOut[], systemUptimeArr : SystemUptime[]} {
     // * transformJSON is a function that takes in the fetchedData and creates an array of data points for each metric (CPU Usage, Disk Usage and Memory Usage) - TrafficInOut is calculated separately
     const cpuUsageArr : CPUUsage[] = []
     const diskUsageArr : DiskUsage[] = []
     const memoryUsageArr : MemoryUsage[] = []
     const trafficIn : TrafficIn[] = []
     const trafficOut : TrafficOut[] = []
+    const systemUptimeArr : SystemUptime[] = []
     // reverse fetchedData as data is sorted in descending order (latest to oldest)
     fetchedData.reverse().forEach((dataPoint) => {
       // console.log("DataPoint:", dataPoint);
@@ -302,8 +313,11 @@ export default function InfrastructureView() {
       if (dataPoint['traffic_out'] != null || dataPoint['traffic_out'] != 0){
         trafficOut.push({ 'Traffic Out': dataPoint['traffic_out'], 'Datetime': datetime })
       }
+      if (dataPoint['system_uptime'] != null || dataPoint['system_uptime'] != 0){
+        systemUptimeArr.push({ 'System Uptime': dataPoint['system_uptime'], 'Datetime': datetime })
+      }
     })
-    return {"cpuUsageArr": cpuUsageArr, "diskUsageArr": diskUsageArr, "memoryUsageArr": memoryUsageArr, "trafficIn": trafficIn, "trafficOut": trafficOut}
+    return {"cpuUsageArr": cpuUsageArr, "diskUsageArr": diskUsageArr, "memoryUsageArr": memoryUsageArr, "trafficIn": trafficIn, "trafficOut": trafficOut, "systemUptimeArr": systemUptimeArr}
   }
 
   function transformTrafficJSON(trafficInArr : TrafficIn[], trafficOutArr : TrafficOut[]) {
@@ -340,9 +354,24 @@ export default function InfrastructureView() {
       .getHours()
       .toString()
       .padStart(2, "0")}:${dateTime.getMinutes().toString().padStart(2, "0")}`;
-    return formattedDate;
+      return formattedDate;
+    }
+    
+    function checkSystemStatus(systemUptimeArr: SystemUptime[]) {
+      if (systemUptimeArr[systemUptimeArr.length - 1]["System Uptime"] === 0) {
+      return false;
+    } else {
+      return true;
+    }
   }
-
+  
+  function formatTime(seconds: number) {
+    const days = Math.floor(seconds / (3600 * 24));
+    const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return { days, hours, minutes, seconds: remainingSeconds };
+  }
   // function checkPercentageMetric(
   //   metricList: { [key: string]: string; Datetime: string }[],
   //   metricName: "CPU Usage" | "Disk Usage" | "Memory Usage"
@@ -436,13 +465,6 @@ export default function InfrastructureView() {
   //   return result;
   // }
 
-  // function formatTime(seconds: number) {
-  //   const days = Math.floor(seconds / (3600 * 24));
-  //   const hours = Math.floor((seconds % (3600 * 24)) / 3600);
-  //   const minutes = Math.floor((seconds % 3600) / 60);
-  //   const remainingSeconds = Math.floor(seconds % 60);
-  //   return { days, hours, minutes, seconds: remainingSeconds };
-  // }
 
   // terminal data
   useEffect(() => {
@@ -558,11 +580,11 @@ export default function InfrastructureView() {
                         System Uptime
                       </h2>
                       <p className="text-3xl flex justify-center items-end">
-                        {/* {`${formatTime(uptime).days}`} */}
+                        {`${formatTime(uptime).days}`}
                         <span className="text-xl pr-2">d </span>
-                        {/* {`${formatTime(uptime).hours}`} */}
+                        {`${formatTime(uptime).hours}`}
                         <span className="text-xl pr-2">h </span>
-                        {/* {`${formatTime(uptime).minutes}`} */}
+                        {`${formatTime(uptime).minutes}`}
                         <span className="text-xl pr-2">m </span>
                       </p>
                     </div>
