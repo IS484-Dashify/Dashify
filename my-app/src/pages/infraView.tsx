@@ -104,25 +104,38 @@ interface TrafficMetric {
   "Traffic In": number | null; // Assuming 'Traffic In' can be null
   "Traffic Out": number | null; // Assuming 'Traffic Out' can be null
 }
-interface Queries {
-  [key: string]: [string, string];
-}
 interface Name {
   cName: string,
   country:string,
   mName: string,
   sName: string,
 }
-
-interface Names {
-  [cid: string]: Name,
+interface Thresholds {
+  "critical" : number,
+  "warning" : number,
+  "trafficInWarning" : number,
+  "trafficInCritical" : number,
+  "trafficOutWarning" : number,
+  "trafficOutCritical" : number
+}
+interface PercentageMetricsData{
+  "CPU Usage"?: CPUUsage;
+  "Disk Usage"?: DiskUsage;
+  "Memory Usage"?: MemoryUsage;
+}
+interface MetricStatus {
+  [key: string]: Status;
+  "CPU Usage": Status;
+  "Disk Usage": Status;
+  "Memory Usage": Status;
+  "Traffic": Status;
 }
 
 export default function InfrastructureView() {
   const router = useRouter();
   const { data: session } = useSession();
   const [shouldRedirect, setShouldRedirect] = useState(false);
-  console.log(session)
+  // console.log("Session:", session);
 
   useEffect(() => {
     if (!session) {
@@ -156,6 +169,7 @@ export default function InfrastructureView() {
 
   // Date range for metrics
   const [fetchedData, setFetchedData] = useState<FetchedData>([]);
+  const [thresholds, setThresholds] = useState<Thresholds>({"critical": 0, "warning": 0, "trafficInWarning": 0, "trafficInCritical": 0, "trafficOutWarning": 0, "trafficOutCritical": 0});
   const [metrics, setMetrics] = useState<Metric>({});
   const [selectedDateRange, setSelectedDateRange] = useState<string>("129600"); // 129600 => 90 days
   useEffect(() => {
@@ -185,7 +199,7 @@ export default function InfrastructureView() {
         if (response.ok) {
           const data = await response.json();
           setFetchedData(data);
-          console.log("Fetched Data:", data);
+          // console.log("Fetched Data:", data);
         } else {
           console.error("fetchData error: response")
           throw new Error("Failed to perform server action");
@@ -196,6 +210,26 @@ export default function InfrastructureView() {
     }
   }
 
+  const fetchThresholds = async () => { // retrieve thresholds from thresholds.py
+    try {
+      if (cid != null){
+        const endpoint = `get-thresholds-by-cid/${cid}`;
+        const port = '5005'
+        const ipAddress = '127.0.0.1'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          setThresholds({"critical" : data.results['critical'], "warning" : data.results['warning'], "trafficInWarning" : data.results['traffic_in_warning'], "trafficInCritical" : data.results['traffic_in_critical'], "trafficOutWarning" : data.results['traffic_out_warning'], "trafficOutCritical" : data.results['traffic_out_critical']});
+          // console.log("Fetched Thresholds:", data);
+        } else {
+          console.error("fetchThresholds error: response")
+          throw new Error("Failed to perform server action");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
   const transformJSON = (fetchedData: FetchedData) => {
     const cpuUsageArr: CPUUsage[] = [];
     const diskUsageArr: DiskUsage[] = [];
@@ -236,7 +270,10 @@ export default function InfrastructureView() {
     };
   }
 
-  // * Retrieve metrics from results db and, country name, cname and sname on page load
+  // * On page load retrieve
+  // 1. metrics from results db
+  // 2. country name, cName and sName
+  // 3. threshold
   const [names, setNames] = useState();
   useEffect(() => {
     const fetchAllNamesAndCountry = async () => {
@@ -259,6 +296,7 @@ export default function InfrastructureView() {
 
     fetchData();
     fetchAllNamesAndCountry();
+    fetchThresholds();
   }, [cid]);
 
   // * Transform fetched data and set state variables
@@ -267,7 +305,7 @@ export default function InfrastructureView() {
     if (fetchedData.length > 0){
       // * 1. Transform fetched data
       const transformedData = transformJSON(fetchedData);
-      console.log("transformedMetricsData", transformedData);
+      // console.log("transformedMetricsData", transformedData);
       const transformedTrafficData = transformTrafficJSON(transformedData['trafficIn'], transformedData['trafficOut']);
       const transformedMetricsData = {
         'CPU Usage': transformedData['cpuUsageArr'],
@@ -280,44 +318,36 @@ export default function InfrastructureView() {
       setTrafficMetrics(transformedTrafficData);
 
       // * 2. Check if system is up get uptime, if system is down calculate downtime
-      console.log("System up?:", checkSystemStatus(transformedData['systemUptimeArr']));
+      // console.log("System up?:", checkSystemStatus(transformedData['systemUptimeArr']));
       if (checkSystemStatus(transformedData['systemUptimeArr'])){
         setSystemStatus(true);
         setDowntime(0);
         setUptime(transformedData['systemUptimeArr'][transformedData['systemUptimeArr'].length - 1]["System Uptime"]);
+
+        // TODO: determine metrics status
+        const metricsStatus = determineMetricStatus({'CPU Usage': transformedData['cpuUsageArr'][transformedData['cpuUsageArr'].length - 1], 'Disk Usage': transformedData['diskUsageArr'][transformedData['cpuUsageArr'].length - 1], 'Memory Usage': transformedData['memoryUsageArr'][transformedData['cpuUsageArr'].length - 1]}, transformedTrafficData[transformedTrafficData.length - 1]);
+        setMetricsStatus(metricsStatus);
+        // TODO: determine overall status
+        if (Object.values(metricsStatus).includes("Critical")){
+          setOverallStatus("Critical");
+        } else if (Object.values(metricsStatus).includes("Warning")){
+          setOverallStatus("Warning");
+        } else {
+          setOverallStatus("Normal");
+        }
       } else {
-        // TODO: Calculate downtime
         setSystemStatus(false);
         const downtimeTime = findHighestZeroDatetime(transformedData['systemUptimeArr']);
         const currentTime = new Date();
         const timeDiff = currentTime.getTime() - new Date(downtimeTime['Datetime']).getTime();
         setDowntime(timeDiff / 1000);
+        // set overall status
+        setOverallStatus("Critical");
       }
-      
-      // TODO: setLastUpdated Time          
       setLastUpdated(getCurrentSGTDateTime());
       setLoading(false);
     }
-  }, [fetchedData, selectedDateRange])
-
-  // useEffect(() => {
-  //   if (loading == false && metrics) {
-  //     // ! Check if system is down
-      // const latestElement =
-      //   metrics["System Uptime"][parseInt(selectedDateRange) - 1];
-      // if ("System Uptime" in latestElement && "Datetime" in latestElement) {
-      //   // This line is necessary for typescript to verify that firstElement is of type DiskUsage
-      //   const systemUptimeElement = latestElement as SystemUptime;
-      //   if (systemUptimeElement["System Uptime"] !== 0) {
-      //     setSystemStatus(true);
-      //   } else {
-      //     setSystemStatus(false);
-      //   }
-      // }
-  //   }
-  // },[]);
-
-  
+  }, [fetchedData, thresholds, selectedDateRange])
 
   function transformTrafficJSON(trafficInArr : TrafficIn[], trafficOutArr : TrafficOut[]) {
     let result : TrafficMetric[] = [];
@@ -356,7 +386,7 @@ export default function InfrastructureView() {
       return formattedDate;
     }
     
-    function checkSystemStatus(systemUptimeArr: SystemUptime[]) {
+  function checkSystemStatus(systemUptimeArr: SystemUptime[]) {
       if (systemUptimeArr[systemUptimeArr.length - 1]["System Uptime"] === 0) {
       return false;
     } else {
@@ -384,89 +414,39 @@ export default function InfrastructureView() {
     // console.log("Earliest Zero Datetime:", earliestZeroDatetime);
     return earliestZeroDatetime;
   }
-  // function checkPercentageMetric(
-  //   metricList: { [key: string]: string; Datetime: string }[],
-  //   metricName: "CPU Usage" | "Disk Usage" | "Memory Usage"
-  // ) {
-  //   const thresholdList = [[80, 60]];
-  //   // find the latest (non-null) metric
-  //   let latestMetric;
-  //   for (let i = metricList.length - 1; i >= 0; i--) {
-  //     let dataPoint = metricList[i];
-  //     if (dataPoint[metricName] != null) {
-  //       latestMetric = dataPoint[metricName];
-  //       break;
-  //     }
-  //   }
-  //   // check metric against threshold
-  //   if (latestMetric != null) {
-  //     let threshold = thresholdList[0];
-  //     const metricValue = Number(latestMetric) as number;
-  //     if (metricValue > threshold[0]) {
-  //       return "Critical";
-  //     } else if (metricValue > threshold[1]) {
-  //       return "Warning";
-  //     } else {
-  //       return "Normal";
-  //     }
-  //   }
-  //   return "Unknown";
-  // }
 
-  // function convertNullToZero(arr: any[]) {
-  //   let result = [];
-  //   for (let dataPoint of arr) {
-  //     if (dataPoint[Object.keys(dataPoint)[0]] == null) {
-  //       dataPoint[Object.keys(dataPoint)[0]] = 0;
-  //     }
-  //     result.push(dataPoint);
-  //   }
-  //   return result;
-  // }
+  function determineMetricStatus(percentageMetricsData : {'CPU Usage' : CPUUsage, 'Disk Usage' : DiskUsage, 'Memory Usage' : MemoryUsage}, trafficData : TrafficMetric){
+    let metricsStatus : MetricStatus = {
+      "CPU Usage": "Normal",
+      "Disk Usage": "Normal",
+      "Memory Usage": "Normal",
+      "Traffic": "Normal",
+    };
+    const metricsVars = ["CPU Usage", "Disk Usage", "Memory Usage"];
+    for(let variable of metricsVars){
+      const latestDataPoint = percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
+      const currentMetricValue = (latestDataPoint as any)[variable];
+      if (currentMetricValue > thresholds['critical']){
+        metricsStatus[variable] = "Critical";
+      } else if (currentMetricValue > thresholds['warning']){
+        metricsStatus[variable] = "Warning";
+      } else {
+        metricsStatus[variable] = "Normal";
+      }
+    }
+    // console.log("Traffic Data:", trafficData);
+    // console.log("Thresholds:", thresholds);
 
-  // // convert array to dictionary, key is the name of the metric
-  // function convertToDictionary(arr: any[]) {
-  //   const filterTime = parseInt(selectedDateRange);
-  //   let result: Metric = {};
-  //   for (let subArray of arr) {
-  //     let key = Object.keys(subArray[0])[0];
-  //     result[key] = subArray.reverse();
-  //   }
-  //   let metricsToCleanup = [
-  //     "CPU Usage",
-  //     "Disk Usage",
-  //     "Memory Usage",
-  //     "System Uptime",
-  //   ];
-  //   for (let metric of metricsToCleanup) {
-  //     result[metric] = convertNullToZero(result[metric]);
-  //   }
-    // if (systemStatus === false) {
-    //   // if system down, calc downtime
-    //   const downtimeTime = findHighestZeroDatetime(
-    //     result["System Uptime"] as unknown as SystemUptime[]
-    //   );
-    //   if (downtimeTime && typeof downtimeTime === "string") {
-    //     const currentTime = new Date();
-    //     const timeDiff =
-    //       currentTime.getTime() - new Date(downtimeTime).getTime();
-    //     setDowntime(timeDiff / 1000);
-    //   }
-    // }
-    // filter data based on filter time
-  //   for (let metric of Object.keys(result)) {
-  //     result[metric] = result[metric].slice(-filterTime);
-  //   }
-  //   setUptime(
-  //     (
-  //       result["System Uptime"][
-  //         parseInt(selectedDateRange) - 1
-  //       ] as unknown as SystemUptime
-  //     )["System Uptime"]
-  //   );
-  //   return result;
-  // }
-
+    if ((trafficData as any)["Traffic In"] > thresholds['trafficInCritical'] || (trafficData as any)["Traffic Out"] > thresholds['trafficOutCritical']) {
+        metricsStatus["Traffic"] = "Critical";
+    } else if ((trafficData as any)["Traffic In"] > thresholds['trafficInWarning'] || (trafficData as any)["Traffic Out"] > thresholds['trafficOutWarning']) {
+        metricsStatus["Traffic"] = "Warning";
+    } else {
+        metricsStatus["Traffic"] = "Normal";
+    }
+    // console.log("Final Metrics Status:", metricsStatus);
+    return metricsStatus;
+  }
 
   // terminal data
   useEffect(() => {
@@ -491,10 +471,10 @@ export default function InfrastructureView() {
     return now.toLocaleString("en-SG", options);
   };
 
-  console.log(loading)
-  console.log(session)
-  console.log(names)
-  console.log(typeof cid === 'string')
+  // console.log(loading)
+  // console.log(session)
+  // console.log(names)
+  // console.log(typeof cid === 'string')
 
   if (loading === false && session && names && typeof cid === 'string') {
     return (
