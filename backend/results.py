@@ -91,6 +91,11 @@ def get_last_result(cid, mid):
 @app.route('/add-result', methods=['POST'])
 def add_result():
     data = request.json
+    cols = ['mid', 'cid', 'datetime', 'disk_usage', 'traffic_in', 'traffic_out', 'clock', 'cpu_usage', 'system_uptime', 'memory_usage']
+    for col in cols:
+        if col not in data:
+            data[col] = None
+            
     newResult = Results(
         datetime = data['datetime'],
         mid = int(data['mid']),
