@@ -2,7 +2,7 @@ from flask import jsonify
 import requests
 from app import app
 
-@app.route('/get-all-names', methods=['GET'])
+@app.route('/get-all-names-and-sid', methods=['GET'])
 def get_all_names():
     output = {}
     response2 = requests.get(f'http://127.0.0.1:5003/get-all-components')
@@ -20,7 +20,8 @@ def get_all_names():
         details = {
         "cName": componentName,
         "mName":machineName,
-        "sName":serviceName
+        "sName":serviceName,
+        "sid": sid
         }
         output[component["cid"]] = details
     return jsonify(output)

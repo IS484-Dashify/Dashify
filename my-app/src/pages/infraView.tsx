@@ -18,6 +18,7 @@ import InfraFilter from "./components/infraFilter";
 import { AreaChart } from "@tremor/react";
 import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
+import Link from "next/link";
 import LogViewer from "./components/LogViewer";
 import ServerActions from "./components/ServerActions"; // Adjust the path as necessary
 
@@ -145,14 +146,26 @@ interface Names {
 // }
 
 export default function InfrastructureView() {
+  const router = useRouter();
   const { data: session } = useSession();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  console.log(session)
+
   useEffect(() => {
-    // console.log("Session:", session);
     if (!session) {
-      router.push("/auth/login");
+      const timeoutId = setTimeout(() => {
+        setShouldRedirect(true);
+      }, 3000);
+      return () => clearTimeout(timeoutId);
     }
   }, [session]);
-  const router = useRouter();
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/auth/login");
+    }
+  }, [shouldRedirect, router]);
+  
   const [currentPage, setCurrentPage] = React.useState("infra");
 
   // loading state for fetching data
@@ -185,40 +198,40 @@ export default function InfrastructureView() {
     Traffic: "Normal",
   });
   const [overallStatus, setOverallStatus] = useState("Normal");
-  useEffect(() => {
-    // console.log("Metrics Status:", metricsStatus);
-    const order = { Critical: 0, Warning: 1, Normal: 2 };
-    const sortedMetricStatus = Object.keys(metricsStatus)
-      .sort((a, b) => {
-        return (
-          order[
-            metricsStatus[a as keyof typeof metricsStatus] as keyof typeof order
-          ] -
-          order[
-            metricsStatus[b as keyof typeof metricsStatus] as keyof typeof order
-          ]
-        );
-      })
-      .reduce((obj, key) => {
-        obj[key] = metricsStatus[key as keyof typeof metricsStatus];
-        return obj;
-      }, {} as { [key: string]: string | undefined });
+  // useEffect(() => {
+  //   // console.log("Metrics Status:", metricsStatus);
+  //   const order = { Critical: 0, Warning: 1, Normal: 2 };
+  //   const sortedMetricStatus = Object.keys(metricsStatus)
+  //     .sort((a, b) => {
+  //       return (
+  //         order[
+  //           metricsStatus[a as keyof typeof metricsStatus] as keyof typeof order
+  //         ] -
+  //         order[
+  //           metricsStatus[b as keyof typeof metricsStatus] as keyof typeof order
+  //         ]
+  //       );
+  //     })
+  //     .reduce((obj, key) => {
+  //       obj[key] = metricsStatus[key as keyof typeof metricsStatus];
+  //       return obj;
+  //     }, {} as { [key: string]: string | undefined });
 
-    // console.log("Overall Status:", sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
-    if (systemStatus) {
-      setOverallStatus(
-        sortedMetricStatus[Object.keys(sortedMetricStatus)[0]] as string
-      );
-    } else {
-      setOverallStatus("Critical");
-      setMetricsStatus({
-        "CPU Usage": "Critical",
-        "Disk Usage": "Critical",
-        "Memory Usage": "Critical",
-        Traffic: "Critical",
-      });
-    }
-  }, [metricsStatus, systemStatus]);
+  //   // console.log("Overall Status:", sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
+  //   if (systemStatus) {
+  //     setOverallStatus(
+  //       sortedMetricStatus[Object.keys(sortedMetricStatus)[0]] as string
+  //     );
+  //   } else {
+  //     setOverallStatus("Critical");
+  //     setMetricsStatus({
+  //       "CPU Usage": "Critical",
+  //       "Disk Usage": "Critical",
+  //       "Memory Usage": "Critical",
+  //       Traffic: "Critical",
+  //     });
+  //   }
+  // }, [metricsStatus, systemStatus]);
 
   // Last Updated
   const [lastUpdated, setLastUpdated] = useState<string>("");
@@ -522,6 +535,11 @@ export default function InfrastructureView() {
     setLastUpdated(getCurrentSGTDateTime());
   }, []);
 
+  console.log(loading)
+  console.log(session)
+  console.log(names)
+  console.log(typeof cid === 'string')
+
   if (loading === false && session && names && typeof cid === 'string') {
     return (
       <main>
@@ -537,24 +555,21 @@ export default function InfrastructureView() {
                 <BreadcrumbItem
                   key="services"
                   startContent={<AiOutlineHome />}
-                  href="/servicesView"
                 >
-                  Services
+                  <Link href = {`/servicesView`} prefetch>Services</Link>
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="world"
-                  href={`/worldView?sid=${sid}`}
                   startContent={<GiWorld />}
                 >
-                  {names[cid]["sName"]}
+                  <Link href = {`/worldView?sid=${sid}`} prefetch>{names[cid]["sName"]}</Link>
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="infra"
-                  href={`/worldView?sid=${sid}&cid=${cid}`}
                   startContent={<VscGraph />}
                   isCurrent={currentPage === "infra"}
                 >
-                  {names[cid]["cName"]}
+                  <Link href = {`/infraView?sid=${sid}&cid=${cid}`}prefetch>{names[cid]["cName"]}</Link>
                 </BreadcrumbItem>
               </Breadcrumbs>
               <div className="mt-1 pb-8 pt-2">

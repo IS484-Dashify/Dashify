@@ -37,7 +37,6 @@ const tooltipContent = (countryName: string, iso: string, vms: Vm[]) => {
   const status_counts = {"Normal": 0, "Critical": 0, "Warning": 0};
   if (countries.includes(iso) && hasFlag(iso)) {
     vms.forEach(({status}) => {
-      // console.log("Status:", status);
       if (status === "Normal") {
         status_counts["Normal"] += 1;
       } else if (status === "Warning") {
@@ -84,7 +83,7 @@ const ToggleableList = ({ components, vmName, sid, status } : {components : Comp
           {components.map((component, index) => (
             <Link key={index} href={`/infraView?sid=${sid}&cid=${component.cid}`}>
               <div className="pb-1 hover:underline">
-                <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <span>{component.cName}</span>
                   <FaCircle className={statusColors[component.cStatus]} />
                 </div>
@@ -139,15 +138,26 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, sid} :  {isOpen : boolea
 
 export default function WorldView() {
   const { data: session } = useSession(); // eslint-disable-next-line react-hooks/exhaustive-deps
+  const router = useRouter();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
   useEffect(() => {
-    // console.log("Session:", session);
-    if(!session){
-      router.push("/auth/login");
+    if (!session) {
+      const timeoutId = setTimeout(() => {
+        setShouldRedirect(true);
+      }, 3000);
+      return () => clearTimeout(timeoutId);
     }
   }, [session]);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/auth/login");
+    }
+  }, [shouldRedirect, router]);
+
   
   const [currentPage, setCurrentPage] = React.useState("world");
-  const router = useRouter();
   const sid = router.query.sid;
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);  
@@ -164,7 +174,6 @@ export default function WorldView() {
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
-          // console.log(data);
           setApiData(data)
           
           // Format data from backend
@@ -191,7 +200,6 @@ export default function WorldView() {
               });
             });
           }
-          console.log("Grouped Data:", groupedData)
           setDataByCountry(groupedData)
         } else {
           throw new Error("Failed to perform server action");
@@ -218,14 +226,11 @@ export default function WorldView() {
       }
     };
     if(sid != null){
-      // console.log("Fetch all Services")
-      // console.log("useEffect sid:", sid)
       fetchAllServices();
     }
-  }, []);
+  }, [sid]);
 
   const handleMarkerClick = (marker : Marker) => {
-    // console.log("Marker:", marker);
     setSelectedMarker(marker);
     setIsPopupOpen(true);
   };
@@ -292,7 +297,6 @@ export default function WorldView() {
                       key={convertLocationToList(dataByCountryElement[0]['country'])}
                       coordinates={[convertLocationToList(dataByCountryElement[0]['location'])[0], convertLocationToList(dataByCountryElement[0]['location'])[1]]}
                       className="map-marker cursor-pointer"
-                      // onClick={() => {console.log("VMs:", dataByCountryElement)}}
                       onClick={() => handleMarkerClick(dataByCountryElement)}
                     >
                       {dataByCountryElement[0]['status'] === "Critical" ? (
