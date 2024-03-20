@@ -20,7 +20,7 @@ my-app/out/
 .DS_Store
 *.pem
 .log
-backend/.log
+backend/app.log
 
 # debug
 npm-debug.log*
