@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from dotenv import load_dotenv
-
+from helper import safe_convert
 from models import db, Results
 from app import app
 
@@ -91,22 +91,18 @@ def get_last_result(cid, mid):
 @app.route('/add-result', methods=['POST'])
 def add_result():
     data = request.json
-    cols = ['mid', 'cid', 'datetime', 'disk_usage', 'traffic_in', 'traffic_out', 'clock', 'cpu_usage', 'system_uptime', 'memory_usage']
-    for col in cols:
-        if col not in data:
-            data[col] = None
-            
+
     newResult = Results(
         datetime = data['datetime'],
-        mid = int(data['mid']),
-        cid = int(data['cid']),
-        disk_usage = float(data['disk_usage']),
-        traffic_in = int(data['traffic_in']),
-        traffic_out = int(data['traffic_out']),
-        clock = float(data['clock']),
-        cpu_usage = float(data['cpu_usage']),
-        system_uptime = float(data['system_uptime']),
-        memory_usage = float(data['memory_usage'])
+        mid = safe_convert(data['mid'], int),
+        cid = safe_convert(data['cid'], int),
+        disk_usage = safe_convert(data['disk_usage'], float),
+        traffic_in = safe_convert(data['traffic_in'], int),
+        traffic_out = safe_convert(data['traffic_out'], int),
+        clock = safe_convert(data['clock'], float),
+        cpu_usage = safe_convert(data['cpu_usage'], float),
+        system_uptime = safe_convert(data['system_uptime'], float),
+        memory_usage = safe_convert(data['memory_usage'], float)
     )
     # TODO: Take care of foreign key error
     try:

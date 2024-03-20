@@ -40,3 +40,13 @@ def doesThresholdExist(cid):
 def convertLocationToList(location):
     location = location.strip('[').strip(']').split(', ') 
     return location
+
+
+def safe_convert(value, target_type):
+    """
+    A function that safely converts a value to a target type
+    """
+    try:
+        return target_type(value)
+    except (ValueError, TypeError):
+        return None
