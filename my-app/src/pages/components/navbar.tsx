@@ -34,6 +34,7 @@ interface Name {
   cName: string,
   mName: string,
   sName: string,
+  sid:string
 }
 
 interface Names {
@@ -68,7 +69,7 @@ const Sidebar = () => {
   useEffect(() => {
     const fetchAllNames = async () => {
       try {
-        const endpoint = 'get-all-names'; 
+        const endpoint = 'get-all-names-and-sid'; 
         const port = '5009'
         const ipAddress = '127.0.0.1'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
@@ -147,17 +148,19 @@ const Sidebar = () => {
                 {notifications
                   .filter(notification => !notification.isRead) 
                   .map(notification => (
-                    <div key={notification.nid} className="pb-2 mb-3 border-b flex">
-                      <div className={`w-3 h-3 rounded-full mr-3 mt-[5px] ${notification.status === 'Critical' ? 'bg-reddish-100 border-2 border-reddish-200' :
-                        notification.status === 'Warning' ? 'bg-amberish-100 border-2 border-amberish-200' : 
-                        notification.status === 'Normal' ? 'bg-greenish-100 border-2 border-greenish-200' : ''}`}>
+                    <Link key={notification.nid} href={`/infraView?sid=${names?.[notification.cid.toString()]["sid"]}&cid=${notification.cid}`}>
+                      <div className="pb-2 mb-3 border-b flex">
+                        <div className={`w-3 h-3 rounded-full mr-3 mt-[5px] ${notification.status === 'Critical' ? 'bg-reddish-100 border-2 border-reddish-200' :
+                          notification.status === 'Warning' ? 'bg-amberish-100 border-2 border-amberish-200' : 
+                          notification.status === 'Normal' ? 'bg-greenish-100 border-2 border-greenish-200' : ''}`}>
+                        </div>
+                        <div className="w-11/12">
+                          <div className='font-bold'>{names?.[notification.cid.toString()]["sName"]} | {names?.[notification.cid.toString()]["mName"]} | {names?.[notification.cid.toString()]["cName"]}</div>
+                          <div className="break-all">{notification.reason}</div>
+                          <div className="text-tiny italic">{formatDate(notification.datetime)}</div>
+                        </div>
                       </div>
-                      <div className="w-11/12">
-                        <div className='font-bold'>{names?.[notification.cid.toString()]["sName"]} | {names?.[notification.cid.toString()]["mName"]} | {names?.[notification.cid.toString()]["cName"]}</div>
-                        <div className="break-all">{notification.reason}</div>
-                        <div className="text-tiny italic">{formatDate(notification.datetime)}</div>
-                      </div>
-                    </div>
+                    </Link>
                   ))}
               </div>
               <div className="text-center text-tiny flex hover:underline">

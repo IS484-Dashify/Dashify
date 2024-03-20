@@ -9,16 +9,26 @@ import * as Label from "@radix-ui/react-label";
 import Link from "next/link";
 import Sidebar from "./components/navbar";
 
+
 export default function ServiceView() {
-  const { data: session } = useSession();
   const router = useRouter();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const { data: session } = useSession();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
   useEffect(() => {
-    // console.log("Session:", session);
     if (!session) {
-      router.push("/auth/login");
+      const timeoutId = setTimeout(() => {
+        setShouldRedirect(true);
+      }, 3000);
+      return () => clearTimeout(timeoutId);
     }
   }, [session]);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/auth/login");
+    }
+  }, [shouldRedirect, router]);
 
   // initialize states
   const [currentPage, setCurrentPage] = React.useState("services");

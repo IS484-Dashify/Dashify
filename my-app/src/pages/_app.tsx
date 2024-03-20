@@ -10,9 +10,9 @@ export default function App({ Component, pageProps:{ session, ...pageProps}}: Ap
 
   return (
     <SessionProvider session={session}>
-      <NextUIProvider navigate={router.push}>
+
         <Component {...pageProps} />
-      </NextUIProvider>
+
     </SessionProvider>
   );
 }

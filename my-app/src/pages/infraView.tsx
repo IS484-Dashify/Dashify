@@ -18,6 +18,7 @@ import InfraFilter from "./components/infraFilter";
 import { AreaChart } from "@tremor/react";
 import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
+import Link from "next/link";
 import LogViewer from "./components/LogViewer";
 import ServerActions from "./components/ServerActions"; // Adjust the path as necessary
 
@@ -145,14 +146,26 @@ interface Names {
 // }
 
 export default function InfrastructureView() {
-  const { data: session } = useSession();
   const router = useRouter();
+  const { data: session } = useSession();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  console.log(session)
+
   useEffect(() => {
-    // console.log("Session:", session);
     if (!session) {
-      // router.push("/auth/login");
+      const timeoutId = setTimeout(() => {
+        setShouldRedirect(true);
+      }, 3000);
+      return () => clearTimeout(timeoutId);
     }
-  }, [session, router]);
+  }, [session]);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/auth/login");
+    }
+  }, [shouldRedirect, router]);
+  
   const [currentPage, setCurrentPage] = React.useState("infra");
 
   // loading state for fetching data
@@ -543,6 +556,11 @@ export default function InfrastructureView() {
     setLastUpdated(getCurrentSGTDateTime());
   }, []);
 
+  console.log(loading)
+  console.log(session)
+  console.log(names)
+  console.log(typeof cid === 'string')
+
   if (loading === false && session && names && typeof cid === 'string') {
     return (
       <main>
@@ -558,24 +576,21 @@ export default function InfrastructureView() {
                 <BreadcrumbItem
                   key="services"
                   startContent={<AiOutlineHome />}
-                  href="/servicesView"
                 >
-                  Services
+                  <Link href = {`/servicesView`} prefetch>Services</Link>
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="world"
-                  href={`/worldView?sid=${sid}`}
                   startContent={<GiWorld />}
                 >
-                  {names[cid]["sName"]}
+                  <Link href = {`/worldView?sid=${sid}`} prefetch>{names[cid]["sName"]}</Link>
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="infra"
-                  href={`/worldView?sid=${sid}&cid=${cid}`}
                   startContent={<VscGraph />}
                   isCurrent={currentPage === "infra"}
                 >
-                  {names[cid]["cName"]}
+                  <Link href = {`/infraView?sid=${sid}&cid=${cid}`}prefetch>{names[cid]["cName"]}</Link>
                 </BreadcrumbItem>
               </Breadcrumbs>
               <div className="mt-1 pb-8 pt-2">

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Sidebar from "./components/navbar";
 
@@ -16,6 +17,7 @@ interface Name {
   cName: string,
   mName: string,
   sName: string,
+  sid:string
 }
 
 interface Names {
@@ -23,14 +25,24 @@ interface Names {
 }
 
 export default function WorldView() {
-  // const { data: session } = useSession();
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // useEffect(() => {
-  //   // console.log("Session:", session);
-  //   if(!session){
-  //     router.push("/auth/login");
-  //   }
-  // }, [session]);
+  const { data: session } = useSession(); // eslint-disable-next-line react-hooks/exhaustive-deps
+  const router = useRouter();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
+  useEffect(() => {
+    if (!session) {
+      const timeoutId = setTimeout(() => {
+        setShouldRedirect(true);
+      }, 3000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/auth/login");
+    }
+  }, [shouldRedirect, router]);
   
   const [notifications, setNotifications] = useState<Notification[]>()
   const [names, setNames] = useState<Names>()
@@ -58,7 +70,7 @@ export default function WorldView() {
   useEffect(() => {
     const fetchAllNames = async () => {
       try {
-        const endpoint = 'get-all-names'; 
+        const endpoint = 'get-all-names-and-sid'; 
         const port = '5009'
         const ipAddress = '127.0.0.1'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
@@ -101,7 +113,7 @@ export default function WorldView() {
     return formattedDate;
   }
 
-  // if(session && notifications && names){
+  if(session && notifications && names){
     return (
       <main>
         <div className=" min-h-full flex flex-row">
@@ -126,7 +138,7 @@ export default function WorldView() {
                       </div>
                       <div className='italic'>{formatDate(notification.datetime)}</div>
                     </div>
-                    <Link key={notification.nid} href={`/infraView?cid=${notification.cid}&currentService=${names?.[notification.cid.toString()]["sName"]}&currentComponent=${names?.[notification.cid.toString()]["cName"]}`}>
+                    <Link key={notification.nid} href={`/infraView?sid=${names?.[notification.cid.toString()]["sid"]}&cid=${notification.cid}`}>
                       <button
                         className="h-[2.5rem] px-4 bg-pri-500 rounded-[4px] text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
                       >
@@ -144,5 +156,5 @@ export default function WorldView() {
         </div>
       </main>
     );
-  // }
+  }
 }
