@@ -76,12 +76,20 @@ class Thresholds(db.Model):
     cid = db.Column(db.Integer, db.ForeignKey('components.cid'), primary_key=True)
     warning = db.Column(db.Float)
     critical = db.Column(db.Float)
+    traffic_in_warning = db.Column(db.Float)
+    traffic_in_critical = db.Column(db.Float)
+    traffic_in_critical = db.Column(db.Float)
+    traffic_out_critical = db.Column(db.Float)
 
     def json(self):
         return {
             "cid": self.cid,
             "warning": self.warning,
-            "critical": self.critical
+            "critical": self.critical,
+            "traffic_in_warning": self.traffic_in_warning,
+            "traffic_in_critical": self.traffic_in_critical,
+            "traffic_out_warning" : self.traffic_out_warning,
+            "traffic_out_critical": self.traffic_out_critical
         }
     
 class Pusher(db.Model):

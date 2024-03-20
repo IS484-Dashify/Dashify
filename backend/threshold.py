@@ -54,6 +54,11 @@ def update_threshold():
     request_cid = data["cid"]
     request_warning = data["Warning"]
     request_critical = data["Critical"]
+    request_traffic_in_warning = data["TrafficInWarning"]
+    request_traffic_in_critical = data["TrafficInCritical"]
+    request_traffic_out_warning = data["TrafficOutWarning"]
+    request_traffic_out_critical = data["TrafficOutCritical"]
+    
     try:
         # check if component exists
         componentExists = doesComponentExist(request_cid)
@@ -65,6 +70,10 @@ def update_threshold():
             else:
                 thresholdExists.warning = request_warning
                 thresholdExists.critical = request_critical
+                thresholdExists.traffic_in_warning = request_traffic_in_warning
+                thresholdExists.traffic_in_critical = request_traffic_in_critical
+                thresholdExists.traffic_out_warning = request_traffic_out_warning
+                thresholdExists.traffic_out_critical = request_traffic_out_critical
                 db.session.commit()
                 return_message = {
                     'message': 'Threshold for cid: ' + str(request_cid) + ' updated!'
