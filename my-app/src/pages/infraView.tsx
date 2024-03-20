@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { AiOutlineHome } from "react-icons/ai";
@@ -171,7 +171,7 @@ export default function InfrastructureView() {
   const [fetchedData, setFetchedData] = useState<FetchedData>([]);
   const [thresholds, setThresholds] = useState<Thresholds>({"critical": 0, "warning": 0, "trafficInWarning": 0, "trafficInCritical": 0, "trafficOutWarning": 0, "trafficOutCritical": 0});
   const [metrics, setMetrics] = useState<Metric>({});
-  const [selectedDateRange, setSelectedDateRange] = useState<string>("129600"); // 129600 => 90 days
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("15"); // 129600 => 90 days
   useEffect(() => {
     console.log("Metrics:", metrics);
   }, [metrics]);
@@ -198,7 +198,7 @@ export default function InfrastructureView() {
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
-          setFetchedData(data);
+          setFetchedData(data.reverse());
           // console.log("Fetched Data:", data);
         } else {
           console.error("fetchData error: response")
@@ -238,7 +238,7 @@ export default function InfrastructureView() {
     const trafficOut: TrafficOut[] = [];
     const systemUptimeArr: SystemUptime[] = [];
   
-    fetchedData.reverse().forEach((dataPoint) => {
+    fetchedData.forEach((dataPoint) => {
       const datetime = formatDate(dataPoint['datetime']);
       if (dataPoint['cpu_usage'] != null || dataPoint['cpu_usage'] !== 0) {
         cpuUsageArr.push({ 'CPU Usage': dataPoint['cpu_usage'], 'Datetime': datetime });
@@ -305,7 +305,7 @@ export default function InfrastructureView() {
     if (fetchedData.length > 0){
       // * 1. Transform fetched data
       const transformedData = transformJSON(fetchedData);
-      // console.log("transformedMetricsData", transformedData);
+      console.log("transformedMetricsData", transformedData);
       const transformedTrafficData = transformTrafficJSON(transformedData['trafficIn'], transformedData['trafficOut']);
       const transformedMetricsData = {
         'CPU Usage': transformedData['cpuUsageArr'],
@@ -314,8 +314,10 @@ export default function InfrastructureView() {
         'Traffic': transformedTrafficData,
         'System Uptime' : transformedData['systemUptimeArr']
       }
-      setMetrics(transformedMetricsData);
-      setTrafficMetrics(transformedTrafficData);
+
+      // only return number of data points based on selectedDateRange
+      setMetrics({'CPU Usage': transformedMetricsData['CPU Usage'].slice(transformedMetricsData['CPU Usage'].length - parseInt(selectedDateRange)), 'Disk Usage': transformedMetricsData['Disk Usage'].slice(transformedMetricsData['Disk Usage'].length - parseInt(selectedDateRange)), 'Memory Usage': transformedMetricsData['Memory Usage'].slice(transformedMetricsData['Memory Usage'].length - parseInt(selectedDateRange))});
+      setTrafficMetrics(transformedTrafficData.slice(transformedTrafficData.length - parseInt(selectedDateRange)));
 
       // * 2. Check if system is up get uptime, if system is down calculate downtime
       // console.log("System up?:", checkSystemStatus(transformedData['systemUptimeArr']));
