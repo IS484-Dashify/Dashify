@@ -64,9 +64,9 @@ def get_all_service_name_and_status():
         sid = service['sid']
         response2 = requests.get(f'http://127.0.0.1:5002/get-mid-by-sid/{sid}')
         mids = response2.json()['results']
-
+        statuses = []
+        
         for mid in mids:
-            statuses = []
             response3 = requests.get(f'http://127.0.0.1:5003/get-cid-by-mid/{mid}')
             cids = response3.json()['results']
 
