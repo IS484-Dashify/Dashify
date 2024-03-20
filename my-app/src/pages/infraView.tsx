@@ -278,7 +278,8 @@ export default function InfrastructureView() {
     const memoryUsageArr : MemoryUsage[] = []
     const trafficIn : TrafficIn[] = []
     const trafficOut : TrafficOut[] = []
-    fetchedData.forEach((dataPoint) => {
+    // reverse fetchedData as data is sorted in descending order (latest to oldest)
+    fetchedData.reverse().forEach((dataPoint) => {
       // console.log("DataPoint:", dataPoint);
       const datetime = formatDate(dataPoint['datetime']);
       if (dataPoint['cpu_usage'] != null || dataPoint['cpu_usage'] != 0){
