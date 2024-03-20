@@ -108,9 +108,18 @@ interface TrafficMetric {
   "Traffic In": number | null; // Assuming 'Traffic In' can be null
   "Traffic Out": number | null; // Assuming 'Traffic Out' can be null
 }
-
 interface Queries {
   [key: string]: [string, string];
+}
+interface Name {
+  cName: string,
+  country:string,
+  mName: string,
+  sName: string,
+}
+
+interface Names {
+  [cid: string]: Name,
 }
 
 // function findCountryAndNameByComponent(
@@ -148,10 +157,8 @@ export default function InfrastructureView() {
 
   // loading state for fetching data
   const [loading, setLoading] = useState(true);
-  const cid = router.query.cid;
-  const country = router.query.country as string;
-  const service = router.query.currentService as string | undefined;
-  const component = router.query.currentComponent as string;
+  const cid = router.query.cid as string | string[] | undefined;
+  const sid = router.query.sid as string | string[] | undefined;
   // const componentDetails = findCountryAndNameByComponent(component!, data);
 
   // System status
@@ -267,6 +274,29 @@ export default function InfrastructureView() {
       console.error(error);
     }
   };
+
+  // get cname, mname, sname and country
+  const [names, setNames] = useState();
+  useEffect(() => {
+    const fetchAllNamesAndCountry = async () => {
+      try {
+        const endpoint = 'get-all-names-and-country'; 
+        const port = '5009'
+        const ipAddress = '127.0.0.1'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data)
+          setNames(data)
+        } else {
+          throw new Error("Failed to perform server action");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchAllNamesAndCountry();
+  }, []);
 
 
   useEffect(() => {
@@ -492,7 +522,7 @@ export default function InfrastructureView() {
     setLastUpdated(getCurrentSGTDateTime());
   }, []);
 
-  if (loading === false && session) {
+  if (loading === false && session && names && typeof cid === 'string') {
     return (
       <main>
         <div className="h-full flex flex-row">
@@ -513,24 +543,24 @@ export default function InfrastructureView() {
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="world"
-                  href={`/worldView?currentService=${service}`}
+                  href={`/worldView?sid=${sid}`}
                   startContent={<GiWorld />}
                 >
-                  {service}
+                  {names[cid]["sName"]}
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="infra"
-                  href={`/worldView?currentService=${service}&currentComponent=${component}`}
+                  href={`/worldView?sid=${sid}&cid=${cid}`}
                   startContent={<VscGraph />}
                   isCurrent={currentPage === "infra"}
                 >
-                  {component}
+                  {names[cid]["cName"]}
                 </BreadcrumbItem>
               </Breadcrumbs>
               <div className="mt-1 pb-8 pt-2">
                 <div className="xl:flex lg:flex xl:flex-row lg:flex-row items-end justify-between mb-2">
                   <h1 className="text-4xl font-bold text-pri-500">
-                    {component}
+                    {names[cid]["cName"]}
                   </h1>
                   <div className="flex items-center mt-2 xl:mt-0">
                     <button
@@ -548,11 +578,11 @@ export default function InfrastructureView() {
                 <div>
                   <p className="flex items-center">
                     <MdOutlineLocationOn className="mr-2" />{" "}
-                    {country}
+                    {names[cid]["country"]}
                   </p>
                   <p className="flex items-center">
                     <HiOutlineComputerDesktop className="mr-2" />{" "}
-                    {component}
+                    {names[cid]["mName"]}
                   </p>
                 </div>
               </div>
