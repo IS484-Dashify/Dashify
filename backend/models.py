@@ -78,7 +78,7 @@ class Thresholds(db.Model):
     critical = db.Column(db.Float)
     traffic_in_warning = db.Column(db.Float)
     traffic_in_critical = db.Column(db.Float)
-    traffic_in_critical = db.Column(db.Float)
+    traffic_out_warning = db.Column(db.Float)
     traffic_out_critical = db.Column(db.Float)
 
     def json(self):
