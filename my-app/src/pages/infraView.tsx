@@ -231,6 +231,8 @@ export default function InfrastructureView() {
         if (response.ok) {
           const data = await response.json();
           console.log("Fetched Data:", data);
+
+          // * 1. Tranform fetched data
           const transformedData = transformJSON(data);
           const transformedTrafficData = transformTrafficJSON(transformedData['trafficIn'], transformedData['trafficOut']);
           const transformedMetricsData = {
@@ -241,6 +243,9 @@ export default function InfrastructureView() {
           }
           setMetrics(transformedMetricsData);
           setTrafficMetrics(transformedTrafficData);
+
+          // TODO: * 2. Check if system is up, if system is down calculate downtime
+          // TODO: setLastUpdated Time          
           // setLastUpdated(getCurrentSGTDateTime());
           setLoading(false);
         } else {
