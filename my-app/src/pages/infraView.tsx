@@ -28,11 +28,6 @@ const rawTerminalData = [
 ];
 
 type Status = "Critical" | "Warning" | "Normal";
-interface Service {
-  serviceName: string;
-  status: Status;
-  countries: Country[];
-}
 interface Country {
   name: string;
   iso: string;
@@ -123,28 +118,6 @@ interface Names {
   [cid: string]: Name,
 }
 
-// function findCountryAndNameByComponent(
-//   componentName: string,
-//   services: Service[]
-// ) {
-//   let results: string[] = [];
-
-//   services.forEach((service) => {
-//     service.countries.forEach((country) => {
-//       country.vm.forEach((vm) => {
-//         const componentFound = vm.components.some(
-//           (component) => component.name === componentName
-//         );
-//         if (componentFound) {
-//           results.push(vm.name);
-//           results.push(country.name);
-//         }
-//       });
-//     });
-//   });
-//   return results;
-// }
-
 export default function InfrastructureView() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -172,7 +145,6 @@ export default function InfrastructureView() {
   const [loading, setLoading] = useState(true);
   const cid = router.query.cid as string | string[] | undefined;
   const sid = router.query.sid as string | string[] | undefined;
-  // const componentDetails = findCountryAndNameByComponent(component!, data);
 
   // System status
   const [systemStatus, setSystemStatus] = useState(true);
@@ -199,42 +171,8 @@ export default function InfrastructureView() {
     Traffic: "Normal",
   });
   const [overallStatus, setOverallStatus] = useState("Normal");
-  // useEffect(() => {
-  //   // console.log("Metrics Status:", metricsStatus);
-  //   const order = { Critical: 0, Warning: 1, Normal: 2 };
-  //   const sortedMetricStatus = Object.keys(metricsStatus)
-  //     .sort((a, b) => {
-  //       return (
-  //         order[
-  //           metricsStatus[a as keyof typeof metricsStatus] as keyof typeof order
-  //         ] -
-  //         order[
-  //           metricsStatus[b as keyof typeof metricsStatus] as keyof typeof order
-  //         ]
-  //       );
-  //     })
-  //     .reduce((obj, key) => {
-  //       obj[key] = metricsStatus[key as keyof typeof metricsStatus];
-  //       return obj;
-  //     }, {} as { [key: string]: string | undefined });
 
-  //   // console.log("Overall Status:", sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
-  //   if (systemStatus) {
-  //     setOverallStatus(
-  //       sortedMetricStatus[Object.keys(sortedMetricStatus)[0]] as string
-  //     );
-  //   } else {
-  //     setOverallStatus("Critical");
-  //     setMetricsStatus({
-  //       "CPU Usage": "Critical",
-  //       "Disk Usage": "Critical",
-  //       "Memory Usage": "Critical",
-  //       Traffic: "Critical",
-  //     });
-  //   }
-  // }, [metricsStatus, systemStatus]);
-
-  // Last Updated
+  // Last Updated time
   const [lastUpdated, setLastUpdated] = useState<string>("");
   
   const fetchData = async () => { // retrieve data from results.py and store in fetchedData
@@ -357,7 +295,7 @@ export default function InfrastructureView() {
       }
       
       // TODO: setLastUpdated Time          
-      // setLastUpdated(getCurrentSGTDateTime());
+      setLastUpdated(getCurrentSGTDateTime());
       setLoading(false);
     }
   }, [fetchedData, selectedDateRange])
@@ -552,9 +490,6 @@ export default function InfrastructureView() {
     };
     return now.toLocaleString("en-SG", options);
   };
-  useEffect(() => {
-    setLastUpdated(getCurrentSGTDateTime());
-  }, []);
 
   console.log(loading)
   console.log(session)
