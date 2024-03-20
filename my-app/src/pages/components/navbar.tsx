@@ -74,7 +74,7 @@ const Sidebar = () => {
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
-          console.log(data)
+          // console.log(data)
           setNames(data)
         } else {
           throw new Error("Failed to perform server action");
