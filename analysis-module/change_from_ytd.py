@@ -9,7 +9,7 @@ conn = mysql.connector.connect(
 )
 
 cursor = conn.cursor()
-insert_query = "INSERT INTO notifications (nid, cid, isread, reason) VALUES (%s, %s, %s, %s)"
+
 
 def fetch_data(start_time, end_time):
     query = "SELECT CID, DISK_USAGE, TRAFFIC_OUT, CPU_USAGE, MEMORY_USAGE FROM results WHERE DATETIME BETWEEN %s AND %s"
@@ -37,6 +37,7 @@ end_of_today = datetime(2024, 2, 29, 23, 59, 59, tzinfo=timezone.utc)
 # Fetch data for yesterday and today from the database
 data_yesterday = fetch_data(start_of_yesterday, end_of_yesterday)
 data_today = fetch_data(start_of_today, end_of_today)
+
 
 # FOR DATA_YESTERDAY
 # Initialize dictionaries to store sum and count of each metric for each CID 
@@ -95,9 +96,11 @@ for cid in average_by_cid_ytd_data:
 print(percentage_change_by_cid)
 
 
+insert_query = "INSERT INTO notifications (cid, isread, reason, datetime, status) VALUES (%s, %s, %s, %s, %s)"
 for cid, metrics in percentage_change_by_cid.items():
     for metric, change in metrics.items():
         if change < -20:
-            reason = f"Percentage change in {metric} exceeds 20%"
-            cursor.execute(insert_query, (5, cid, 1, reason))
+            reason = f"Percentage change in {metric} is {change}%"
+            date = datetime.now()
+            cursor.execute(insert_query, (cid, 0, reason, date, "Analysis"))
             conn.commit()
