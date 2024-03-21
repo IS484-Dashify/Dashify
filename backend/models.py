@@ -129,3 +129,13 @@ class Notifications(db.Model):
             "datetime": self.datetime.strftime('%Y-%m-%d %H:%M:%S'),  # Format datetime as string
             "status": self.status
         }
+
+class Users(db.Model):
+    uid = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.Text)
+
+    def json(self):
+        return {
+            "uid": self.uid,
+            "email": self.email
+        }

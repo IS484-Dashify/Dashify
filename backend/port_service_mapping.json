@@ -4,10 +4,10 @@
     "machines": 5002,
     "components": 5003,
     "results": 5004,
-    "threshold": 5005,
+    "thresholds": 5005,
     "getStatus": 5006,
     "getResults": 5007,
     "notifications": 5008,
     "getNames": 5009,
-    "user": 5010
+    "users": 5010
 }
