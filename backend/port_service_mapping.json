@@ -8,5 +8,6 @@
     "getStatus": 5006,
     "getResults": 5007,
     "notifications": 5008,
-    "getNames": 5009
+    "getNames": 5009,
+    "user": 5010
 }
