@@ -1,7 +1,6 @@
-from flask import jsonify
+from flask import jsonify, request
 from models import Machines
 from app import app, db
-from flask import request
 
 @app.route('/get-all-machines', methods=['GET'])
 def get_all_machines():
