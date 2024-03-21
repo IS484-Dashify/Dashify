@@ -10,6 +10,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 load_dotenv()
+db = SQLAlchemy()
 
 def create_app():
     
@@ -25,6 +26,8 @@ def create_app():
     app.logger.addHandler(log_handler)
     app.logger.setLevel(logging.INFO)
 
+    db = SQLAlchemy(app)  # Moved SQLAlchemy initialization here
+    from models import db  # Moved import to avoid circular import
     db.init_app(app)
     CORS(app)
     return app

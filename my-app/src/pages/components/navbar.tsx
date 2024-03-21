@@ -133,7 +133,10 @@ const Sidebar = () => {
         <PopoverTrigger>
           <div className="my-4 p-1">
             <Badge content={unreadCount} color="danger">
-              <div className="opacity-50 hover:opacity-100 hover:text-pri-500">
+              <div className={`opacity-50 hover:opacity-100 hover:text-pri-500 
+                ${activeIndex === 100 
+                  ? "text-pri-500" 
+                  : "opacity-50 hover:opacity-100 hover:text-pri-500"}`}>
                 <IoNotificationsOutline size={25}/>
               </div>
             </Badge>
@@ -164,7 +167,7 @@ const Sidebar = () => {
                   ))}
               </div>
               <div className="text-center text-tiny flex hover:underline">
-                <Link href="/notification" className="flex flex-row items-center justify-center"> 
+                <Link href="/notification" className="flex flex-row items-center justify-center" onClick={() => setActiveIndex(100)}> 
                   See all notifications
                   <LuExternalLink className="ml-1"/>
                 </Link>

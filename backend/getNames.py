@@ -3,7 +3,7 @@ import requests
 from app import app
 
 @app.route('/get-all-names-and-sid', methods=['GET'])
-def get_all_names():
+def get_all_names_and_sid():
     output = {}
     response2 = requests.get(f'http://127.0.0.1:5003/get-all-components')
     components = response2.json()["results"]

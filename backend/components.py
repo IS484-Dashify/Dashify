@@ -1,6 +1,6 @@
 from flask import jsonify
 from models import Components
-from app import app
+from app import app, db
 
 @app.route('/get-all-components', methods=['GET'])
 def get_all_components():
@@ -19,5 +19,6 @@ def get_cid_values_by_mid(mid):
     cids = [component.cid for component in components]
     return jsonify({"results": cids})
 
+    
 if __name__ == '__main__':
     app.run(debug=True, port=5003)
