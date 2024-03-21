@@ -46,44 +46,60 @@ const Sidebar = () => {
   const [notifications, setNotifications] = useState<Notification[]>()
   const [names, setNames] = useState<Names>()
 
-  useEffect(() => {
-    const fetchAllNotification = async () => {
-      try {
-        const endpoint = 'get-all-notifications'; 
-        const port = '5008'
-        const ipAddress = '127.0.0.1'; 
-        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
-        if (response.ok) {
-          const data = await response.json();
-          setNotifications(data)
-        } else {
-          throw new Error("Failed to perform server action");
-        }
-      } catch (error) {
-        console.error(error);
+  const fetchAllNotification = async () => {
+    try {
+      const endpoint = 'get-all-notifications'; 
+      const port = '5008'
+      const ipAddress = '127.0.0.1'; 
+      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data)
+      } else {
+        throw new Error("Failed to perform server action");
       }
-    };
-    fetchAllNotification();
-  }, []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchAllNames = async () => {
+    try {
+      const endpoint = 'get-all-names-and-sid'; 
+      const port = '5009'
+      const ipAddress = '127.0.0.1'; 
+      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+      if (response.ok) {
+        const data = await response.json();
+        // console.log(data)
+        setNames(data)
+      } else {
+        throw new Error("Failed to perform server action");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
+  const markNotificationAsRead = async (nid: number) => {
+    try {
+      const endpoint = `mark-notification-as-read/${nid}`; 
+      const port = '5008'
+      const ipAddress = '127.0.0.1'; 
+      const method = 'PUT';
+      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}&method=${method}`);
+      if (response.ok) {
+        fetchAllNotification();
+      } else {
+        throw new Error("Failed to perform server action");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    const fetchAllNames = async () => {
-      try {
-        const endpoint = 'get-all-names-and-sid'; 
-        const port = '5009'
-        const ipAddress = '127.0.0.1'; 
-        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
-        if (response.ok) {
-          const data = await response.json();
-          // console.log(data)
-          setNames(data)
-        } else {
-          throw new Error("Failed to perform server action");
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    fetchAllNotification();
     fetchAllNames();
   }, []);
 
@@ -151,7 +167,11 @@ const Sidebar = () => {
                 {notifications
                   .filter(notification => !notification.isRead) 
                   .map(notification => (
-                    <Link key={notification.nid} href={`/infraView?sid=${names?.[notification.cid.toString()]["sid"]}&cid=${notification.cid}`}>
+                    <Link 
+                      key={notification.nid} 
+                      href={`/infraView?sid=${names?.[notification.cid.toString()]["sid"]}&cid=${notification.cid}`}
+                      onClick={() => markNotificationAsRead(notification.nid)}
+                    >
                       <div className="pb-2 mb-3 border-b flex">
                         <div className={`w-3 h-3 rounded-full mr-3 mt-[5px] ${notification.status === 'Critical' ? 'bg-reddish-100 border-2 border-reddish-200' :
                           notification.status === 'Warning' ? 'bg-amberish-100 border-2 border-amberish-200' : 

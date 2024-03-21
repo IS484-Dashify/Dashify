@@ -115,7 +115,7 @@ class Notifications(db.Model):
 
     nid = db.Column(db.Integer, primary_key=True)
     cid = db.Column(db.Integer, db.ForeignKey('components.cid'))
-    isRead = db.Column(db.Boolean)
+    isRead = db.Column(db.Boolean, default=False)
     reason = db.Column(db.Text)
     datetime = db.Column(db.DateTime)
     status = db.Column(db.Text)

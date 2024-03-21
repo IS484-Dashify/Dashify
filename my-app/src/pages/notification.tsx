@@ -51,34 +51,87 @@ export default function WorldView() {
   const [insights, setInsights] = useState<Notification[]>()
   const [names, setNames] = useState<Names>()
 
-  useEffect(() => {
-    const fetchAllNotification = async () => {
-      try {
-        const endpoint = 'get-all-notifications'; 
-        const port = '5008';
-        const ipAddress = '127.0.0.1'; 
-        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
-        
-        if (response.ok) {
-          const data: Notification[] = await response.json();
-          // Sort alerts and insights based on isRead property
-          const sortedAlerts = data.filter(notification => 
-            ['Critical', 'Warning', 'Normal'].includes(notification.status)
-          ).sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1));
-          const sortedInsights = data.filter(notification => 
-            !['Critical', 'Warning', 'Normal'].includes(notification.status)
-          ).sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1));
-          setAlerts(sortedAlerts);
-          setInsights(sortedInsights)
-        } else {
-          throw new Error("Failed to perform server action");
-        }
-      } catch (error) {
-        console.error(error);
+  const fetchAllNotification = async () => {
+    try {
+      const endpoint = 'get-all-notifications'; 
+      const port = '5008';
+      const ipAddress = '127.0.0.1'; 
+      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+      
+      if (response.ok) {
+        const data: Notification[] = await response.json();
+        // Sort alerts and insights based on isRead property
+        const sortedAlerts = data.filter(notification => 
+          ['Critical', 'Warning', 'Normal'].includes(notification.status)
+        ).sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1));
+        const sortedInsights = data.filter(notification => 
+          !['Critical', 'Warning', 'Normal'].includes(notification.status)
+        ).sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1));
+        setAlerts(sortedAlerts);
+        setInsights(sortedInsights)
+      } else {
+        throw new Error("Failed to perform server action");
       }
-    };
-  
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchAllNames = async () => {
+    try {
+      const endpoint = 'get-all-names-and-sid'; 
+      const port = '5009'
+      const ipAddress = '127.0.0.1'; 
+      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data)
+        setNames(data)
+      } else {
+        throw new Error("Failed to perform server action");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const markNotificationAsRead = async (nid: number) => {
+    try {
+      const endpoint = `mark-notification-as-read/${nid}`; 
+      const port = '5008'
+      const ipAddress = '127.0.0.1'; 
+      const method = 'PUT';
+      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}&method=${method}`);
+      if (response.ok) {
+        fetchAllNotification();
+      } else {
+        throw new Error("Failed to perform server action");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const markAllNotificationAsRead = async () => {
+    try {
+      const endpoint = `mark-all-notifications-as-read`; 
+      const port = '5008'
+      const ipAddress = '127.0.0.1'; 
+      const method = 'PUT';
+      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}&method=${method}`);
+      if (response.ok) {
+        fetchAllNotification();
+      } else {
+        throw new Error("Failed to perform server action");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
     fetchAllNotification();
+    fetchAllNames();
   }, []);
   
   const unreadAlerts = alerts?.reduce((count, alert) => {
@@ -88,27 +141,6 @@ export default function WorldView() {
   const unreadInsights = insights?.reduce((count, insight) => {
     return count + (insight.isRead ? 0 : 1);
   }, 0);
-
-  useEffect(() => {
-    const fetchAllNames = async () => {
-      try {
-        const endpoint = 'get-all-names-and-sid'; 
-        const port = '5009'
-        const ipAddress = '127.0.0.1'; 
-        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data)
-          setNames(data)
-        } else {
-          throw new Error("Failed to perform server action");
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchAllNames();
-  }, []);
 
   function formatDate(dateTimeString: string) {
     const monthNames = [
@@ -145,6 +177,7 @@ export default function WorldView() {
               <h1 className='text-4xl font-bold text-pri-500 mt-1 pb-8 pt-2'>Notifications</h1>
               <button
                 className="h-[2.5rem] px-4 rounded-[4px] text-pri-500 border-1 border-pri-500 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:text-white hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring self-end"
+                onClick={() => markAllNotificationAsRead()}
               >
                 Read all
               </button>
@@ -176,6 +209,11 @@ export default function WorldView() {
                       {alerts.map(alert =>
                         <div key={alert.nid} className={`w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center bg-white
                         ${
+                          alert.isRead === false
+                          ? "border-l-8"
+                          : "border-l-4"
+                        }
+                        ${
                           alert.status === "Critical"
                             ? "border-reddish-200"
                             : "border-amberish-200"
@@ -199,6 +237,7 @@ export default function WorldView() {
                           <Link key={alert.nid} href={`/infraView?sid=${names?.[alert.cid.toString()]["sid"]}&cid=${alert.cid}`}>
                             <button
                               className="h-[2.5rem] px-4 rounded-[4px]  bg-pri-500 text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                              onClick={() => markNotificationAsRead(alert.nid)}
                             >
                               View
                             </button>
@@ -235,6 +274,7 @@ export default function WorldView() {
                           <Link key={insight.nid} href={`/infraView?sid=${names?.[insight.cid.toString()]["sid"]}&cid=${insight.cid}`}>
                             <button
                               className="h-[2.5rem] px-4 bg-pri-500 rounded-[4px] text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                              onClick={() => markNotificationAsRead(insight.nid)}
                             >
                               View
                             </button>

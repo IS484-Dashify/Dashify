@@ -10,7 +10,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 load_dotenv()
-db = SQLAlchemy()
+# db = SQLAlchemy()
 
 def create_app():
     
