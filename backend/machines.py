@@ -1,6 +1,7 @@
 from flask import jsonify
 from models import Machines
-from app import app
+from app import app, db
+from flask import request
 
 @app.route('/get-all-machines', methods=['GET'])
 def get_all_machines():
@@ -20,6 +21,13 @@ def get_mid_values_by_sid(sid):
     print(mids)
     return jsonify({'results': mids})   
 
+@app.route('/add-machine', methods=['POST'])
+def add_machine():
+    data = request.get_json()
+    new_machine = Machines(**data)
+    db.session.add(new_machine)
+    db.session.commit()
+    return jsonify({'message': 'Machine added successfully!'})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
