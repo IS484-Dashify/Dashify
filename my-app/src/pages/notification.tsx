@@ -182,13 +182,14 @@ export default function WorldView() {
                         }`}>
                           <div className='flex flex-row w-3/4 items-center'>
                             <div className='w-3/4'>
-                              <div className='font-bold flex flex-row items-center'>
+                              <div className='font-bold flex flex-row items-center align-middle'>
                                 {names?.[alert.cid.toString()]["sName"]} | {names?.[alert.cid.toString()]["mName"]} | {names?.[alert.cid.toString()]["cName"]}
-                                {alert.isRead === false ?
-                                  <Tooltip showArrow={true} content="Unread">
-                                    <button className='ml-2'><RiErrorWarningLine className='text-reddish-100'/></button>
-                                  </Tooltip>
-                                  : null
+                                {
+                                  alert.isRead === false ?
+                                    <Tooltip showArrow={true} content="Unread">
+                                      <button className='ml-1'><RiErrorWarningLine size={20} className='text-reddish-200'/></button>
+                                    </Tooltip>
+                                    : null
                                 }
                               </div>
                               {alert.reason}
