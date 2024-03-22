@@ -134,11 +134,11 @@ export default function WorldView() {
     fetchAllNames();
   }, []);
   
-  const unreadAlerts = alerts?.reduce((count, alert) => {
+  const unreadAlertsCount = alerts?.reduce((count, alert) => {
     return count + (alert.isRead ? 0 : 1);
   }, 0);
 
-  const unreadInsights = insights?.reduce((count, insight) => {
+  const unreadInsightsCount = insights?.reduce((count, insight) => {
     return count + (insight.isRead ? 0 : 1);
   }, 0);
 
@@ -168,6 +168,11 @@ export default function WorldView() {
   }
 
   if(session && alerts && insights && names){
+    const unreadAlerts = alerts.filter(alert => !alert.isRead);
+    const readAlerts = alerts.filter(alert => alert.isRead);
+    const unreadInsights = insights.filter(insight => !insight.isRead);
+    const readInsights = insights.filter(insight => insight.isRead);
+    
     return (
       <main className="">
         <div className=" min-h-full flex flex-row">
@@ -201,50 +206,74 @@ export default function WorldView() {
                   title={
                     <div className="flex items-center space-x-2">
                       <span>Alerts</span>
-                      <Chip size="sm" variant="faded">{unreadAlerts}</Chip>
+                      <Chip size="sm" variant="faded">{unreadAlertsCount}</Chip>
                     </div>
                   }
                 >
                   <div className="flex vh-100 flex-col pb-[10px]">
                   {alerts && alerts.length > 0 ? (
                     <>
-                      {alerts.map(alert =>
-                        <div key={alert.nid} className={`w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center bg-white
-                        ${
-                          alert.isRead === false
-                          ? "border-l-8"
-                          : "border-l-4"
-                        }
-                        ${
-                          alert.status === "Critical"
-                            ? "border-reddish-200"
-                            : "border-amberish-200"
-                        }`}>
-                          <div className='flex flex-row w-3/4 items-center'>
-                            <div className='w-3/4'>
-                              <div className='font-bold flex flex-row items-center align-middle'>
-                                {names?.[alert.cid.toString()]["sName"]} | {names?.[alert.cid.toString()]["mName"]} | {names?.[alert.cid.toString()]["cName"]}
-                                {
-                                  alert.isRead === false ?
-                                    <Tooltip showArrow={true} content="Unread">
-                                      <button className='ml-1'><RiErrorWarningLine size={20} className='text-reddish-200'/></button>
-                                    </Tooltip>
-                                    : null
-                                }
+                      {/* Unread alerts */}
+                      {unreadAlerts.length > 0 ? (
+                        <>
+                          <div className=' mb-4 font-bold'>Unread</div>
+                          {unreadAlerts.map(alert => (
+                            <div key={alert.nid} className={`w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center bg-white ${
+                              alert.status === "Critical" ? "border-reddish-200" : "border-amberish-200"
+                            }`}>
+                              <div className='flex flex-row w-3/4 items-center'>
+                                <div className='w-3/4'>
+                                  <div className='font-bold flex flex-row items-center align-middle'>
+                                    {names?.[alert.cid.toString()]["sName"]} | {names?.[alert.cid.toString()]["mName"]} | {names?.[alert.cid.toString()]["cName"]}
+                                  </div>
+                                  {alert.reason}
+                                </div>
+                                <div className='text-sm'>{formatDate(alert.datetime)}</div>
                               </div>
-                              {alert.reason}
+                              <Link href={`/infraView?sid=${names?.[alert.cid.toString()]["sid"]}&cid=${alert.cid}`}>
+                                <button
+                                  className="h-[2.5rem] px-4 rounded-[4px] bg-pri-500 text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                                  onClick={() => markNotificationAsRead(alert.nid)}
+                                >
+                                  View
+                                </button>
+                              </Link>
                             </div>
-                            <div className='text-sm'>{formatDate(alert.datetime)}</div>
+                          ))}
+                        </>
+                      ) : (
+                        null
+                      )}
+                      {/* read alerts */}
+                      {readAlerts.length > 0 ? (
+                      <>
+                        <div className=' mb-4 font-bold'>History</div>
+                        {readAlerts.map(alert => (
+                          <div key={alert.nid} className={`w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center bg-white ${
+                            alert.status === "Critical" ? "border-reddish-200" : "border-amberish-200"
+                          }`}>
+                            <div className='flex flex-row w-3/4 items-center'>
+                              <div className='w-3/4'>
+                                <div className='font-bold flex flex-row items-center align-middle'>
+                                  {names?.[alert.cid.toString()]["sName"]} | {names?.[alert.cid.toString()]["mName"]} | {names?.[alert.cid.toString()]["cName"]}
+                                </div>
+                                {alert.reason}
+                              </div>
+                              <div className='text-sm'>{formatDate(alert.datetime)}</div>
+                            </div>
+                            <Link href={`/infraView?sid=${names?.[alert.cid.toString()]["sid"]}&cid=${alert.cid}`}>
+                              <button
+                                className="h-[2.5rem] px-4 rounded-[4px] bg-pri-500 text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                                onClick={() => markNotificationAsRead(alert.nid)}
+                              >
+                                View
+                              </button>
+                            </Link>
                           </div>
-                          <Link key={alert.nid} href={`/infraView?sid=${names?.[alert.cid.toString()]["sid"]}&cid=${alert.cid}`}>
-                            <button
-                              className="h-[2.5rem] px-4 rounded-[4px]  bg-pri-500 text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
-                              onClick={() => markNotificationAsRead(alert.nid)}
-                            >
-                              View
-                            </button>
-                          </Link>
-                        </div>
+                        ))}
+                      </>
+                      ) : (
+                        null
                       )}
                     </>
                   ) : (
@@ -257,31 +286,74 @@ export default function WorldView() {
                   title={
                     <div className="flex items-center space-x-2">
                       <span>Insights</span>
-                      <Chip size="sm" variant="faded">{unreadInsights}</Chip>
+                      <Chip size="sm" variant="faded">{unreadInsightsCount}</Chip>
                     </div>
                   }
                 >
                 <div className="flex vh-100 flex-col pb-[10px]">
                   {insights && insights.length > 0 ? (
                     <>
-                      {insights.map(insight =>
-                        <div key={insight.nid} className="bg-white w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center border-pri-100">
-                          <div className='flex flex-row w-3/4 items-center'>
-                            <div className='w-3/4'>
-                              <div className='font-bold'>{names?.[insight.cid.toString()]["sName"]} | {names?.[insight.cid.toString()]["mName"]} | {names?.[insight.cid.toString()]["cName"]}</div>
-                              {insight.reason}
+                      {/* Unread insights */}
+                      {unreadInsights.length > 0 ? (
+                        <>
+                          <div className=' mb-4 font-bold'>Unread</div>
+                          {unreadInsights.map(insight => (
+                            <div key={insight.nid} className={`w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center bg-white ${
+                              insight.status === "Critical" ? "border-reddish-200" : "border-amberish-200"
+                            }`}>
+                              <div className='flex flex-row w-3/4 items-center'>
+                                <div className='w-3/4'>
+                                  <div className='font-bold flex flex-row items-center align-middle'>
+                                    {names?.[insight.cid.toString()]["sName"]} | {names?.[insight.cid.toString()]["mName"]} | {names?.[insight.cid.toString()]["cName"]}
+                                  </div>
+                                  {insight.reason}
+                                </div>
+                                <div className='text-sm'>{formatDate(insight.datetime)}</div>
+                              </div>
+                              <Link href={`/infraView?sid=${names?.[insight.cid.toString()]["sid"]}&cid=${insight.cid}`}>
+                                <button
+                                  className="h-[2.5rem] px-4 rounded-[4px] bg-pri-500 text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                                  onClick={() => markNotificationAsRead(insight.nid)}
+                                >
+                                  View
+                                </button>
+                              </Link>
                             </div>
-                            <div className='italic'>{formatDate(insight.datetime)}</div>
-                          </div>
-                          <Link key={insight.nid} href={`/infraView?sid=${names?.[insight.cid.toString()]["sid"]}&cid=${insight.cid}`}>
-                            <button
-                              className="h-[2.5rem] px-4 bg-pri-500 rounded-[4px] text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
-                              onClick={() => markNotificationAsRead(insight.nid)}
-                            >
-                              View
-                            </button>
-                          </Link>
-                        </div>
+                          ))}
+                        </>
+                      ) : (
+                        null
+                      )}
+                      {readInsights.length > 0 ? (
+                        <>
+                          {/* read insights */}
+                          <div className=' mb-4 font-bold'>History</div>
+                          {readInsights.map(insight => (
+                            <div key={insight.nid} className={`w-full h-fit mb-6 px-10 py-6 rounded-lg shadow border-l-4 flex flex-row justify-between items-center bg-white ${
+                              insight.status === "Critical" ? "border-reddish-200" : "border-amberish-200"
+                            }`}>
+                              <div className='flex flex-row w-3/4 items-center'>
+                                <div className='w-3/4'>
+                                  <div className='font-bold flex flex-row items-center align-middle'>
+                                    {names?.[insight.cid.toString()]["sName"]} | {names?.[insight.cid.toString()]["mName"]} | {names?.[insight.cid.toString()]["cName"]}
+                                  </div>
+                                  {insight.reason}
+                                </div>
+                                <div className='text-sm'>{formatDate(insight.datetime)}</div>
+                              </div>
+                              <Link href={`/infraView?sid=${names?.[insight.cid.toString()]["sid"]}&cid=${insight.cid}`}>
+                                <button
+                                  className="h-[2.5rem] px-4 rounded-[4px] bg-pri-500 text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                                  onClick={() => markNotificationAsRead(insight.nid)}
+                                >
+                                  View
+                                </button>
+                              </Link>
+                            </div>
+                          ))}
+                        </>
+                      ) : (
+                        null
                       )}
                     </>
                   ) : (

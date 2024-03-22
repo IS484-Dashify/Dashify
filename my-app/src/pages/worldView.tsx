@@ -91,7 +91,7 @@ const ToggleableList = ({ components, vmName, sid, status } : {components : Comp
                   <div className="flex justify-between text-xs italic mb-2">
                     {/* TODO: Critical/ Warning */}
                     <span>CPU down</span>
-                    <span>3 hours ago</span> 
+
                   </div>
                 ) : null}
               </div>
