@@ -163,7 +163,7 @@ const Sidebar = () => {
           <PopoverTrigger>
             <div className="my-4 p-1 cursor-pointer">
               <Badge content={unreadCount} color="danger">
-                <div className={`hover:opacity-100 hover:text-pri-500 
+                <div className={`opacity-50 hover:opacity-100 hover:text-pri-500 
                   ${router.pathname === "/notification" 
                     ? "text-pri-500" 
                     : "hover:text-pri-500"}`}>
