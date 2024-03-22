@@ -427,6 +427,7 @@ export default function InfrastructureView() {
     const metricsVars = ["CPU Usage", "Disk Usage", "Memory Usage"];
     for(let variable of metricsVars){
       const latestDataPoint = percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
+      console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
       const currentMetricValue = (latestDataPoint as any)[variable];
       if (currentMetricValue > thresholds['critical']){
         metricsStatus[variable] = "Critical";

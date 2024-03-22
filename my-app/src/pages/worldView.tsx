@@ -82,8 +82,8 @@ const ToggleableList = ({ components, vmName, sid, status } : {components : Comp
         <div className={`mt-3 transition-all duration-300 overflow-hidden w-full ${isOpen ? "h-fit" : "h-0"}`}>
           {components.map((component, index) => (
             <Link key={index} href={`/infraView?sid=${sid}&cid=${component.cid}`}>
-              <div className="pb-1 hover:underline">
-                <div className="flex items-center justify-between">
+              <div className="pb-1">
+                <div className="hover:underline flex items-center justify-between">
                   <span>{component.cName}</span>
                   <FaCircle className={statusColors[component.cStatus]} />
                 </div>

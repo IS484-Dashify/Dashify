@@ -48,10 +48,10 @@ const Sidebar = () => {
   const [notifications, setNotifications] = useState<Notification[]>()
   const [names, setNames] = useState<Names>()
   const router = useRouter();
-  console.log("Router path:", router.pathname);
+  // console.log("Router path:", router.pathname);
   const notificationsDiv = document.getElementById("notifications-div") as HTMLElement;
   useEffect(() => {
-    console.log("active index:", activeIndex);
+    // console.log("active index:", activeIndex);
   }, [activeIndex]);
 
   const fetchAllNotification = async () => {
