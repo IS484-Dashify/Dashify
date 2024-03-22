@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+
 import { signOut } from "next-auth/react";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { AiOutlineLogout } from "react-icons/ai";
@@ -11,7 +13,7 @@ import { Badge, Popover, PopoverTrigger, PopoverContent } from "@nextui-org/reac
 const sidebarNavItems = [
   {
     icon: <MdOutlineDashboard size={25}/>,
-    to: "/servicesView",
+    href: "/servicesView",
     name: "dashboard"
   },
   // {
@@ -45,7 +47,12 @@ const Sidebar = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>()
   const [names, setNames] = useState<Names>()
+  const router = useRouter();
+  console.log("Router path:", router.pathname);
   const notificationsDiv = document.getElementById("notifications-div") as HTMLElement;
+  useEffect(() => {
+    console.log("active index:", activeIndex);
+  }, [activeIndex]);
 
   const fetchAllNotification = async () => {
     try {
@@ -138,8 +145,8 @@ const Sidebar = () => {
       <Image src="/logo(down).png" alt="" width={35} height={35} />
       <div className="flex flex-col h-full items-center justify-center"> 
         {sidebarNavItems.map((item, index) => (
-          <Link href={item.to} key={index}> 
-            <div className={`my-4 rounded-md ${activeIndex === index ? "text-pri-500" : "opacity-50 hover:opacity-100 hover:text-pri-500"}`}
+          <Link href={item.href} key={index}> 
+            <div className={`my-4 rounded-md ${router.pathname === item.href ? "text-pri-500" : "opacity-50 hover:opacity-100 hover:text-pri-500"}`}
               onClick={() => setActiveIndex(index)}>
               {item.icon}
             </div>
@@ -154,12 +161,12 @@ const Sidebar = () => {
           portalContainer={notificationsDiv}
         >
           <PopoverTrigger>
-            <div className="my-4 p-1">
+            <div className="my-4 p-1 cursor-pointer">
               <Badge content={unreadCount} color="danger">
-                <div className={`opacity-50 hover:opacity-100 hover:text-pri-500 
-                  ${activeIndex === 100 
+                <div className={`hover:opacity-100 hover:text-pri-500 
+                  ${router.pathname === "/notification" 
                     ? "text-pri-500" 
-                    : "opacity-50 hover:opacity-100 hover:text-pri-500"}`}>
+                    : "hover:text-pri-500"}`}>
                   <IoNotificationsOutline size={25}/>
                 </div>
               </Badge>
