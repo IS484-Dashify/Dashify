@@ -100,7 +100,7 @@ insert_query = "INSERT INTO notifications (cid, isread, reason, datetime, status
 for cid, metrics in percentage_change_by_cid.items():
     for metric, change in metrics.items():
         if change < -20:
-            reason = f"Percentage change in {metric} is {change}%"
+            reason = f"{metric} up {change}% from yesterday"
             date = datetime.now()
             cursor.execute(insert_query, (cid, 0, reason, date, "Analysis"))
             conn.commit()
