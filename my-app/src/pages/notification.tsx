@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Sidebar from "./components/navbar";
-import {Tabs, Tab, Chip, Tooltip} from "@nextui-org/react";
-import { RiErrorWarningLine } from "react-icons/ri";
+import {Tabs, Tab, Chip} from "@nextui-org/react";
+
 
 type Status = "Critical" | "Warning" | "Normal";
 interface Notification {
@@ -180,8 +180,8 @@ export default function WorldView() {
             <Sidebar/>
           </div>
           <div className="w-full pr-12 py-6 pl-28 h-full min-h-screen">
-            <div id='top-menu' className="mb-4 flex flex-row justify-between">
-              <h1 className='text-4xl font-bold text-pri-500 mt-1 pb-8 pt-2'>Notifications</h1>
+            <div id='top-menu' className="flex flex-row justify-between">
+              <h1 className='text-4xl font-bold text-pri-500 mt-1 pb-6 pt-2'>Notifications</h1>
               <button
                 className="h-[2.5rem] px-4 rounded-[4px] text-pri-500 border-1 border-pri-500 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:text-white hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring self-end"
                 onClick={() => markAllNotificationAsRead()}

@@ -21,6 +21,7 @@ import { DateTimeFormatOptions } from "intl";
 import Link from "next/link";
 import LogViewer from "./components/LogViewer";
 import ServerActions from "./components/ServerActions"; // Adjust the path as necessary
+import {Tabs, Tab, Chip, Tooltip} from "@nextui-org/react";
 
 const rawTerminalData = [
   "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)",
@@ -541,199 +542,223 @@ export default function InfrastructureView() {
                 </div>
               </div>
               <div className="flex h-full flex-col w-full">
-                {systemStatus ? (
-                  <div className="flex w-full gap-4">
-                    <div
-                      className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
-                        overallStatus === "Critical"
-                          ? "border-reddish-200"
-                          : overallStatus === "Warning"
-                          ? "border-amberish-200"
-                          : "border-greenish-200"
-                      }`}
-                    >
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Status
-                      </h2>
-                      <p className="text-3xl flex justify-center items-center text-green-600">
-                        Running
-                      </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Uptime
-                      </h2>
-                      <p className="text-3xl flex justify-center items-end">
-                        {`${formatTime(uptime).days}`}
-                        <span className="text-xl pr-2">d </span>
-                        {`${formatTime(uptime).hours}`}
-                        <span className="text-xl pr-2">h </span>
-                        {`${formatTime(uptime).minutes}`}
-                        <span className="text-xl pr-2">m </span>
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex w-full gap-4">
-                    <div
-                      className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
-                        overallStatus === "Critical"
-                          ? "border-reddish-200"
-                          : overallStatus === "Warning"
-                          ? "border-amberish-200"
-                          : "border-greenish-200"
-                      }`}
-                    >
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Status
-                      </h2>
-                      <p className="text-3xl flex justify-center items-center text-red-500">
-                        Down
-                      </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Downtime
-                      </h2>
-                      <p className="text-3xl flex justify-center items-end">
-                        {`${formatTime(downtime).days}`}
-                        <span className="text-xl pr-2">d </span>
-                        {`${formatTime(downtime).hours}`}
-                        <span className="text-xl pr-2">h </span>
-                        {`${formatTime(downtime).minutes}`}
-                        <span className="text-xl pr-2">m </span>
-                        {`${formatTime(downtime).seconds}`}
-                        <span className="text-xl">s </span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {/* Don't Delete */}
-                {/* <div id="simulations"> */}
-                  {/* <p className="text-2xl  text-gray-700 font-bold mt-4"> */}
-                    {/* Simulations */}
-                  {/* </p> */}
-                  {/* <div className="flex items-center w-full mb-4 mt-4"> */}
-                    {/* Hardcoded simulations */}
-                    {/* <ServerActions ipAddress={"20.82.137.238"} /> */}
-                    {/* Other content */}
-                  {/* </div> */}
-                {/* </div> */}
-                <h3 className="text-2xl  text-gray-700 font-bold mt-4">
-                  Metrics
-                </h3>
-                <div className="flex items-center w-full mb-4 mt-4">
-                  <InfraFilter
-                    selectedDateRange={selectedDateRange}
-                    setSelectedDateRange={setSelectedDateRange}
-                  />
-                </div>
-                <div className="grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4">
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["CPU Usage"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["CPU Usage"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
+                <Tabs 
+                  aria-label="Options" 
+                  color="primary" 
+                  variant="underlined"
+                  classNames={{
+                    tabList: "gap-6 mx-2 mb-3 w-full relative rounded-none p-0 border-b border-divider",
+                    cursor: "w-full bg-pri-500",
+                    tab: "max-w-fit px-0 h-12",
+                    tabContent: "group-data-[selected=true]:text-pri-500"
+                  }}
+                >
+                  <Tab
+                    key="metrics"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <span>Metrics</span>
+                      </div>
+                    }
                   >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      CPU Usage
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={metrics["CPU Usage"]}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["CPU Usage"]}
-                      colors={["blue"]}
-                      valueFormatter={(value: number) => `${value.toFixed(2)}%`}
-                      tickGap={50}
-                      maxValue={1}
-                    />
-                  </div>
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["Memory Usage"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["Memory Usage"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
+                    {systemStatus ? (
+                      <div className="flex w-full gap-4">
+                        <div
+                          className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
+                            overallStatus === "Critical"
+                              ? "border-reddish-200"
+                              : overallStatus === "Warning"
+                              ? "border-amberish-200"
+                              : "border-greenish-200"
+                          }`}
+                        >
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Status
+                          </h2>
+                          <p className="text-3xl flex justify-center items-center text-green-600">
+                            Running
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Uptime
+                          </h2>
+                          <p className="text-3xl flex justify-center items-end">
+                            {`${formatTime(uptime).days}`}
+                            <span className="text-xl pr-2">d </span>
+                            {`${formatTime(uptime).hours}`}
+                            <span className="text-xl pr-2">h </span>
+                            {`${formatTime(uptime).minutes}`}
+                            <span className="text-xl pr-2">m </span>
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex w-full gap-4">
+                        <div
+                          className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
+                            overallStatus === "Critical"
+                              ? "border-reddish-200"
+                              : overallStatus === "Warning"
+                              ? "border-amberish-200"
+                              : "border-greenish-200"
+                          }`}
+                        >
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Status
+                          </h2>
+                          <p className="text-3xl flex justify-center items-center text-red-500">
+                            Down
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Downtime
+                          </h2>
+                          <p className="text-3xl flex justify-center items-end">
+                            {`${formatTime(downtime).days}`}
+                            <span className="text-xl pr-2">d </span>
+                            {`${formatTime(downtime).hours}`}
+                            <span className="text-xl pr-2">h </span>
+                            {`${formatTime(downtime).minutes}`}
+                            <span className="text-xl pr-2">m </span>
+                            {`${formatTime(downtime).seconds}`}
+                            <span className="text-xl">s </span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Don't Delete */}
+                    {/* <div id="simulations"> */}
+                      {/* <p className="text-2xl  text-gray-700 font-bold mt-4"> */}
+                        {/* Simulations */}
+                      {/* </p> */}
+                      {/* <div className="flex items-center w-full mb-4 mt-4"> */}
+                        {/* Hardcoded simulations */}
+                        {/* <ServerActions ipAddress={"20.82.137.238"} /> */}
+                        {/* Other content */}
+                      {/* </div> */}
+                    {/* </div> */}
+                    <div className="flex items-center w-full mb-4 mt-4">
+                      <InfraFilter
+                        selectedDateRange={selectedDateRange}
+                        setSelectedDateRange={setSelectedDateRange}
+                      />
+                    </div>
+                    <div className="grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4">
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["CPU Usage"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["CPU Usage"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          CPU Usage
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={metrics["CPU Usage"]}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["CPU Usage"]}
+                          colors={["blue"]}
+                          valueFormatter={(value: number) => `${value.toFixed(2)}%`}
+                          tickGap={50}
+                          maxValue={1}
+                        />
+                      </div>
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["Memory Usage"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["Memory Usage"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          Memory Usage
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={metrics["Memory Usage"]}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["Memory Usage"]}
+                          colors={["cyan"]}
+                          valueFormatter={(value: number) => `${value.toFixed(2)}%`}
+                          tickGap={50}
+                          maxValue={1}
+                        />
+                      </div>
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["Disk Usage"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["Disk Usage"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          Disk Usage
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={metrics["Disk Usage"]}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["Disk Usage"]}
+                          colors={["blue"]}
+                          valueFormatter={(value: number) => `${value}%`}
+                          tickGap={50}
+                          maxValue={100}
+                        />
+                      </div>
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["Traffic"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["Traffic"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          Traffic
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={trafficMetrics}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["Traffic In", "Traffic Out"]}
+                          colors={["blue", "cyan"]}
+                          valueFormatter={(value: number) => `${value} bytes`}
+                          tickGap={50}
+                        />
+                      </div>
+                    </div>
+                  </Tab>
+                  <Tab
+                    key="Logs"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <span>Logs</span>
+                      </div>
+                    }
                   >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      Memory Usage
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={metrics["Memory Usage"]}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["Memory Usage"]}
-                      colors={["cyan"]}
-                      valueFormatter={(value: number) => `${value.toFixed(2)}%`}
-                      tickGap={50}
-                      maxValue={1}
-                    />
-                  </div>
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["Disk Usage"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["Disk Usage"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
-                  >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      Disk Usage
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={metrics["Disk Usage"]}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["Disk Usage"]}
-                      colors={["blue"]}
-                      valueFormatter={(value: number) => `${value}%`}
-                      tickGap={50}
-                      maxValue={100}
-                    />
-                  </div>
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["Traffic"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["Traffic"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
-                  >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      Traffic
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={trafficMetrics}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["Traffic In", "Traffic Out"]}
-                      colors={["blue", "cyan"]}
-                      valueFormatter={(value: number) => `${value} bytes`}
-                      tickGap={50}
-                    />
-                  </div>
-                </div>
-                <p className="text-2xl  text-gray-700 font-bold mt-8">
-                  Real-time Logs
-                </p>
-                <div className="mt-4 mb-4">
-                  <Terminal height="400px">
-                    {/* {terminalLineData} */}
-                    <LogViewer channel={`dashify-${cid}`} event="logs" /> {/* replace dashify-logs with dashify-[cid] where cid is from useParams() */}
-                  </Terminal>
-                </div>
+                    <div className="mt-4 mb-4">
+                      <Terminal height="400px">
+                        {/* {terminalLineData} */}
+                        <LogViewer channel={`dashify-${cid}`} event="logs" /> {/* replace dashify-logs with dashify-[cid] where cid is from useParams() */}
+                      </Terminal>
+                    </div>
+                  </Tab>
+                </Tabs>
               </div>
             </div>
           </div>
