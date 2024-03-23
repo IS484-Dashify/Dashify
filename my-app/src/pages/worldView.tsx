@@ -83,7 +83,7 @@ const statusColors = {
   Critical: "text-reddish-200 me-1"
 };
 
-const ToggleableList = ({ components, vmName, sid, status, alerts } : {components : Component[], vmName : string, sid : string | string[] | undefined, status : Status, alerts: Notification[] }) => {
+const ToggleableList = ({ components, vmName, sid, status } : {components : Component[], vmName : string, sid : string | string[] | undefined, status : Status }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="border-b-2 py-3">
@@ -107,8 +107,8 @@ const ToggleableList = ({ components, vmName, sid, status, alerts } : {component
                 </div>
                 {component.cStatus === 'Critical' || component.cStatus === 'Warning' ? (
                   <div className="flex justify-between text-xs italic mb-2">
-                    <span>{getReasonsAndDatesByCid(alerts, component.cid)[0]["date"]}</span>
-                    <span>{getReasonsAndDatesByCid(alerts, component.cid)[0]["reason"]}</span>
+                    {/* <span>{getReasonsAndDatesByCid(alerts, component.cid)[0]["date"]}</span>
+                    <span>{getReasonsAndDatesByCid(alerts, component.cid)[0]["reason"]}</span> */}
                   </div>
                 ) : null}
               </div>
@@ -120,7 +120,7 @@ const ToggleableList = ({ components, vmName, sid, status, alerts } : {component
   );
 };
 
-const RightPopup = ({isOpen, setIsOpen, selectedMarker, sid, alerts} :  {isOpen : boolean, setIsOpen:(value: boolean) => void, selectedMarker : Marker | null, sid : string | string[] | undefined, alerts:Notification[] }) => {
+const RightPopup = ({isOpen, setIsOpen, selectedMarker, sid} :  {isOpen : boolean, setIsOpen:(value: boolean) => void, selectedMarker : Marker | null, sid : string | string[] | undefined }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleClickOutside(event: any) {
@@ -147,7 +147,7 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, sid, alerts} :  {isOpen 
         </div>
       </div>
       {selectedMarker.map(vm => 
-        <ToggleableList key={vm.mName} components={vm.components} vmName={vm.mName} sid={sid} status={vm.status} alerts={alerts}/>
+        <ToggleableList key={vm.mName} components={vm.components} vmName={vm.mName} sid={sid} status={vm.status}/>
       )}
     </div>
   );
@@ -258,31 +258,31 @@ export default function WorldView() {
     return location;
   }
 
-  const [alerts, setAlerts] = useState<Notification[]>([]);
-  const fetchAllNotification = async () => {
-    try {
-      const endpoint = 'get-all-notifications'; 
-      const port = '5008';
-      const ipAddress = '127.0.0.1'; 
-      const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+  // const [alerts, setAlerts] = useState<Notification[]>([]);
+  // const fetchAllNotification = async () => {
+  //   try {
+  //     const endpoint = 'get-all-notifications'; 
+  //     const port = '5008';
+  //     const ipAddress = '127.0.0.1'; 
+  //     const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
       
-      if (response.ok) {
-        const data: Notification[] = await response.json();
-        const sortedAlerts = data.filter(notification => 
-          ['Critical', 'Warning', 'Normal'].includes(notification.status)
-        )
-        setAlerts(sortedAlerts);
-      } else {
-        throw new Error("Failed to perform server action");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //     if (response.ok) {
+  //       const data: Notification[] = await response.json();
+  //       const sortedAlerts = data.filter(notification => 
+  //         ['Critical', 'Warning', 'Normal'].includes(notification.status)
+  //       )
+  //       setAlerts(sortedAlerts);
+  //     } else {
+  //       throw new Error("Failed to perform server action");
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchAllNotification();
-  }, []);
+  // useEffect(() => {
+  //   fetchAllNotification();
+  // }, []);
 
   if(session && apiData){
     return (
@@ -375,7 +375,7 @@ export default function WorldView() {
                 </ComposableMap>
               </div>
               <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
-                <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} sid={sid} alerts={alerts}/>
+                <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} sid={sid}/>
               </div>
             </div>
           </div>
