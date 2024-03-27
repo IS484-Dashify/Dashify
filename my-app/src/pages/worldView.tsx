@@ -12,7 +12,7 @@ import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps
 import Map from "../../public/map.json"
 import { hasFlag, countries } from 'country-flag-icons'
 import "country-flag-icons/3x2/flags.css";
-import Sidebar from "./components/navbar";
+import Sidebar from "../components/navbar";
 
 type Status = "Critical" | "Warning" | "Normal";
 interface GroupedData {
@@ -187,7 +187,7 @@ export default function WorldView() {
       try {
         const endpoint = `get-service-status-details/${sid}`; 
         const port = '5006'
-        const ipAddress = '127.0.0.1'; 
+        const ipAddress = '4.231.173.235'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
@@ -229,7 +229,7 @@ export default function WorldView() {
       try {
         const endpoint = `get-service-by-sid/${sid}`; 
         const port = '5001'
-        const ipAddress = '127.0.0.1'; 
+        const ipAddress = '4.231.173.235'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
@@ -263,7 +263,7 @@ export default function WorldView() {
   //   try {
   //     const endpoint = 'get-all-notifications'; 
   //     const port = '5008';
-  //     const ipAddress = '127.0.0.1'; 
+  //     const ipAddress = '4.231.173.235'; 
   //     const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
       
   //     if (response.ok) {

@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
@@ -58,7 +60,7 @@ const Sidebar = () => {
     try {
       const endpoint = 'get-all-notifications'; 
       const port = '5008'
-      const ipAddress = '127.0.0.1'; 
+      const ipAddress = '4.231.173.235'; 
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
       if (response.ok) {
         const data = await response.json();
@@ -75,7 +77,7 @@ const Sidebar = () => {
     try {
       const endpoint = 'get-all-names-and-sid'; 
       const port = '5009'
-      const ipAddress = '127.0.0.1'; 
+      const ipAddress = '4.231.173.235'; 
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
       if (response.ok) {
         const data = await response.json();
@@ -93,7 +95,7 @@ const Sidebar = () => {
     try {
       const endpoint = `mark-notification-as-read/${nid}`; 
       const port = '5008'
-      const ipAddress = '127.0.0.1'; 
+      const ipAddress = '4.231.173.235'; 
       const method = 'PUT';
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}&method=${method}`);
       if (response.ok) {

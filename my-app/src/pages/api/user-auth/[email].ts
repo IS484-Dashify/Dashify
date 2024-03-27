@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const email = query.email;
     if(method==='GET'){
         try{           
-            const data = await fetch(`http://127.0.0.1:5010/get-user/${email}`);
+            const data = await fetch(`http://4.231.173.235:5010/get-user/${email}`);
             const userResults = await data.json();
             const user = userResults.results
             if(Object.keys(user).length === 0){

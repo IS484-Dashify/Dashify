@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import Sidebar from "./components/navbar";
+import Sidebar from "../components/navbar";
 import {Tabs, Tab, Chip} from "@nextui-org/react";
 
 
@@ -55,7 +55,7 @@ export default function WorldView() {
     try {
       const endpoint = 'get-all-notifications'; 
       const port = '5008';
-      const ipAddress = '127.0.0.1'; 
+      const ipAddress = '4.231.173.235'; 
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
       
       if (response.ok) {
@@ -81,7 +81,7 @@ export default function WorldView() {
     try {
       const endpoint = 'get-all-names-and-sid'; 
       const port = '5009'
-      const ipAddress = '127.0.0.1'; 
+      const ipAddress = '4.231.173.235'; 
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
       if (response.ok) {
         const data = await response.json();
@@ -99,7 +99,7 @@ export default function WorldView() {
     try {
       const endpoint = `mark-notification-as-read/${nid}`; 
       const port = '5008'
-      const ipAddress = '127.0.0.1'; 
+      const ipAddress = '4.231.173.235'; 
       const method = 'PUT';
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}&method=${method}`);
       if (response.ok) {
@@ -116,7 +116,7 @@ export default function WorldView() {
     try {
       const endpoint = `mark-all-notifications-as-read`; 
       const port = '5008'
-      const ipAddress = '127.0.0.1'; 
+      const ipAddress = '4.231.173.235'; 
       const method = 'PUT';
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}&method=${method}`);
       if (response.ok) {

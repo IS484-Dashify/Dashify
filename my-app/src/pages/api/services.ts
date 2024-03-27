@@ -18,7 +18,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<SuccessResponse | ErrorResponse>,
 ) {
-  await fetch('http://127.0.0.1:5001/get-all-services')
+  await fetch('http://4.231.173.235:5001/get-all-services')
   .then(response => response.json())
   .then(data => {
     console.log("data:", data)

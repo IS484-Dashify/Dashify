@@ -13,14 +13,14 @@ import {
   DropdownItemProps,
   select,
 } from "@nextui-org/react";
-import Sidebar from "./components/navbar";
-import InfraFilter from "./components/infraFilter";
+import Sidebar from "../components/navbar";
+import InfraFilter from "../components/infraFilter";
 import { AreaChart } from "@tremor/react";
 import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
 import Link from "next/link";
-import LogViewer from "./components/LogViewer";
-import ServerActions from "./components/ServerActions"; // Adjust the path as necessary
+import LogViewer from "../components/LogViewer";
+import ServerActions from "../components/ServerActions"; // Adjust the path as necessary
 import {Tabs, Tab, Chip, Tooltip} from "@nextui-org/react";
 
 const rawTerminalData = [
@@ -195,7 +195,7 @@ export default function InfrastructureView() {
       if (cid != null){
         const endpoint = `get-result/${cid}/129600`; // pull last 90 days worth of data
         const port = '5004'
-        const ipAddress = '127.0.0.1'; 
+        const ipAddress = '4.231.173.235'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
@@ -216,7 +216,7 @@ export default function InfrastructureView() {
       if (cid != null){
         const endpoint = `get-thresholds-by-cid/${cid}`;
         const port = '5005'
-        const ipAddress = '127.0.0.1'; 
+        const ipAddress = '4.231.173.235'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
@@ -281,7 +281,7 @@ export default function InfrastructureView() {
       try {
         const endpoint = 'get-all-names-and-country'; 
         const port = '5009'
-        const ipAddress = '127.0.0.1'; 
+        const ipAddress = '4.231.173.235'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();

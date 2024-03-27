@@ -3,11 +3,11 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { AiOutlineHome, AiOutlineClose } from "react-icons/ai";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
-import RagFilter from "./components/ragFilter";
+import RagFilter from "../components/ragFilter";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/react";
 import * as Label from "@radix-ui/react-label";
 import Link from "next/link";
-import Sidebar from "./components/navbar";
+import Sidebar from "../components/navbar";
 
 
 export default function ServiceView() {
@@ -48,7 +48,7 @@ export default function ServiceView() {
       try {
         const endpoint = 'get-all-service-name-and-status'; 
         const port = '5006'
-        const ipAddress = '127.0.0.1'; 
+        const ipAddress = '4.231.173.235'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
         if (response.ok) {
           const data = await response.json();
