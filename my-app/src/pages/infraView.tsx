@@ -241,22 +241,22 @@ export default function InfrastructureView() {
   
     fetchedData.forEach((dataPoint) => {
       const datetime = formatDate(dataPoint['datetime']);
-      if (dataPoint['cpu_usage'] != null || dataPoint['cpu_usage'] !== 0) {
+      if (dataPoint['cpu_usage'] !== null) {
         cpuUsageArr.push({ 'CPU Usage': dataPoint['cpu_usage'], 'Datetime': datetime });
       }
-      if (dataPoint['disk_usage'] != null || dataPoint['disk_usage'] !== 0) {
+      if (dataPoint['disk_usage'] !== null) {
         diskUsageArr.push({ 'Disk Usage': dataPoint['disk_usage'], 'Datetime': datetime });
       }
-      if (dataPoint['memory_usage'] != null || dataPoint['memory_usage'] !== 0) {
+      if (dataPoint['memory_usage'] !== null) {
         memoryUsageArr.push({ 'Memory Usage': dataPoint['memory_usage'], 'Datetime': datetime });
       }
-      if (dataPoint['traffic_in'] != null || dataPoint['traffic_in'] !== 0) {
+      if (dataPoint['traffic_in'] !== null) {
         trafficIn.push({ 'Traffic In': dataPoint['traffic_in'], 'Datetime': datetime });
       }
-      if (dataPoint['traffic_out'] != null || dataPoint['traffic_out'] !== 0) {
+      if (dataPoint['traffic_out'] !== null) {
         trafficOut.push({ 'Traffic Out': dataPoint['traffic_out'], 'Datetime': datetime });
       }
-      if (dataPoint['system_uptime'] != null || dataPoint['system_uptime'] !== 0) {
+      if (dataPoint['system_uptime'] !== null) {
         systemUptimeArr.push({ 'System Uptime': dataPoint['system_uptime'], 'Datetime': datetime });
       }
     });
