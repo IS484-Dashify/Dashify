@@ -31,7 +31,8 @@ export const authOptions = {
           // console.log("Email profile", profile, "User", user);
           console.log("Email:", user.email);
           const response = await fetch(
-            `http://localhost:3000/api/user-auth/${user.email}`
+            `https://dashify.vercel.app/api/user-auth/${user.email}`
+            // `http://localhost:3000/api/user-auth/${user.email}`
           );
           const data = await response.json();
           // // 2. If email exists, return true

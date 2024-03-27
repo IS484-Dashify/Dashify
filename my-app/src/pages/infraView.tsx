@@ -288,6 +288,7 @@ export default function InfrastructureView() {
           // console.log(data)
           setNames(data)
         } else {
+          console.error("fetchAllNamesAndCountry error: response")
           throw new Error("Failed to perform server action");
         }
       } catch (error) {
