@@ -28,12 +28,12 @@ export const authOptions = {
         try {
           // 1. Check if email exists in database
           // console.log("EMAIL", `/api/user-auth/${user.email}`);
+          // console.log("Email profile", profile, "User", user);
+          console.log("Email:", user.email);
           const response = await fetch(
             `http://localhost:3000/api/user-auth/${user.email}`
           );
           const data = await response.json();
-          // console.log("DATA", data);
-          // return true;
           // // 2. If email exists, return true
           if (response.status === 200) {
             console.log("user_exists:", data);

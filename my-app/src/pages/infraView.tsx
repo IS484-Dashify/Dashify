@@ -13,27 +13,22 @@ import {
   DropdownItemProps,
   select,
 } from "@nextui-org/react";
-import Sidebar from "./components/navbar";
-import InfraFilter from "./components/infraFilter";
+import Sidebar from "../components/navbar";
+import InfraFilter from "../components/infraFilter";
 import { AreaChart } from "@tremor/react";
-import rawData from "./../../public/vmInfo.json";
 import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
-import LogViewer from "./components/LogViewer";
-import ServerActions from "./components/ServerActions"; // Adjust the path as necessary
+import Link from "next/link";
+import LogViewer from "../components/LogViewer";
+import ServerActions from "../components/ServerActions"; // Adjust the path as necessary
+import {Tabs, Tab, Chip, Tooltip} from "@nextui-org/react";
 
 const rawTerminalData = [
   "0|server   | /home/dashify-test/nodejs-prometheus/server.js:64\n0|server   |   } catch (error) {\n0|server   |   ^\n0|server   |\n0|server   | SyntaxError: missing ) after argument list\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:723:23)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)\n0|server   |     at Function.Module._load (internal/modules/cjs/loader.js:585:3)\n0|server   |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)\n0|server   |     at Module._compile (internal/modules/cjs/loader.js:778:30)\n0|server   |     at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)\n0|server   |     at Module.load (internal/modules/cjs/loader.js:653:32)\n0|server   |     at tryModuleLoad (internal/modules/cjs/loader.js:593:12)",
   "/home/dashify-test/.pm2/logs/server-out.log last 15 lines:\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000\n0|server   | Example app listening at http://localhost:3000",
 ];
 
-const data: Service[] = rawData as Service[];
 type Status = "Critical" | "Warning" | "Normal";
-interface Service {
-  serviceName: string;
-  status: Status;
-  countries: Country[];
-}
 interface Country {
   name: string;
   iso: string;
@@ -50,19 +45,19 @@ interface Component {
   name: string;
   status: Status;
 }
-interface Column {
-  ColumnName: string;
-  DataType: string;
-  ColumnType: string;
+interface Result {
+  datetime : string;
+  cid : number;
+  mid : number;
+  clock : number;
+  cpu_usage : number;
+  disk_usage : number;
+  memory_usage : number;
+  traffic_in : number;
+  traffic_out : number;
+  system_uptime : number;
 }
-interface Row {
-  [index: number]: number | string | null;
-}
-interface RawData {
-  TableName: string;
-  Columns: Column[];
-  Rows: Row[];
-}
+interface FetchedData extends Array<Result> {}
 interface Metric {
   [key: string]:
     | DiskUsage[]
@@ -110,43 +105,60 @@ interface TrafficMetric {
   "Traffic In": number | null; // Assuming 'Traffic In' can be null
   "Traffic Out": number | null; // Assuming 'Traffic Out' can be null
 }
-
-interface Queries {
-  [key: string]: [string, string];
+interface Name {
+  cName: string,
+  country:string,
+  mName: string,
+  sName: string,
 }
-
-function findCountryAndNameByComponent(
-  componentName: string,
-  services: Service[]
-) {
-  let results: string[] = [];
-
-  services.forEach((service) => {
-    service.countries.forEach((country) => {
-      country.vm.forEach((vm) => {
-        const componentFound = vm.components.some(
-          (component) => component.name === componentName
-        );
-        if (componentFound) {
-          results.push(vm.name);
-          results.push(country.name);
-        }
-      });
-    });
-  });
-  return results;
+interface Thresholds {
+  "critical" : number,
+  "warning" : number,
+  "trafficInWarning" : number,
+  "trafficInCritical" : number,
+  "trafficOutWarning" : number,
+  "trafficOutCritical" : number
+}
+interface PercentageMetricsData{
+  "CPU Usage"?: CPUUsage;
+  "Disk Usage"?: DiskUsage;
+  "Memory Usage"?: MemoryUsage;
+}
+interface MetricStatus {
+  [key: string]: Status;
+  "CPU Usage": Status;
+  "Disk Usage": Status;
+  "Memory Usage": Status;
+  "Traffic": Status;
 }
 
 export default function InfrastructureView() {
-  const { data: session } = useSession();
   const router = useRouter();
+  const { data: session } = useSession();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  // console.log("Session:", session);
+
+  useEffect(() => {
+    if (!session) {
+      const timeoutId = setTimeout(() => {
+        setShouldRedirect(true);
+      }, 3000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/auth/login");
+    }
+  }, [shouldRedirect, router]);
+  
   const [currentPage, setCurrentPage] = React.useState("infra");
 
   // loading state for fetching data
   const [loading, setLoading] = useState(true);
-  const service = router.query.currentService as string | undefined;
-  const component = router.query.currentComponent as string;
-  const componentDetails = findCountryAndNameByComponent(component!, data);
+  const cid = router.query.cid as string | string[] | undefined;
+  const sid = router.query.sid as string | string[] | undefined;
 
   // System status
   const [systemStatus, setSystemStatus] = useState(true);
@@ -157,11 +169,13 @@ export default function InfrastructureView() {
   );
 
   // Date range for metrics
-  const [selectedDateRange, setSelectedDateRange] = useState<string>("15");
+  const [fetchedData, setFetchedData] = useState<FetchedData>([]);
+  const [thresholds, setThresholds] = useState<Thresholds>({"critical": 0, "warning": 0, "trafficInWarning": 0, "trafficInCritical": 0, "trafficOutWarning": 0, "trafficOutCritical": 0});
   const [metrics, setMetrics] = useState<Metric>({});
-  // useEffect(() => {
-  //   console.log("Metrics:", metrics);
-  // }, [metrics]);
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("15"); // 129600 => 90 days
+  useEffect(() => {
+    console.log("Metrics:", metrics);
+  }, [metrics]);
   const [trafficMetrics, setTrafficMetrics] = useState<TrafficMetric[]>([]);
   const [downtime, setDowntime] = useState(0); // time difference between current time and last metric
   const [uptime, setUptime] = useState(0);
@@ -172,273 +186,185 @@ export default function InfrastructureView() {
     Traffic: "Normal",
   });
   const [overallStatus, setOverallStatus] = useState("Normal");
-  useEffect(() => {
-    console.log("Metrics Status:", metricsStatus);
-    const order = { Critical: 0, Warning: 1, Normal: 2 };
-    const sortedMetricStatus = Object.keys(metricsStatus)
-      .sort((a, b) => {
-        return (
-          order[
-            metricsStatus[a as keyof typeof metricsStatus] as keyof typeof order
-          ] -
-          order[
-            metricsStatus[b as keyof typeof metricsStatus] as keyof typeof order
-          ]
-        );
-      })
-      .reduce((obj, key) => {
-        obj[key] = metricsStatus[key as keyof typeof metricsStatus];
-        return obj;
-      }, {} as { [key: string]: string | undefined });
 
-    // console.log("Overall Status:", sortedMetricStatus[Object.keys(sortedMetricStatus)[0]]);
-    if (systemStatus) {
-      setOverallStatus(
-        sortedMetricStatus[Object.keys(sortedMetricStatus)[0]] as string
-      );
-    } else {
-      setOverallStatus("Critical");
-      setMetricsStatus({
-        "CPU Usage": "Critical",
-        "Disk Usage": "Critical",
-        "Memory Usage": "Critical",
-        Traffic: "Critical",
-      });
-    }
-  }, [metricsStatus, systemStatus]);
-
-  // Last Updated
+  // Last Updated time
   const [lastUpdated, setLastUpdated] = useState<string>("");
-
-  useEffect(() => {
-    // console.log("Session:", session);
-    if (!session) {
-      router.push("/auth/login");
+  
+  const fetchData = async () => { // retrieve data from results.py and store in fetchedData
+    try {
+      if (cid != null){
+        const endpoint = `get-result/${cid}/129600`; // pull last 90 days worth of data
+        const port = '5004'
+        const ipAddress = '4.231.173.235'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          setFetchedData(data.reverse());
+          // console.log("Fetched Data:", data);
+        } else {
+          console.error("fetchData error: response")
+          throw new Error("Failed to perform server action");
+        }
+      }
+    } catch (error) {
+      console.error(error);
     }
-  }, [session, router]);
+  }
 
-  // * Retrieve metrics from db on page load
+  const fetchThresholds = async () => { // retrieve thresholds from thresholds.py
+    try {
+      if (cid != null){
+        const endpoint = `get-thresholds-by-cid/${cid}`;
+        const port = '5005'
+        const ipAddress = '4.231.173.235'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          setThresholds({"critical" : data.results['critical'], "warning" : data.results['warning'], "trafficInWarning" : data.results['traffic_in_warning'], "trafficInCritical" : data.results['traffic_in_critical'], "trafficOutWarning" : data.results['traffic_out_warning'], "trafficOutCritical" : data.results['traffic_out_critical']});
+          // console.log("Fetched Thresholds:", data);
+        } else {
+          console.error("fetchThresholds error: response")
+          throw new Error("Failed to perform server action");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  const transformJSON = (fetchedData: FetchedData) => {
+    const cpuUsageArr: CPUUsage[] = [];
+    const diskUsageArr: DiskUsage[] = [];
+    const memoryUsageArr: MemoryUsage[] = [];
+    const trafficIn: TrafficIn[] = [];
+    const trafficOut: TrafficOut[] = [];
+    const systemUptimeArr: SystemUptime[] = [];
+  
+    fetchedData.forEach((dataPoint) => {
+      const datetime = formatDate(dataPoint['datetime']);
+      if (dataPoint['cpu_usage'] != null || dataPoint['cpu_usage'] !== 0) {
+        cpuUsageArr.push({ 'CPU Usage': dataPoint['cpu_usage'], 'Datetime': datetime });
+      }
+      if (dataPoint['disk_usage'] != null || dataPoint['disk_usage'] !== 0) {
+        diskUsageArr.push({ 'Disk Usage': dataPoint['disk_usage'], 'Datetime': datetime });
+      }
+      if (dataPoint['memory_usage'] != null || dataPoint['memory_usage'] !== 0) {
+        memoryUsageArr.push({ 'Memory Usage': dataPoint['memory_usage'], 'Datetime': datetime });
+      }
+      if (dataPoint['traffic_in'] != null || dataPoint['traffic_in'] !== 0) {
+        trafficIn.push({ 'Traffic In': dataPoint['traffic_in'], 'Datetime': datetime });
+      }
+      if (dataPoint['traffic_out'] != null || dataPoint['traffic_out'] !== 0) {
+        trafficOut.push({ 'Traffic Out': dataPoint['traffic_out'], 'Datetime': datetime });
+      }
+      if (dataPoint['system_uptime'] != null || dataPoint['system_uptime'] !== 0) {
+        systemUptimeArr.push({ 'System Uptime': dataPoint['system_uptime'], 'Datetime': datetime });
+      }
+    });
+  
+    return {
+      cpuUsageArr,
+      diskUsageArr,
+      memoryUsageArr,
+      trafficIn,
+      trafficOut,
+      systemUptimeArr
+    };
+  }
+
+  // * On page load retrieve
+  // 1. metrics from results db
+  // 2. country name, cName and sName
+  // 3. threshold
+  const [names, setNames] = useState();
   useEffect(() => {
-    fetchData();
-  }, [selectedDateRange, systemStatus, loading]);
-
-  const fetchData = () => {
-    const queries: Queries = require("./../../data/queries.json");
-    const proxyNifi = {
-      endPoint: `http://20.82.137.238:${queries[component][1]}/queryAdx`,
-      query: queries[component][0] + "129600",
+    const fetchAllNamesAndCountry = async () => {
+      try {
+        const endpoint = 'get-all-names-and-country'; 
+        const port = '5009'
+        const ipAddress = '4.231.173.235'; 
+        const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          // console.log(data)
+          setNames(data)
+        } else {
+          throw new Error("Failed to perform server action");
+        }
+      } catch (error) {
+        console.error(error);
+      }
     };
 
-    fetch(`/api/proxy`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(proxyNifi),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const transformedData = transformJSON(data.Tables[0]);
-        const transformedTrafficData = transformTrafficJSON(transformedData);
-        console.log(data.Tables[0]);
+    fetchData();
+    fetchAllNamesAndCountry();
+    fetchThresholds();
+  }, [cid]);
 
-        setMetrics(transformedData);
-        setTrafficMetrics(transformedTrafficData);
-        setLastUpdated(getCurrentSGTDateTime());
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
+  // * Transform fetched data and set state variables
+  useEffect(()=>{
+    // console.log("Fetched Data:", fetchedData);
+    if (fetchedData.length > 0){
+      // * 1. Transform fetched data
+      const transformedData = transformJSON(fetchedData);
+      console.log("transformedMetricsData", transformedData);
+      const transformedTrafficData = transformTrafficJSON(transformedData['trafficIn'], transformedData['trafficOut']);
+      const transformedMetricsData = {
+        'CPU Usage': transformedData['cpuUsageArr'],
+        'Disk Usage': transformedData['diskUsageArr'],
+        'Memory Usage': transformedData['memoryUsageArr'],
+        'Traffic': transformedTrafficData,
+        'System Uptime' : transformedData['systemUptimeArr']
+      }
 
-  useEffect(() => {
-    if (loading == false && metrics) {
-      // ! Check if system is down
-      const latestElement =
-        metrics["System Uptime"][parseInt(selectedDateRange) - 1];
-      if ("System Uptime" in latestElement && "Datetime" in latestElement) {
-        // This line is necessary for typescript to verify that firstElement is of type DiskUsage
-        const systemUptimeElement = latestElement as SystemUptime;
-        if (systemUptimeElement["System Uptime"] !== 0) {
-          setSystemStatus(true);
+      // only return number of data points based on selectedDateRange
+      setMetrics({'CPU Usage': transformedMetricsData['CPU Usage'].slice(transformedMetricsData['CPU Usage'].length - parseInt(selectedDateRange)), 'Disk Usage': transformedMetricsData['Disk Usage'].slice(transformedMetricsData['Disk Usage'].length - parseInt(selectedDateRange)), 'Memory Usage': transformedMetricsData['Memory Usage'].slice(transformedMetricsData['Memory Usage'].length - parseInt(selectedDateRange))});
+      setTrafficMetrics(transformedTrafficData.slice(transformedTrafficData.length - parseInt(selectedDateRange)));
+
+      // * 2. Check if system is up get uptime, if system is down calculate downtime
+      // console.log("System up?:", checkSystemStatus(transformedData['systemUptimeArr']));
+      if (checkSystemStatus(transformedData['systemUptimeArr'])){
+        setSystemStatus(true);
+        setDowntime(0);
+        setUptime(transformedData['systemUptimeArr'][transformedData['systemUptimeArr'].length - 1]["System Uptime"]);
+
+        // TODO: determine metrics status
+        const metricsStatus = determineMetricStatus({'CPU Usage': transformedData['cpuUsageArr'][transformedData['cpuUsageArr'].length - 1], 'Disk Usage': transformedData['diskUsageArr'][transformedData['cpuUsageArr'].length - 1], 'Memory Usage': transformedData['memoryUsageArr'][transformedData['cpuUsageArr'].length - 1]}, transformedTrafficData[transformedTrafficData.length - 1]);
+        setMetricsStatus(metricsStatus);
+        // TODO: determine overall status
+        if (Object.values(metricsStatus).includes("Critical")){
+          setOverallStatus("Critical");
+        } else if (Object.values(metricsStatus).includes("Warning")){
+          setOverallStatus("Warning");
         } else {
-          setSystemStatus(false);
+          setOverallStatus("Normal");
         }
-      }
-
-      // ! Check RAG status of each metric
-      let tempMetricStatus = {
-        "CPU Usage": checkPercentageMetric(
-          metrics["CPU Usage"] as unknown as {
-            [key: string]: string;
-            Datetime: string;
-          }[],
-          "CPU Usage"
-        ),
-        "Disk Usage": checkPercentageMetric(
-          metrics["Disk Usage"] as unknown as {
-            [key: string]: string;
-            Datetime: string;
-          }[],
-          "Disk Usage"
-        ),
-        "Memory Usage": checkPercentageMetric(
-          metrics["Memory Usage"] as unknown as {
-            [key: string]: string;
-            Datetime: string;
-          }[],
-          "Memory Usage"
-        ),
-        Traffic: "Normal",
-      };
-      setMetricsStatus(tempMetricStatus);
-    }
-  }, [metrics, loading]);
-
-  function checkPercentageMetric(
-    metricList: { [key: string]: string; Datetime: string }[],
-    metricName: "CPU Usage" | "Disk Usage" | "Memory Usage"
-  ) {
-    const thresholdList = [[80, 60]];
-    // find the latest (non-null) metric
-    let latestMetric;
-    for (let i = metricList.length - 1; i >= 0; i--) {
-      let dataPoint = metricList[i];
-      if (dataPoint[metricName] != null) {
-        latestMetric = dataPoint[metricName];
-        break;
-      }
-    }
-    // check metric against threshold
-    if (latestMetric != null) {
-      let threshold = thresholdList[0];
-      const metricValue = Number(latestMetric) as number;
-      if (metricValue > threshold[0]) {
-        return "Critical";
-      } else if (metricValue > threshold[1]) {
-        return "Warning";
       } else {
-        return "Normal";
-      }
-    }
-    return "Unknown";
-  }
-
-  function convertNullToZero(arr: any[]) {
-    let result = [];
-    for (let dataPoint of arr) {
-      if (dataPoint[Object.keys(dataPoint)[0]] == null) {
-        dataPoint[Object.keys(dataPoint)[0]] = 0;
-      }
-      result.push(dataPoint);
-    }
-    return result;
-  }
-
-  // find time for earliest 0 uptime (only for down components!!)
-  function findHighestZeroDatetime(data: SystemUptime[]) {
-    for (let i = data.length - 2; i >= 0; i--) {
-      const uptimeDict = data[i];
-      if (uptimeDict["System Uptime"] !== 0) {
-        return data[i + 1]["Datetime"];
-      }
-    }
-  }
-
-  // convert array to dictionary, key is the name of the metric
-  function convertToDictionary(arr: any[]) {
-    const filterTime = parseInt(selectedDateRange);
-    let result: Metric = {};
-    for (let subArray of arr) {
-      let key = Object.keys(subArray[0])[0];
-      result[key] = subArray.reverse();
-    }
-    let metricsToCleanup = [
-      "CPU Usage",
-      "Disk Usage",
-      "Memory Usage",
-      "System Uptime",
-    ];
-    for (let metric of metricsToCleanup) {
-      result[metric] = convertNullToZero(result[metric]);
-    }
-    if (systemStatus === false) {
-      // if system down, calc downtime
-      const downtimeTime = findHighestZeroDatetime(
-        result["System Uptime"] as unknown as SystemUptime[]
-      );
-      if (downtimeTime && typeof downtimeTime === "string") {
+        setSystemStatus(false);
+        const downtimeTime = findHighestZeroDatetime(transformedData['systemUptimeArr']);
         const currentTime = new Date();
-        const timeDiff =
-          currentTime.getTime() - new Date(downtimeTime).getTime();
+        const timeDiff = currentTime.getTime() - new Date(downtimeTime['Datetime']).getTime();
         setDowntime(timeDiff / 1000);
+        // set overall status
+        setOverallStatus("Critical");
       }
+      setLastUpdated(getCurrentSGTDateTime());
+      setLoading(false);
     }
-    // filter data based on filter time
-    for (let metric of Object.keys(result)) {
-      result[metric] = result[metric].slice(-filterTime);
-    }
-    setUptime(
-      (
-        result["System Uptime"][
-          parseInt(selectedDateRange) - 1
-        ] as unknown as SystemUptime
-      )["System Uptime"]
-    );
-    return result;
-  }
+  }, [fetchedData, thresholds, selectedDateRange])
 
-  function transformJSON(rawData: RawData): Metric {
-    const columnNames = rawData.Columns.map((column) => column.ColumnName);
-    const chartData = columnNames.map((columnName) => {
-      const metricData: any[] = [];
-      const columnIndex = rawData.Columns.findIndex(
-        (column) => column.ColumnName === columnName
-      );
-      rawData.Rows.forEach((row) => {
-        const dataPoint: any = {
-          [columnName === "Cpu Usage" ? "CPU Usage" : columnName]:
-            row[columnIndex],
-        };
-        const clockIndex = columnNames.indexOf("Clock");
-        const dateTimeString = row[clockIndex];
-        if (dateTimeString) {
-          const formattedDate = formatDate(Number(dateTimeString));
-          dataPoint["Datetime"] = formattedDate;
-        }
-        metricData.push(dataPoint);
-      });
-      return metricData;
-    });
-    return convertToDictionary(chartData);
-  }
-
-  function transformTrafficJSON(transformedData: Metric) {
-    let result = [];
-    for (let i = 0; i < transformedData["Traffic In"].length; i++) {
-      let trafficInDataRow = transformedData["Traffic In"][
-        i
-      ] as unknown as TrafficIn;
-      let trafficInDataPoint = trafficInDataRow["Traffic In"];
-      let trafficOutDataRow = transformedData["Traffic Out"][
-        i
-      ] as unknown as TrafficOut;
-      let trafficOutDataPoint = trafficOutDataRow["Traffic Out"];
-      let dateTimeString = trafficOutDataRow["Datetime"];
-      if (trafficInDataPoint != null && trafficOutDataPoint != null) {
-        let temp = {
-          Datetime: dateTimeString,
-          "Traffic In": trafficInDataPoint,
-          "Traffic Out": trafficOutDataPoint,
-        };
-        result.push(temp);
-      }
+  function transformTrafficJSON(trafficInArr : TrafficIn[], trafficOutArr : TrafficOut[]) {
+    let result : TrafficMetric[] = [];
+    for (let i=0; i < trafficInArr.length; i++){
+        result.push({
+          "Traffic In": trafficInArr[i]["Traffic In"], 
+          "Traffic Out": trafficOutArr[i]["Traffic Out"], 
+          "Datetime": trafficOutArr[i]["Datetime"]
+      })
     }
     return result;
   }
 
-  function formatDate(dateTimeString: number) {
+  function formatDate(dateTimeString: string) {
     const monthNames = [
       "Jan",
       "Feb",
@@ -453,22 +379,77 @@ export default function InfrastructureView() {
       "Nov",
       "Dec",
     ];
-    let dateTime = new Date(dateTimeString * 1000);
+    let dateTime = new Date(dateTimeString);
     const formattedDate = `${dateTime.getDate()} ${
       monthNames[dateTime.getMonth()]
     } ${dateTime.getFullYear().toString().slice(-2)}, ${dateTime
       .getHours()
       .toString()
       .padStart(2, "0")}:${dateTime.getMinutes().toString().padStart(2, "0")}`;
-    return formattedDate;
+      return formattedDate;
+    }
+    
+  function checkSystemStatus(systemUptimeArr: SystemUptime[]) {
+      if (systemUptimeArr[systemUptimeArr.length - 1]["System Uptime"] === 0) {
+      return false;
+    } else {
+      return true;
+    }
   }
-
+  
   function formatTime(seconds: number) {
     const days = Math.floor(seconds / (3600 * 24));
     const hours = Math.floor((seconds % (3600 * 24)) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return { days, hours, minutes, seconds: remainingSeconds };
+  }
+
+  // find time for earliest 0 uptime from current time (only for down components!!)
+  function findHighestZeroDatetime(systemUptimeArr: SystemUptime[]) {
+    console.log("System Uptime Arr:", systemUptimeArr);
+    let earliestZeroDatetime = systemUptimeArr[systemUptimeArr.length - 1];
+    for (let i = systemUptimeArr.length - 2; i >= 0; i--) {
+      if(systemUptimeArr[i]["System Uptime"] == 0){
+        earliestZeroDatetime = systemUptimeArr[i];
+      }
+    }
+    // console.log("Earliest Zero Datetime:", earliestZeroDatetime);
+    return earliestZeroDatetime;
+  }
+
+  function determineMetricStatus(percentageMetricsData : {'CPU Usage' : CPUUsage, 'Disk Usage' : DiskUsage, 'Memory Usage' : MemoryUsage}, trafficData : TrafficMetric){
+    let metricsStatus : MetricStatus = {
+      "CPU Usage": "Normal",
+      "Disk Usage": "Normal",
+      "Memory Usage": "Normal",
+      "Traffic": "Normal",
+    };
+    const metricsVars = ["CPU Usage", "Disk Usage", "Memory Usage"];
+    for(let variable of metricsVars){
+      const latestDataPoint = percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
+      console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
+      const currentMetricValue = (latestDataPoint as any)[variable];
+      if (currentMetricValue > thresholds['critical']){
+        metricsStatus[variable] = "Critical";
+      } else if (currentMetricValue > thresholds['warning']){
+        metricsStatus[variable] = "Warning";
+      } else {
+        metricsStatus[variable] = "Normal";
+      }
+    }
+    // console.log("Traffic Data:", trafficData);
+    // console.log("Thresholds:", thresholds);
+
+    if ((trafficData as any)["Traffic In"] > thresholds['trafficInCritical'] || (trafficData as any)["Traffic Out"] > thresholds['trafficOutCritical']) {
+        metricsStatus["Traffic"] = "Critical";
+    } else if ((trafficData as any)["Traffic In"] > thresholds['trafficInWarning'] || (trafficData as any)["Traffic Out"] > thresholds['trafficOutWarning']) {
+        metricsStatus["Traffic"] = "Warning";
+    } else {
+        metricsStatus["Traffic"] = "Normal";
+    }
+    // console.log("Final Metrics Status:", metricsStatus);
+    return metricsStatus;
   }
 
   // terminal data
@@ -493,11 +474,13 @@ export default function InfrastructureView() {
     };
     return now.toLocaleString("en-SG", options);
   };
-  useEffect(() => {
-    setLastUpdated(getCurrentSGTDateTime());
-  }, []);
 
-  if (loading === false && session && Object.keys(metrics).length > 0) {
+  // console.log(loading)
+  // console.log(session)
+  // console.log(names)
+  // console.log(typeof cid === 'string')
+
+  if (loading === false && session && names && typeof cid === 'string') {
     return (
       <main>
         <div className="h-full flex flex-row">
@@ -512,30 +495,27 @@ export default function InfrastructureView() {
                 <BreadcrumbItem
                   key="services"
                   startContent={<AiOutlineHome />}
-                  href="/servicesView"
                 >
-                  Services
+                  <Link href = {`/servicesView`} prefetch>Services</Link>
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="world"
-                  href={`/worldView?currentService=${service}`}
                   startContent={<GiWorld />}
                 >
-                  {service}
+                  <Link href = {`/worldView?sid=${sid}`} prefetch>{names[cid]["sName"]}</Link>
                 </BreadcrumbItem>
                 <BreadcrumbItem
                   key="infra"
-                  href={`/worldView?currentService=${service}&currentComponent=${component}`}
                   startContent={<VscGraph />}
                   isCurrent={currentPage === "infra"}
                 >
-                  {component}
+                  <Link href = {`/infraView?sid=${sid}&cid=${cid}`}prefetch>{names[cid]["cName"]}</Link>
                 </BreadcrumbItem>
               </Breadcrumbs>
               <div className="mt-1 pb-8 pt-2">
                 <div className="xl:flex lg:flex xl:flex-row lg:flex-row items-end justify-between mb-2">
                   <h1 className="text-4xl font-bold text-pri-500">
-                    {component}
+                    {names[cid]["cName"]}
                   </h1>
                   <div className="flex items-center mt-2 xl:mt-0">
                     <button
@@ -553,205 +533,232 @@ export default function InfrastructureView() {
                 <div>
                   <p className="flex items-center">
                     <MdOutlineLocationOn className="mr-2" />{" "}
-                    {componentDetails[1]}
+                    {names[cid]["country"]}
                   </p>
                   <p className="flex items-center">
                     <HiOutlineComputerDesktop className="mr-2" />{" "}
-                    {componentDetails[0]}
+                    {names[cid]["mName"]}
                   </p>
                 </div>
               </div>
               <div className="flex h-full flex-col w-full">
-                {systemStatus ? (
-                  <div className="flex w-full gap-4">
-                    <div
-                      className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
-                        overallStatus === "Critical"
-                          ? "border-reddish-200"
-                          : overallStatus === "Warning"
-                          ? "border-amberish-200"
-                          : "border-greenish-200"
-                      }`}
-                    >
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Status
-                      </h2>
-                      <p className="text-3xl flex justify-center items-center text-green-600">
-                        Running
-                      </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Uptime
-                      </h2>
-                      <p className="text-3xl flex justify-center items-end">
-                        {`${formatTime(uptime).days}`}
-                        <span className="text-xl pr-2">d </span>
-                        {`${formatTime(uptime).hours}`}
-                        <span className="text-xl pr-2">h </span>
-                        {`${formatTime(uptime).minutes}`}
-                        <span className="text-xl pr-2">m </span>
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex w-full gap-4">
-                    <div
-                      className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
-                        overallStatus === "Critical"
-                          ? "border-reddish-200"
-                          : overallStatus === "Warning"
-                          ? "border-amberish-200"
-                          : "border-greenish-200"
-                      }`}
-                    >
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Status
-                      </h2>
-                      <p className="text-3xl flex justify-center items-center text-red-500">
-                        Down
-                      </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
-                      <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
-                        System Downtime
-                      </h2>
-                      <p className="text-3xl flex justify-center items-end">
-                        {`${formatTime(downtime).days}`}
-                        <span className="text-xl pr-2">d </span>
-                        {`${formatTime(downtime).hours}`}
-                        <span className="text-xl pr-2">h </span>
-                        {`${formatTime(downtime).minutes}`}
-                        <span className="text-xl pr-2">m </span>
-                        {`${formatTime(downtime).seconds}`}
-                        <span className="text-xl">s </span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <p className="text-2xl  text-gray-700 font-bold mt-4">
-                  Simulations
-                </p>
-                <div className="flex items-center w-full mb-4 mt-4">
-                  {/* Hardcoded simulations */}
-                  <ServerActions ipAddress={"20.82.137.238"} />
-                  {/* Other content */}
-                </div>
-                <p className="text-2xl  text-gray-700 font-bold mt-4">
-                  Metrics
-                </p>
-                <div className="flex items-center w-full mb-4 mt-4">
-                  <InfraFilter
-                    selectedDateRange={selectedDateRange}
-                    setSelectedDateRange={setSelectedDateRange}
-                  />
-                </div>
-                <div className="grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4">
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["CPU Usage"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["CPU Usage"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
+                <Tabs 
+                  aria-label="Options" 
+                  color="primary" 
+                  variant="underlined"
+                  classNames={{
+                    tabList: "gap-6 mx-2 mb-3 w-full relative rounded-none p-0 border-b border-divider",
+                    cursor: "w-full bg-pri-500",
+                    tab: "max-w-fit px-0 h-12",
+                    tabContent: "group-data-[selected=true]:text-pri-500"
+                  }}
+                >
+                  <Tab
+                    key="metrics"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <span>Metrics</span>
+                      </div>
+                    }
                   >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      CPU Usage
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={metrics["CPU Usage"]}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["CPU Usage"]}
-                      colors={["blue"]}
-                      valueFormatter={(value: number) => `${value.toFixed(2)}%`}
-                      tickGap={50}
-                      maxValue={1}
-                    />
-                  </div>
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["Memory Usage"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["Memory Usage"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
+                    {systemStatus ? (
+                      <div className="flex w-full gap-4">
+                        <div
+                          className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
+                            overallStatus === "Critical"
+                              ? "border-reddish-200"
+                              : overallStatus === "Warning"
+                              ? "border-amberish-200"
+                              : "border-greenish-200"
+                          }`}
+                        >
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Status
+                          </h2>
+                          <p className="text-3xl flex justify-center items-center text-green-600">
+                            Running
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Uptime
+                          </h2>
+                          <p className="text-3xl flex justify-center items-end">
+                            {`${formatTime(uptime).days}`}
+                            <span className="text-xl pr-2">d </span>
+                            {`${formatTime(uptime).hours}`}
+                            <span className="text-xl pr-2">h </span>
+                            {`${formatTime(uptime).minutes}`}
+                            <span className="text-xl pr-2">m </span>
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex w-full gap-4">
+                        <div
+                          className={`bg-white p-4 rounded-lg shadow mb-4 w-1/2 border-t-4 ${
+                            overallStatus === "Critical"
+                              ? "border-reddish-200"
+                              : overallStatus === "Warning"
+                              ? "border-amberish-200"
+                              : "border-greenish-200"
+                          }`}
+                        >
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Status
+                          </h2>
+                          <p className="text-3xl flex justify-center items-center text-red-500">
+                            Down
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow mb-4 w-1/2">
+                          <h2 className="text-lg mb-2 text-gray-600 font-bold text-center">
+                            System Downtime
+                          </h2>
+                          <p className="text-3xl flex justify-center items-end">
+                            {`${formatTime(downtime).days}`}
+                            <span className="text-xl pr-2">d </span>
+                            {`${formatTime(downtime).hours}`}
+                            <span className="text-xl pr-2">h </span>
+                            {`${formatTime(downtime).minutes}`}
+                            <span className="text-xl pr-2">m </span>
+                            {`${formatTime(downtime).seconds}`}
+                            <span className="text-xl">s </span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Don't Delete */}
+                    {/* <div id="simulations"> */}
+                      {/* <p className="text-2xl  text-gray-700 font-bold mt-4"> */}
+                        {/* Simulations */}
+                      {/* </p> */}
+                      {/* <div className="flex items-center w-full mb-4 mt-4"> */}
+                        {/* Hardcoded simulations */}
+                        {/* <ServerActions ipAddress={"20.82.137.238"} /> */}
+                        {/* Other content */}
+                      {/* </div> */}
+                    {/* </div> */}
+                    <div className="flex items-center w-full mb-4 mt-4">
+                      <InfraFilter
+                        selectedDateRange={selectedDateRange}
+                        setSelectedDateRange={setSelectedDateRange}
+                      />
+                    </div>
+                    <div className="grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4">
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["CPU Usage"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["CPU Usage"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          CPU Usage
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={metrics["CPU Usage"]}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["CPU Usage"]}
+                          colors={["blue"]}
+                          valueFormatter={(value: number) => `${value.toFixed(2)}%`}
+                          tickGap={50}
+                          maxValue={1}
+                        />
+                      </div>
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["Memory Usage"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["Memory Usage"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          Memory Usage
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={metrics["Memory Usage"]}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["Memory Usage"]}
+                          colors={["cyan"]}
+                          valueFormatter={(value: number) => `${value.toFixed(2)}%`}
+                          tickGap={50}
+                          maxValue={1}
+                        />
+                      </div>
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["Disk Usage"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["Disk Usage"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          Disk Usage
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={metrics["Disk Usage"]}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["Disk Usage"]}
+                          colors={["blue"]}
+                          valueFormatter={(value: number) => `${value}%`}
+                          tickGap={50}
+                          maxValue={100}
+                        />
+                      </div>
+                      <div
+                        className={`bg-white p-4 rounded-lg shadow border-t-4 ${
+                          metricsStatus["Traffic"] === "Critical"
+                            ? "border-reddish-200"
+                            : metricsStatus["Traffic"] === "Warning"
+                            ? "border-amberish-200"
+                            : "border-greenish-200"
+                        }`}
+                      >
+                        <p className="text-base text-gray-600 font-bold mb-4">
+                          Traffic
+                        </p>
+                        <AreaChart
+                          className="mt-4 h-72"
+                          data={trafficMetrics}
+                          index="Datetime"
+                          yAxisWidth={65}
+                          categories={["Traffic In", "Traffic Out"]}
+                          colors={["blue", "cyan"]}
+                          valueFormatter={(value: number) => `${value} bytes`}
+                          tickGap={50}
+                        />
+                      </div>
+                    </div>
+                  </Tab>
+                  <Tab
+                    key="Logs"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <span>Logs</span>
+                      </div>
+                    }
                   >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      Memory Usage
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={metrics["Memory Usage"]}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["Memory Usage"]}
-                      colors={["cyan"]}
-                      valueFormatter={(value: number) => `${value.toFixed(2)}%`}
-                      tickGap={50}
-                      maxValue={1}
-                    />
-                  </div>
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["Disk Usage"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["Disk Usage"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
-                  >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      Disk Usage
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={metrics["Disk Usage"]}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["Disk Usage"]}
-                      colors={["blue"]}
-                      valueFormatter={(value: number) => `${value}%`}
-                      tickGap={50}
-                      maxValue={100}
-                    />
-                  </div>
-                  <div
-                    className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                      metricsStatus["Traffic"] === "Critical"
-                        ? "border-reddish-200"
-                        : metricsStatus["Traffic"] === "Warning"
-                        ? "border-amberish-200"
-                        : "border-greenish-200"
-                    }`}
-                  >
-                    <p className="text-base text-gray-600 font-bold mb-4">
-                      Traffic
-                    </p>
-                    <AreaChart
-                      className="mt-4 h-72"
-                      data={trafficMetrics}
-                      index="Datetime"
-                      yAxisWidth={65}
-                      categories={["Traffic In", "Traffic Out"]}
-                      colors={["blue", "cyan"]}
-                      valueFormatter={(value: number) => `${value} bytes`}
-                      tickGap={50}
-                    />
-                  </div>
-                </div>
-                <p className="text-2xl  text-gray-700 font-bold mt-8">
-                  Real-time Logs
-                </p>
-                <div className="mt-4 mb-4">
-                  <Terminal height="400px">
-                    {/* {terminalLineData} */}
-                    <LogViewer channel="dashify-websocket" event="logs" />
-                  </Terminal>
-                </div>
+                    <div className="mt-4 mb-4">
+                      <Terminal height="400px">
+                        {/* {terminalLineData} */}
+                        <LogViewer channel={`dashify-${cid}`} event="logs" /> {/* replace dashify-logs with dashify-[cid] where cid is from useParams() */}
+                      </Terminal>
+                    </div>
+                  </Tab>
+                </Tabs>
               </div>
             </div>
           </div>

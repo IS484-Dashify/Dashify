@@ -1,0 +1,13 @@
+{
+    "app": 5000,
+    "services": 5001,
+    "machines": 5002,
+    "components": 5003,
+    "results": 5004,
+    "thresholds": 5005,
+    "getStatus": 5006,
+    "getResults": 5007,
+    "notifications": 5008,
+    "getNames": 5009,
+    "users": 5010
+}
