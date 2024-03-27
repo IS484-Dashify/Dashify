@@ -1,33 +1,75 @@
-import mysql.connector
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
+import requests
+import json
 
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    database="is484"
-)
+def fetch_data_from_microservice():
+    # Define the URL of the microservice's API endpoint
+    url = "http://4.231.173.235:5004/get-all-results"
 
-cursor = conn.cursor()
+    try:
+        # Make a GET request to the microservice's API endpoint
+        response = requests.get(url)
+        
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Parse the JSON response
+            data = response.json()
+            
+            # Extract the required information from the response
+            extracted_data = data["results"]  # Assuming the data is returned in a "results" key
+            
+            return extracted_data
+        else:
+            # If the request was not successful, print an error message
+            print("Failed to fetch data from microservice. Status code:", response.status_code)
+            return None
+    except requests.exceptions.RequestException as e:
+        # If an error occurs during the request, print the error message
+        print("Error fetching data from microservice:", e)
+        return None
+
+def filter_data_by_datetime(data, start_datetime, end_datetime):
+    filtered_data = []
+    for entry in data:
+        entry_datetime = datetime.strptime(entry["datetime"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        if start_datetime <= entry_datetime <= end_datetime:
+            filtered_data.append(entry)
+    return filtered_data
+
+def push_notif(json_data):
+    url = "http://4.231.173.235:5008/add-notification"
+
+    try:
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(url, headers=headers, data=json_data)
+
+        if response.content:
+            response_data = response.json()
+            if response.ok:
+                print("Notification added successfully:", response_data)
+            else:
+                print("Failed to add notification:", response.status_code, response_data)
+        else:
+            print("No content in the response")
+    
+    except requests.exceptions.RequestException as e:
+        # If an error occurs during the request, print the error message
+        print("Error adding notification:", e)
+        return None
 
 
-def fetch_data(start_time, end_time):
-    query = "SELECT DATETIME, CID, DISK_USAGE, TRAFFIC_OUT, CPU_USAGE, MEMORY_USAGE FROM results WHERE DATETIME BETWEEN %s AND %s"
-    cursor.execute(query, (start_time, end_time))
-    data = cursor.fetchall()
-    # conn.close()
-    return data
 
+extracted_data = fetch_data_from_microservice()
 
 # Get start and end timestamps for the past week
-# end_time = datetime.now(timezone.utc)
-end_time = datetime(2024, 3, 10, 23, 59, 59, tzinfo=timezone.utc)
+end_time = datetime.now(timezone.utc)
+# end_time = datetime(2024, 3, 10, 23, 59, 59, tzinfo=timezone.utc)
 start_time = end_time - timedelta(days=7)
 
 
-
 # Fetch data for the past week from the database
-data_past_week = fetch_data(start_time, end_time)
+data_past_week = filter_data_by_datetime(extracted_data, start_time, end_time)
 
 
 # Dictionary to store sum and count of each metric for each hour and CID
@@ -35,16 +77,19 @@ sum_by_hour_cid = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
 count_by_hour_cid = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
 # Parse data and aggregate
-for datetime_format, cid, disk_usage, traffic_out, cpu_usage, memory_usage in data_past_week:
-    datetime_str = datetime_format.strftime("%H:%M:%S")
-    hour = datetime_str.split(':')[0]  # Extract hour from datetime
+for entry in data_past_week:
+    cid = entry["cid"]
+    disk_usage = entry["disk_usage"]
+    cpu_usage = entry["cpu_usage"]
+    memory_usage = entry["memory_usage"]
+    datetime_format = entry["datetime"]
+    datetime_str = datetime.strptime(entry["datetime"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+    timing = str(datetime_str).split(" ")[1]
+    hour = timing.split(':')[0]  # Extract hour from datetime
     sum_by_hour_cid[hour][cid]['DISK_USAGE'] += disk_usage
-    sum_by_hour_cid[hour][cid]['TRAFFIC_OUT'] += traffic_out
     sum_by_hour_cid[hour][cid]['CPU_USAGE'] += cpu_usage
     sum_by_hour_cid[hour][cid]['MEMORY_USAGE'] += memory_usage
-    
     count_by_hour_cid[hour][cid]['DISK_USAGE'] += 1
-    count_by_hour_cid[hour][cid]['TRAFFIC_OUT'] += 1
     count_by_hour_cid[hour][cid]['CPU_USAGE'] += 1
     count_by_hour_cid[hour][cid]['MEMORY_USAGE'] += 1
 
@@ -74,13 +119,20 @@ for cid, metric_data in highest_hour_by_metric.items():
         print(f"Metric: {metric}, Highest Hour: {hour}, Average: {highest_average_by_metric[cid][metric]}")
             
 
-insert_query = "INSERT INTO notifications (cid, isread, reason, datetime, status) VALUES (%s, %s, %s, %s, %s)"
 for cid, metric_data in highest_hour_by_metric.items():
     for metric, hour in metric_data.items():
         hour = int(hour)
         end_hour = int(hour + 1)
         reason = f"{metric} is highest at {highest_average_by_metric[cid][metric]} from {hour}00 to {end_hour}00 over the past week"
         date = datetime.now()
-        cursor.execute(insert_query, (cid, 0, reason, date, "Analysis"))
-        conn.commit()
+        datetime_string = date.strftime('%Y-%m-%d %H:%M:%S')
+        notification_data = {
+                'cid': cid,
+                'isread': 0,
+                'reason' : reason,
+                'datetime': datetime_string,
+                'status': 'Analysis'
+        }
+        json_data = json.dumps(notification_data)
+        push_notif(json_data)
 
