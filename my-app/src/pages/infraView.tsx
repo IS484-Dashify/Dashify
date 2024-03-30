@@ -316,7 +316,6 @@ export default function InfrastructureView() {
         'Traffic': transformedTrafficData,
         'System Uptime' : transformedData['systemUptimeArr']
       }
-
       // only return number of data points based on selectedDateRange
       setMetrics({'CPU Usage': transformedMetricsData['CPU Usage'].slice(transformedMetricsData['CPU Usage'].length - parseInt(selectedDateRange)), 'Disk Usage': transformedMetricsData['Disk Usage'].slice(transformedMetricsData['Disk Usage'].length - parseInt(selectedDateRange)), 'Memory Usage': transformedMetricsData['Memory Usage'].slice(transformedMetricsData['Memory Usage'].length - parseInt(selectedDateRange))});
       setTrafficMetrics(transformedTrafficData.slice(transformedTrafficData.length - parseInt(selectedDateRange)));
@@ -328,10 +327,17 @@ export default function InfrastructureView() {
         setDowntime(0);
         setUptime(transformedData['systemUptimeArr'][transformedData['systemUptimeArr'].length - 1]["System Uptime"]);
 
-        // TODO: determine metrics status
-        const metricsStatus = determineMetricStatus({'CPU Usage': transformedData['cpuUsageArr'][transformedData['cpuUsageArr'].length - 1], 'Disk Usage': transformedData['diskUsageArr'][transformedData['cpuUsageArr'].length - 1], 'Memory Usage': transformedData['memoryUsageArr'][transformedData['cpuUsageArr'].length - 1]}, transformedTrafficData[transformedTrafficData.length - 1]);
+        // Determine metrics status
+        const metricsStatus = determineMetricStatus({
+          'CPU Usage': transformedData['cpuUsageArr'][transformedData['cpuUsageArr'].length - 1], 
+          'Disk Usage': transformedData['diskUsageArr'][transformedData['diskUsageArr'].length - 1], 
+          'Memory Usage': transformedData['memoryUsageArr'][transformedData['memoryUsageArr'].length - 1]
+        }, 
+          transformedTrafficData[transformedTrafficData.length - 1]
+        );
+          
         setMetricsStatus(metricsStatus);
-        // TODO: determine overall status
+        // Determine overall status
         if (Object.values(metricsStatus).includes("Critical")){
           setOverallStatus("Critical");
         } else if (Object.values(metricsStatus).includes("Warning")){
@@ -419,7 +425,10 @@ export default function InfrastructureView() {
     return earliestZeroDatetime;
   }
 
-  function determineMetricStatus(percentageMetricsData : {'CPU Usage' : CPUUsage, 'Disk Usage' : DiskUsage, 'Memory Usage' : MemoryUsage}, trafficData : TrafficMetric){
+  function determineMetricStatus(
+      percentageMetricsData : {'CPU Usage' : CPUUsage, 'Disk Usage' : DiskUsage, 'Memory Usage' : MemoryUsage}, 
+      trafficData : TrafficMetric
+    ){
     let metricsStatus : MetricStatus = {
       "CPU Usage": "Normal",
       "Disk Usage": "Normal",
@@ -429,7 +438,7 @@ export default function InfrastructureView() {
     const metricsVars = ["CPU Usage", "Disk Usage", "Memory Usage"];
     for(let variable of metricsVars){
       const latestDataPoint = percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
-      console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
+      // console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
       const currentMetricValue = (latestDataPoint as any)[variable];
       if (currentMetricValue > thresholds['critical']){
         metricsStatus[variable] = "Critical";
