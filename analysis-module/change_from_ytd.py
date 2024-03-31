@@ -80,7 +80,7 @@ def filter_data_by_datetime(data, start_datetime, end_datetime):
     return filtered_data
 
 def push_notif(json_data):
-    url = "http://4.231.173.235:5008/add-notification"
+    url = "http://4.231.173.235:5008/add-insight"
 
     try:
         headers = {'Content-Type': 'application/json'}
@@ -134,12 +134,15 @@ for entry in data_yesterday:
     disk_usage = entry["disk_usage"]
     cpu_usage = entry["cpu_usage"]
     memory_usage = entry["memory_usage"]
-    sum_by_cid_ytd_data[cid]['DISK_USAGE'] += disk_usage
-    sum_by_cid_ytd_data[cid]['CPU_USAGE'] += cpu_usage
-    sum_by_cid_ytd_data[cid]['MEMORY_USAGE'] += memory_usage
-    count_by_cid_ytd_data[cid]['DISK_USAGE'] += 1
-    count_by_cid_ytd_data[cid]['CPU_USAGE'] += 1
-    count_by_cid_ytd_data[cid]['MEMORY_USAGE'] += 1
+    if disk_usage is not None:
+        sum_by_cid_ytd_data[cid]['DISK_USAGE'] += disk_usage
+        count_by_cid_ytd_data[cid]['DISK_USAGE'] += 1
+    if cpu_usage is not None:
+        sum_by_cid_ytd_data[cid]['CPU_USAGE'] += cpu_usage
+        count_by_cid_ytd_data[cid]['CPU_USAGE'] += 1
+    if memory_usage is not None:
+        sum_by_cid_ytd_data[cid]['MEMORY_USAGE'] += memory_usage
+        count_by_cid_ytd_data[cid]['MEMORY_USAGE'] += 1
 
 average_by_cid_ytd_data = {}
 for cid in sum_by_cid_ytd_data:
@@ -148,7 +151,7 @@ for cid in sum_by_cid_ytd_data:
         for metric in sum_by_cid_ytd_data[cid]
     }
 
-print("ytd avg: ", average_by_cid_ytd_data)
+# print("ytd avg: ", average_by_cid_ytd_data)
 
 
 # FOR DATA_TODAY
@@ -163,12 +166,15 @@ for entry in data_today:
     disk_usage = entry["disk_usage"]
     cpu_usage = entry["cpu_usage"]
     memory_usage = entry["memory_usage"]
-    sum_by_cid_today_data[cid]['DISK_USAGE'] += disk_usage
-    sum_by_cid_today_data[cid]['CPU_USAGE'] += cpu_usage
-    sum_by_cid_today_data[cid]['MEMORY_USAGE'] += memory_usage
-    count_by_cid_today_data[cid]['DISK_USAGE'] += 1
-    count_by_cid_today_data[cid]['CPU_USAGE'] += 1
-    count_by_cid_today_data[cid]['MEMORY_USAGE'] += 1
+    if disk_usage is not None:
+        sum_by_cid_today_data[cid]['DISK_USAGE'] += disk_usage 
+        count_by_cid_today_data[cid]['DISK_USAGE'] += 1
+    if cpu_usage is not None:
+        sum_by_cid_today_data[cid]['CPU_USAGE'] += cpu_usage
+        count_by_cid_today_data[cid]['CPU_USAGE'] += 1
+    if memory_usage is not None:
+        sum_by_cid_today_data[cid]['MEMORY_USAGE'] += memory_usage
+        count_by_cid_today_data[cid]['MEMORY_USAGE'] += 1
 
 average_by_cid_today_data = {}
 for cid in sum_by_cid_today_data:
@@ -177,7 +183,7 @@ for cid in sum_by_cid_today_data:
         for metric in sum_by_cid_today_data[cid]
     }
 
-print("today avg: ", average_by_cid_today_data )
+# print("today avg: ", average_by_cid_today_data )
 
 # Calculate percentage change
 percentage_change_by_cid = {}
@@ -186,6 +192,8 @@ for cid in average_by_cid_ytd_data:
         metric: round(((average_by_cid_today_data[cid][metric] - average_by_cid_ytd_data[cid][metric]) / average_by_cid_ytd_data[cid][metric]) * 100,2)
         for metric in average_by_cid_ytd_data[cid]
     }
+
+print("% change: ", percentage_change_by_cid)
 
 for cid, metrics in percentage_change_by_cid.items():
     for metric, change in metrics.items():

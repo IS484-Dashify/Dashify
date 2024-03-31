@@ -38,7 +38,7 @@ def filter_data_by_datetime(data, start_datetime, end_datetime):
     return filtered_data
 
 def push_notif(json_data):
-    url = "http://4.231.173.235:5008/add-notification"
+    url = "http://4.231.173.235:5008/add-insight"
 
     try:
         headers = {'Content-Type': 'application/json'}
@@ -86,12 +86,16 @@ for entry in data_past_week:
     datetime_str = datetime.strptime(entry["datetime"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
     timing = str(datetime_str).split(" ")[1]
     hour = timing.split(':')[0]  # Extract hour from datetime
-    sum_by_hour_cid[hour][cid]['DISK_USAGE'] += disk_usage
-    sum_by_hour_cid[hour][cid]['CPU_USAGE'] += cpu_usage
-    sum_by_hour_cid[hour][cid]['MEMORY_USAGE'] += memory_usage
-    count_by_hour_cid[hour][cid]['DISK_USAGE'] += 1
-    count_by_hour_cid[hour][cid]['CPU_USAGE'] += 1
-    count_by_hour_cid[hour][cid]['MEMORY_USAGE'] += 1
+    if disk_usage is not None:
+        sum_by_hour_cid[hour][cid]['DISK_USAGE'] += disk_usage
+        count_by_hour_cid[hour][cid]['DISK_USAGE'] += 1
+    if cpu_usage is not None:
+        sum_by_hour_cid[hour][cid]['CPU_USAGE'] += cpu_usage
+        count_by_hour_cid[hour][cid]['CPU_USAGE'] += 1
+    if memory_usage is not None:
+        sum_by_hour_cid[hour][cid]['MEMORY_USAGE'] += memory_usage
+        count_by_hour_cid[hour][cid]['MEMORY_USAGE'] += 1
+    
 
 # Calculate averages
 average_by_hour_cid = defaultdict(lambda: defaultdict(dict))
