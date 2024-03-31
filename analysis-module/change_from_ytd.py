@@ -206,6 +206,7 @@ for cid, metrics in percentage_change_by_cid.items():
                 'isread': 0,
                 'reason' : reason,
                 'datetime': datetime_string,
+                'lastchecked': datetime_string,
                 'status': 'Analysis'
             }
 

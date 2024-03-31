@@ -135,6 +135,7 @@ for cid, metric_data in highest_hour_by_metric.items():
                 'isread': 0,
                 'reason' : reason,
                 'datetime': datetime_string,
+                'lastchecked': datetime_string,
                 'status': 'Analysis'
         }
         json_data = json.dumps(notification_data)
