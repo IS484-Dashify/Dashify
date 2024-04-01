@@ -91,7 +91,7 @@ export default function WorldView() {
         setAlerts(sortedAlerts);
         setInsights(sortedInsights)
       } else {
-        throw new Error("Failed to perform server action");
+        throw new Error("fetchAllNotification: Failed to perform server action");
       }
     } catch (error) {
       console.error(error);
@@ -109,7 +109,7 @@ export default function WorldView() {
         console.log(data)
         setNames(data)
       } else {
-        throw new Error("Failed to perform server action");
+        throw new Error("fetchAllNames: Failed to perform server action");
       }
     } catch (error) {
       console.error(error);

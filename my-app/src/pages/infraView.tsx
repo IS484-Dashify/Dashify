@@ -359,14 +359,31 @@ export default function InfrastructureView() {
     }
   }, [fetchedData, thresholds, selectedDateRange])
 
+  const findObjectByDatetime = (array, datetime) => {
+    return array.find(obj => obj.Datetime === datetime);
+  };
+
   function transformTrafficJSON(trafficInArr : TrafficIn[], trafficOutArr : TrafficOut[]) {
+    console.log("TrafficInArr:", trafficInArr.slice(-5));
+
+    const datetimeArray: string[] = [
+      ...trafficInArr.map(item => item.Datetime),
+      ...trafficOutArr.map(item => item.Datetime)
+    ];
+    const uniqueDatetimeArray = new Set(datetimeArray);
+    const sortedDatetimeArray = Array.from(uniqueDatetimeArray).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
     let result : TrafficMetric[] = [];
-    for (let i=0; i < trafficInArr.length; i++){
+    for(let datetime of sortedDatetimeArray){
+      let trafficInObj = findObjectByDatetime(trafficInArr, datetime);
+      let trafficOutObj = findObjectByDatetime(trafficOutArr, datetime);
+      if (trafficInObj && trafficOutObj){
         result.push({
-          "Traffic In": trafficInArr[i]["Traffic In"], 
-          "Traffic Out": trafficOutArr[i]["Traffic Out"], 
-          "Datetime": trafficOutArr[i]["Datetime"]
-      })
+          "Traffic In": trafficInObj["Traffic In"], 
+          "Traffic Out": trafficOutObj["Traffic Out"], 
+          "Datetime": trafficOutObj["Datetime"]
+        })
+      }
     }
     return result;
   }
