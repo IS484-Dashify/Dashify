@@ -119,7 +119,9 @@ const Sidebar = () => {
   };
 
   useEffect(() => {
-    fetchAllNotification();
+    const fetchDataInterval = setInterval(() => {
+      fetchAllNotification();
+    }, 5000); // call every 5s
     fetchAllNames();
   }, []);
 
