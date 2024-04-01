@@ -63,10 +63,30 @@ export default function WorldView() {
         // Sort alerts and insights based on isread property
         const sortedAlerts = data.filter(notification => 
           ['Critical', 'Warning', 'Normal'].includes(notification.status)
-        ).sort((a, b) => (a.isread === b.isread ? 0 : a.isread ? 1 : -1));
+        ).sort((a, b) => {
+          if (a.datetime > b.datetime) {
+            return -1;
+          } else if (a.datetime < b.datetime) {
+            return 1;
+          } else {
+            // If datetime properties are equal, sort by 'isread'
+            return a.isread === b.isread ? 0 : a.isread ? 1 : -1;
+          }
+        });
         const sortedInsights = data.filter(notification => 
           !['Critical', 'Warning', 'Normal'].includes(notification.status)
-        ).sort((a, b) => (a.isread === b.isread ? 0 : a.isread ? 1 : -1));
+        ).sort((a, b) => {
+          {
+            if (a.datetime > b.datetime) {
+              return -1;
+            } else if (a.datetime < b.datetime) {
+              return 1;
+            } else {
+              // If datetime properties are equal, sort by 'isread'
+              return a.isread === b.isread ? 0 : a.isread ? 1 : -1;
+            }
+          }
+        });
         console.log("Alerts:", sortedAlerts);
         setAlerts(sortedAlerts);
         setInsights(sortedInsights)

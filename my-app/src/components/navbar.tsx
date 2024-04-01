@@ -53,7 +53,7 @@ const Sidebar = () => {
   // console.log("Router path:", router.pathname);
   const notificationsDiv = document.getElementById("notifications-div") as HTMLElement;
   useEffect(() => {
-    // console.log("active index:", activeIndex);
+    // console.log("active index:", activeIndex); 
   }, [activeIndex]);
 
   const fetchAllNotification = async () => {
@@ -63,7 +63,17 @@ const Sidebar = () => {
       const ipAddress = '4.231.173.235'; 
       const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
       if (response.ok) {
-        const data = await response.json();
+        const data: Notification[] = await response.json();
+        data.sort((a,b) => {
+          if (a.datetime > b.datetime) {
+            return -1;
+          } else if (a.datetime < b.datetime) {
+            return 1;
+          } else {
+            // If datetime properties are equal, sort by 'isread'
+            return a.isread === b.isread ? 0 : a.isread ? 1 : -1;
+          }
+        })
         setNotifications(data)
       } else {
         throw new Error("Failed to perform server action");
