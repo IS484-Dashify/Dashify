@@ -11,7 +11,7 @@ interface Notification {
   nid: number,
   cid: number,
   reason: string,
-  isRead: boolean
+  isread: boolean
   datetime: string,
   status: Status
 }
@@ -60,13 +60,14 @@ export default function WorldView() {
       
       if (response.ok) {
         const data: Notification[] = await response.json();
-        // Sort alerts and insights based on isRead property
+        // Sort alerts and insights based on isread property
         const sortedAlerts = data.filter(notification => 
           ['Critical', 'Warning', 'Normal'].includes(notification.status)
-        ).sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1));
+        ).sort((a, b) => (a.isread === b.isread ? 0 : a.isread ? 1 : -1));
         const sortedInsights = data.filter(notification => 
           !['Critical', 'Warning', 'Normal'].includes(notification.status)
-        ).sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1));
+        ).sort((a, b) => (a.isread === b.isread ? 0 : a.isread ? 1 : -1));
+        console.log("Alerts:", sortedAlerts);
         setAlerts(sortedAlerts);
         setInsights(sortedInsights)
       } else {
@@ -96,6 +97,7 @@ export default function WorldView() {
   };
 
   const markNotificationAsRead = async (nid: number) => {
+    console.log("Marking notification as read:", nid);
     try {
       const endpoint = `mark-notification-as-read/${nid}`; 
       const port = '5008'
@@ -135,11 +137,11 @@ export default function WorldView() {
   }, []);
   
   const unreadAlertsCount = alerts?.reduce((count, alert) => {
-    return count + (alert.isRead ? 0 : 1);
+    return count + (alert.isread ? 0 : 1);
   }, 0);
 
   const unreadInsightsCount = insights?.reduce((count, insight) => {
-    return count + (insight.isRead ? 0 : 1);
+    return count + (insight.isread ? 0 : 1);
   }, 0);
 
   function formatDate(dateTimeString: string) {
@@ -168,10 +170,10 @@ export default function WorldView() {
   }
 
   if(session && alerts && insights && names){
-    const unreadAlerts = alerts.filter(alert => !alert.isRead);
-    const readAlerts = alerts.filter(alert => alert.isRead);
-    const unreadInsights = insights.filter(insight => !insight.isRead);
-    const readInsights = insights.filter(insight => insight.isRead);
+    const unreadAlerts = alerts.filter(alert => !alert.isread);
+    const readAlerts = alerts.filter(alert => alert.isread);
+    const unreadInsights = insights.filter(insight => !insight.isread);
+    const readInsights = insights.filter(insight => insight.isread);
     
     return (
       <main className="">

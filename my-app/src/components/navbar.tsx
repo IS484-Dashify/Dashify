@@ -30,7 +30,7 @@ interface Notification {
   nid: number,
   cid: number,
   reason: string,
-  isRead: boolean
+  isread: boolean
   datetime: string,
   status: Status
 }
@@ -114,7 +114,7 @@ const Sidebar = () => {
   }, []);
 
   const unreadCount = notifications?.reduce((count, notification) => {
-    return count + (notification.isRead ? 0 : 1);
+    return count + (notification.isread ? 0 : 1);
   }, 0);
 
   function formatDate(dateTimeString: string) {
@@ -143,7 +143,7 @@ const Sidebar = () => {
   }
 
   if (notifications){
-    const unreadNotifications = notifications.filter(notifications => !notifications.isRead);
+    const unreadNotifications = notifications.filter(notifications => !notifications.isread);
     return (
       <div className="border-r-2 px-3 pt-6 flex flex-col items-center bg-white fixed h-full z-50">
         <Image src="/logo(down).png" alt="" width={35} height={35} />
@@ -183,7 +183,7 @@ const Sidebar = () => {
                   <div className="font-bold">Unread Notifications</div>
                   <div className="overflow-y-auto max-h-80 my-5"> 
                     {notifications
-                      .filter(notification => !notification.isRead) 
+                      .filter(notification => !notification.isread) 
                       .map(notification => (
                         <Link 
                           key={notification.nid} 

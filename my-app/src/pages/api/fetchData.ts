@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const url = `http://${ipAddress}:${port}/${endpoint}`;
 
   try {
-    
+    // console.log("Fetch Data Method:", method, "url:", url);
     const response = await fetch(url, { method: method as string });
         
     const data = await response.json(); // assuming the server response is text
