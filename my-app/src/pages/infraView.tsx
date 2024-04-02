@@ -453,6 +453,9 @@ export default function InfrastructureView() {
     };
     const metricsVars = ["CPU Usage", "Disk Usage", "Memory Usage"];
     for(let variable of metricsVars){
+      if (percentageMetricsData[variable as keyof PercentageMetricsData] === undefined){
+        break;
+      }
       const latestDataPoint = percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
       // console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
       const currentMetricValue = (latestDataPoint as any)[variable];
@@ -464,8 +467,12 @@ export default function InfrastructureView() {
         metricsStatus[variable] = "Normal";
       }
     }
-    // console.log("Traffic Data:", trafficData);
+    console.log("Traffic Data:", trafficData);
     // console.log("Thresholds:", thresholds);
+
+    if (trafficData === undefined){
+      return metricsStatus;
+    }
 
     if ((trafficData as any)["Traffic In"] > thresholds['trafficInCritical'] || (trafficData as any)["Traffic Out"] > thresholds['trafficOutCritical']) {
         metricsStatus["Traffic"] = "Critical";
