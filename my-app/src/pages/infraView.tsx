@@ -358,7 +358,7 @@ export default function InfrastructureView() {
     }
   }, [fetchedData, thresholds, selectedDateRange])
 
-  const findObjectByDatetime = (array, datetime) => {
+  const findObjectByDatetime = (array:TrafficIn[] |TrafficOut[], datetime:string) => {
     return array.find(obj => obj.Datetime === datetime);
   };
 
@@ -376,7 +376,7 @@ export default function InfrastructureView() {
     for(let datetime of sortedDatetimeArray){
       let trafficInObj = findObjectByDatetime(trafficInArr, datetime);
       let trafficOutObj = findObjectByDatetime(trafficOutArr, datetime);
-      if (trafficInObj && trafficOutObj){
+      if (trafficInObj && "Traffic In" in trafficInObj && trafficOutObj && "Traffic Out" in trafficOutObj) {
         result.push({
           "Traffic In": trafficInObj["Traffic In"], 
           "Traffic Out": trafficOutObj["Traffic Out"], 
