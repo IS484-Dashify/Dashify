@@ -27,7 +27,7 @@ interface Names {
   [cid: string]: Name,
 }
 
-export default function WorldView() {
+export default function Notification() {
   const { data: session } = useSession(); // eslint-disable-next-line react-hooks/exhaustive-deps
   const router = useRouter();
   const [shouldRedirect, setShouldRedirect] = useState(false);

@@ -1,4 +1,0 @@
-{
-    "Node.js Server 1": ["nifi_metrics | order by Datetime desc | take ", "3001" ],
-    "Node.js Server 2": ["prometheus_metrics | order by Datetime desc | take ", "3002"]
-}

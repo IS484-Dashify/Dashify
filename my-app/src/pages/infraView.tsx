@@ -20,7 +20,6 @@ import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
 import Link from "next/link";
 import LogViewer from "../components/LogViewer";
-import ServerActions from "../components/ServerActions"; // Adjust the path as necessary
 import {Tabs, Tab, Chip, Tooltip} from "@nextui-org/react";
 
 const rawTerminalData = [
