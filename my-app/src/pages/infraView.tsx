@@ -20,7 +20,6 @@ import Terminal, { ColorMode, TerminalOutput } from "react-terminal-ui";
 import { DateTimeFormatOptions } from "intl";
 import Link from "next/link";
 import LogViewer from "../components/LogViewer";
-import ServerActions from "../components/ServerActions"; // Adjust the path as necessary
 import {Tabs, Tab, Chip, Tooltip} from "@nextui-org/react";
 
 const rawTerminalData = [
@@ -359,7 +358,7 @@ export default function InfrastructureView() {
     }
   }, [fetchedData, thresholds, selectedDateRange])
 
-  const findObjectByDatetime = (array, datetime) => {
+  const findObjectByDatetime = (array:TrafficIn[] |TrafficOut[], datetime:string) => {
     return array.find(obj => obj.Datetime === datetime);
   };
 
@@ -377,7 +376,7 @@ export default function InfrastructureView() {
     for(let datetime of sortedDatetimeArray){
       let trafficInObj = findObjectByDatetime(trafficInArr, datetime);
       let trafficOutObj = findObjectByDatetime(trafficOutArr, datetime);
-      if (trafficInObj && trafficOutObj){
+      if (trafficInObj && "Traffic In" in trafficInObj && trafficOutObj && "Traffic Out" in trafficOutObj) {
         result.push({
           "Traffic In": trafficInObj["Traffic In"], 
           "Traffic Out": trafficOutObj["Traffic Out"], 
@@ -454,6 +453,9 @@ export default function InfrastructureView() {
     };
     const metricsVars = ["CPU Usage", "Disk Usage", "Memory Usage"];
     for(let variable of metricsVars){
+      if (percentageMetricsData[variable as keyof PercentageMetricsData] === undefined){
+        break;
+      }
       const latestDataPoint = percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
       // console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
       const currentMetricValue = (latestDataPoint as any)[variable];
@@ -465,8 +467,12 @@ export default function InfrastructureView() {
         metricsStatus[variable] = "Normal";
       }
     }
-    // console.log("Traffic Data:", trafficData);
+    console.log("Traffic Data:", trafficData);
     // console.log("Thresholds:", thresholds);
+
+    if (trafficData === undefined){
+      return metricsStatus;
+    }
 
     if ((trafficData as any)["Traffic In"] > thresholds['trafficInCritical'] || (trafficData as any)["Traffic Out"] > thresholds['trafficOutCritical']) {
         metricsStatus["Traffic"] = "Critical";

@@ -146,8 +146,8 @@ const RightPopup = ({isOpen, setIsOpen, selectedMarker, sid} :  {isOpen : boolea
           <h2 className="font-bold text-lg">{selectedMarker[0]["country"]}</h2>
         </div>
       </div>
-      {selectedMarker.map(vm => 
-        <ToggleableList key={vm.mName} components={vm.components} vmName={vm.mName} sid={sid} status={vm.status}/>
+      {selectedMarker.map((vm, index) => 
+        <ToggleableList key={index} components={vm.components} vmName={vm.mName} sid={sid} status={vm.status}/>
       )}
     </div>
   );
