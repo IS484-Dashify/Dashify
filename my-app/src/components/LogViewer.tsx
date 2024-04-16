@@ -8,7 +8,7 @@ interface LogViewerProps {
 }
 
 const LogViewer: React.FC<LogViewerProps> = ({ channel, event }) => {
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<string[]>(["Awaiting logs..."]);
 
   useEffect(() => {
     // Initialize Pusher
