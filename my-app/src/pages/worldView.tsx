@@ -358,9 +358,9 @@ export default function WorldView() {
                       ))
                     }
                   </Geographies>
-                  {Object.values(dataByCountry).map((dataByCountryElement) =>
+                  {Object.values(dataByCountry).map((dataByCountryElement, index) =>
                     <Marker
-                      key={convertLocationToList(dataByCountryElement[0]['country'])}
+                      key={index}
                       coordinates={[convertLocationToList(dataByCountryElement[0]['location'])[0], convertLocationToList(dataByCountryElement[0]['location'])[1]]}
                       className="map-marker cursor-pointer"
                       onClick={() => handleMarkerClick(dataByCountryElement)}
