@@ -1,7 +1,7 @@
 # Dashify
 Dashify is a solution designed to aggregate and consolidate alerts and status updates from a multitude of monitoring tools employed across diverse technological layers, including infrastructure, middleware, and applications. Our objective is to establish a platform that quickly identifies issues, delivers a thorough overview of service statuses, and streamlines incident management, ultimately providing a comprehensive understanding of the health and status of all applications.
 
-## Overview
+## Overvieww
 - Frontend: React (Next.js), TailwindCSS, ShadCN, NextUI
 - Backend: Python (Flask), JavaScript (Node.js)
 - Platforms: Azure, Vercel, Apache NiFi 
