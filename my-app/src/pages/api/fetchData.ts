@@ -35,3 +35,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Failed to execute data fetch' });
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1gb' // Increase the size limit to 1 gigabyte, or use 'false' to disable the limit entirely
+    }
+  }
+};
