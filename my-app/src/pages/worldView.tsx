@@ -187,10 +187,6 @@ export default function WorldView() {
   const [serviceName, setServiceName] = useState('');
 
   useEffect(() => {
-    console.log("dataByCountry:", dataByCountry)
-  }, [dataByCountry])
-
-  useEffect(() => {
     const fetchAllStatuses = async () => {
       try {
         const endpoint = `get-service-status-details/${sid}`; 
@@ -282,10 +278,16 @@ export default function WorldView() {
                     <ModalBody>
                       <div className="grid grid-cols-3">
                         {Object.values(dataByCountry).map((dataByCountryElement, index) => 
-                          <div id='country-card' className="col-span-1 w-[10rem] bg-white pl-6 pt-2 pb-6 shadow-md rounded-xl" key={index}>
-                            <h3 id='country-name' className="text-slate-700 text-lg font-medium tracking-tight">{dataByCountryElement[0]["country"]}</h3>
+                          <div id='country-card' className="col-span-1 w-[14rem] bg-white pl-6 pt-2 pb-6 shadow-md rounded-xl" key={index}>
+                            <h3 id='country-name' className="text-slate-700 text-xl font-medium tracking-normal">{dataByCountryElement[0]["country"]}</h3>
                             {
-                              dataByCountryElement.map(())
+                              dataByCountryElement.map((vm, index) => {
+                                return (
+                                  <div key={index}>
+                                    <h4 id='machine-name'>{vm.mName}</h4>
+                                    <p>{vm.status}</p>
+                                  </div>
+                                )})
                             }
                           </div>
                         )}
