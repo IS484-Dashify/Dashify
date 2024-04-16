@@ -196,6 +196,7 @@ export default function InfrastructureView() {
         const port = '5004'
         const ipAddress = '4.231.173.235'; 
         const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
+        console.log(response)
         if (response.ok) {
           const data = await response.json();
           setFetchedData(data.reverse());
