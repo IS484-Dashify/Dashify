@@ -16,7 +16,7 @@ import { AiOutlineBars, AiOutlineHome, AiOutlineCaretUp, AiOutlineCaretDown } fr
 import { FaCircle } from "react-icons/fa";
 import { GiWorld } from "react-icons/gi";
 import { IoArrowBackCircleOutline } from "react-icons/io5";
-import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
+import { MdArrowDropDown, MdArrowDropUp, MdOutlineArrowForwardIos } from 'react-icons/md';
 import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
 
 type Status = "Critical" | "Warning" | "Normal";
@@ -274,16 +274,16 @@ export default function WorldView() {
                 isOpen ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />
               }
             </Button>
-            <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="4xl">
               <ModalContent className="w-full bg-slate-100">
                 {(onClose) => (
                   <>
                     <ModalHeader className="flex flex-col text-4xl font-bold text-pri-500 pb-1">Worldview Overview</ModalHeader>
                     <ModalBody>
-                      <div className="grid grid-cols-3">
+                      <div className="grid grid-cols-3 gap-2">
                         {Object.values(dataByCountry).map((dataByCountryElement, index) => 
                           <div id='country-card' key={index}
-                            className={`col-span-1 w-[14rem] bg-white px-6 pt-2 pb-6 shadow-sm rounded-2xl border-t-[6px] h-fit ${dataByCountryElement[0].status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                            className={`col-span-1 min-w-[17rem] aspect-video bg-white px-6 pt-2 pb-6 shadow-sm rounded-2xl border-t-[6px] h-fit ${dataByCountryElement[0].status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
                           >
                             <div className="flex items-center">
                               <h3 id='country-name' className="text-slate-700 text-xl font-medium tracking-normal">{dataByCountryElement[0]["country"]}</h3>
@@ -292,10 +292,31 @@ export default function WorldView() {
                               {
                                 dataByCountryElement.map((vm, index) => {
                                   return (
-                                    <div key={index} className={`bg-white pl-6 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-md rounded-md ${vm.status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}>
-                                      <div className="flex items-center">
-                                        <h4 id='machine-name' className="font-medium">{vm.mName}</h4>
-                                      </div>
+                                    <div key={index}
+                                      className={`bg-white pl-4 pr-2 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-md rounded-md ${vm.status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                                    > 
+                                      <h4 id='machine-name' className="text-lg font-medium">{vm.mName}</h4>
+                                      {
+                                        vm.components.map((component, index) => {
+                                          return (
+                                            <button 
+                                            key={index} 
+                                            id="component-item" 
+                                            className="w-full flex items-center justify-between mt-1 hover:translate-x-2 hover:underline hover:text-pri-500 transition-all duration-100 ease-in-out" 
+                                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                              e.preventDefault();
+                                              router.push(`/infraView?sid=${sid}&cid=${component.cid}`);
+                                            }}
+                                          >
+                                              <p className="flex items-center text-lg tracking-tight">{component.cName}<FaCircle size={16} className={`pl-1 ${statusColors[component.cStatus]}`} /></p>
+                                              <MdOutlineArrowForwardIos
+                                                size={16}
+                                                className="text-slate-700/30 h-full"
+                                              />
+                                            </button>
+                                          )
+                                        })
+                                      }
                                     </div>
                                   )})
                               }
