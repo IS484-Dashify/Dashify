@@ -176,7 +176,7 @@ export default function ServiceView() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <button
-                    className="h-[2.5rem] px-4 bg-pri-500 rounded-[4px] text-[#F2F3F4] border-1 border-pri-300 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
+                    className="h-[2.5rem] px-4 bg-pri-500 rounded-[4px] text-[#F2F3F4] border-1 border-pri-300 shadow-md hover:border-pri-500 hover:bg-pri-500 hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring"
                     onClick={() => {
                       handleReset();
                     }}
@@ -190,7 +190,7 @@ export default function ServiceView() {
               <div className="grid grid-cols-4 gap-7">
                 {renderedServices.map(({ sid, name, status }: { sid: string, name: string, status: string }, index: number) => (
                   <div
-                    className={`py-4 px-6 cursor-pointer z-0 border-l-4 rounded-lg bg-white shadow-lg shadow-transparent hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring ${
+                    className={`py-4 px-6 cursor-pointer z-0 border-l-4 rounded-lg bg-white shadow-md hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring ${
                       status === "Critical"
                         ? "border-reddish-200"
                         : status === "Normal"
