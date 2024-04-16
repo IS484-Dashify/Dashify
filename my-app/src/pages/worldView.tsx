@@ -278,24 +278,23 @@ export default function WorldView() {
               <ModalContent className="w-full bg-slate-100">
                 {(onClose) => (
                   <>
-                    <ModalHeader className="flex flex-col gap-1 text-slate-700 font-medium tracking-tighter">Worldview Overview</ModalHeader>
+                    <ModalHeader className="flex flex-col text-4xl font-bold text-pri-500 pb-1">Worldview Overview</ModalHeader>
                     <ModalBody>
-                      <div className="grid grid-cols-3 min-h-[20rem]">
+                      <div className="grid grid-cols-3">
                         {Object.values(dataByCountry).map((dataByCountryElement, index) => 
-                          <div id='country-card' className="col-span-1 w-[14rem] bg-slate-200 px-6 pt-2 pb-6 shadow-md rounded-xl" key={index}>
+                          <div id='country-card' key={index}
+                            className={`col-span-1 w-[14rem] bg-white px-6 pt-2 pb-6 shadow-sm rounded-2xl border-t-[6px] h-fit ${dataByCountryElement[0].status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                          >
                             <div className="flex items-center">
                               <h3 id='country-name' className="text-slate-700 text-xl font-medium tracking-normal">{dataByCountryElement[0]["country"]}</h3>
-                              <FaCircle size={20} className={`pl-1 ${statusColors[dataByCountryElement[0].status]}`} />
                             </div>
-
-                            <div className="grid grid-cols-1 gap-2 mt-1">
+                            <div className="grid grid-cols-1 gap-3 mt-2">
                               {
                                 dataByCountryElement.map((vm, index) => {
                                   return (
-                                    <div key={index} className="bg-white pl-6 py-2 shadow-md rounded-lg">
+                                    <div key={index} className={`bg-white pl-6 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-md rounded-md ${vm.status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}>
                                       <div className="flex items-center">
                                         <h4 id='machine-name' className="font-medium">{vm.mName}</h4>
-                                        <FaCircle size={20} className={`pl-2 ${statusColors[vm.status]}`} />
                                       </div>
                                     </div>
                                   )})
