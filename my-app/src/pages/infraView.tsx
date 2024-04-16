@@ -200,7 +200,7 @@ export default function InfrastructureView() {
     // retrieve data from results.py and store in fetchedData
     try {
       if (cid != null) {
-        const endpoint = `get-result/${cid}/129600`; // pull last 90 days worth of data
+        const endpoint = `get-result/${cid}/64800`; // pull last 90 days worth of data
         const port = "5004";
         const ipAddress = "4.231.173.235";
         const response = await fetch(
