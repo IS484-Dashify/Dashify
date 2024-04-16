@@ -1,18 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSession } from "next-auth/react";
-import { AiOutlineBars, AiOutlineHome } from 'react-icons/ai';
-import { FaCircle } from "react-icons/fa";
-import { GiWorld } from "react-icons/gi";
-import { IoArrowBackCircleOutline } from "react-icons/io5";
-import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
-import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
+
+import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure} from "@nextui-org/react";
+
 import { useRouter } from 'next/router';
 import Link from "next/link";
+
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps"
 import Map from "../../public/map.json"
 import { hasFlag, countries } from 'country-flag-icons'
 import "country-flag-icons/3x2/flags.css";
 import Sidebar from "../components/navbar";
+
+import { AiOutlineBars, AiOutlineHome, AiOutlineCaretUp, AiOutlineCaretDown } from 'react-icons/ai';
+import { FaCircle } from "react-icons/fa";
+import { GiWorld } from "react-icons/gi";
+import { IoArrowBackCircleOutline } from "react-icons/io5";
+import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
+import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
 
 type Status = "Critical" | "Warning" | "Normal";
 interface GroupedData {
@@ -49,7 +54,6 @@ function getReasonsAndDatesByCid(data:any[], cid:number | string) {
     .filter(item => item.cid === cid)
     .map(item => ({ reason: item.reason, date: item.datetime }));
 }
-
 
 const tooltipContent = (countryName: string, iso: string, vms: Vm[]) => {
   const status_counts = {"Normal": 0, "Critical": 0, "Warning": 0};
@@ -157,6 +161,7 @@ export default function WorldView() {
   const { data: session } = useSession(); // eslint-disable-next-line react-hooks/exhaustive-deps
   const router = useRouter();
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
   useEffect(() => {
     if (!session) {
@@ -173,7 +178,6 @@ export default function WorldView() {
     }
   }, [shouldRedirect, router]);
 
-  
   const [currentPage, setCurrentPage] = React.useState("world");
   const sid = router.query.sid;
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -181,6 +185,10 @@ export default function WorldView() {
   const [apiData, setApiData] = useState<Vm[]>() ;
   const [dataByCountry, setDataByCountry] = useState<GroupedData>({});
   const [serviceName, setServiceName] = useState('');
+
+  useEffect(() => {
+    console.log("dataByCountry:", dataByCountry)
+  }, [dataByCountry])
 
   useEffect(() => {
     const fetchAllStatuses = async () => {
@@ -258,38 +266,44 @@ export default function WorldView() {
     return location;
   }
 
-  // const [alerts, setAlerts] = useState<Notification[]>([]);
-  // const fetchAllNotification = async () => {
-  //   try {
-  //     const endpoint = 'get-all-notifications'; 
-  //     const port = '5008';
-  //     const ipAddress = '4.231.173.235'; 
-  //     const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
-      
-  //     if (response.ok) {
-  //       const data: Notification[] = await response.json();
-  //       const sortedAlerts = data.filter(notification => 
-  //         ['Critical', 'Warning', 'Normal'].includes(notification.status)
-  //       )
-  //       setAlerts(sortedAlerts);
-  //     } else {
-  //       throw new Error("Failed to perform server action");
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchAllNotification();
-  // }, []);
-
   if(session && apiData){
     return (
       <main>
         <div className="h-screen min-h-full overflow-hidden flex flex-row">
           <Sidebar/>
           <div className="w-full px-14 py-6 ml-16 h-full">
+            <div>
+            <Button onPress={onOpen} className="text-slate-700 bg-white hover:text-pri-500 hover:bg-slate-200 rounded-lg shadow-md transition-all duration-300 ease-soft"><AiOutlineCaretUp /></Button>
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
+              <ModalContent className="w-full bg-slate-100">
+                {(onClose) => (
+                  <>
+                    <ModalHeader className="flex flex-col gap-1 text-slate-700 font-medium tracking-tighter">Country-Component Overview</ModalHeader>
+                    <ModalBody>
+                      <div className="grid grid-cols-3">
+                        {Object.values(dataByCountry).map((dataByCountryElement, index) => 
+                          <div id='country-card' className="col-span-1 w-[10rem] bg-white pl-6 pt-2 pb-6 shadow-md rounded-xl" key={index}>
+                            <h3 id='country-name' className="text-slate-700 text-lg font-medium tracking-tight">{dataByCountryElement[0]["country"]}</h3>
+                            {
+                              dataByCountryElement.map(())
+                            }
+                          </div>
+                        )}
+                      </div>
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button color="danger" variant="light" onPress={onClose}>
+                        Close
+                      </Button>
+                      <Button color="primary" onPress={onClose}>
+                        Action
+                      </Button>
+                    </ModalFooter>
+                  </>
+                )}
+              </ModalContent>
+            </Modal>
+            </div>
             <div id='top-menu' className="mb-4">
               <Breadcrumbs 
                 size="lg" 
@@ -335,7 +349,6 @@ export default function WorldView() {
                     }
                   </Geographies>
                   {Object.values(dataByCountry).map((dataByCountryElement) =>
-                    // TODO:  For each marker, pass in a list of VMs + their components
                     <Marker
                       key={convertLocationToList(dataByCountryElement[0]['country'])}
                       coordinates={[convertLocationToList(dataByCountryElement[0]['location'])[0], convertLocationToList(dataByCountryElement[0]['location'])[1]]}
