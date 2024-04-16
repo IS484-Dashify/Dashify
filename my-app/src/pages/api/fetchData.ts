@@ -38,8 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '1gb' // Increase the size limit to 1 gigabyte, or use 'false' to disable the limit entirely
-    }
+    responseLimit: false
   }
 };
