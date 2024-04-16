@@ -269,7 +269,11 @@ export default function WorldView() {
           <Sidebar/>
           <div className="w-full px-14 py-6 ml-16 h-full">
             <div>
-            <Button onPress={onOpen} className="text-slate-700 bg-white hover:text-pri-500 hover:bg-slate-200 rounded-lg shadow-md transition-all duration-300 ease-soft"><AiOutlineCaretUp /></Button>
+            <Button onPress={onOpen} className="w-[20vw] h-[3vh] text-pri-500 bg-white/30 border border-slate-300 hover:text-white hover:bg-pri-500 hover:-translate-y-1 rounded-full shadow-md transition-all duration-300 ease-soft">
+              {
+                isOpen ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />
+              }
+            </Button>
             <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
               <ModalContent className="w-full bg-slate-100">
                 {(onClose) => (
