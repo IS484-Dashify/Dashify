@@ -268,76 +268,6 @@ export default function WorldView() {
         <div className="h-screen min-h-full overflow-hidden flex flex-row">
           <Sidebar/>
           <div className="w-full px-14 py-6 ml-16 h-full">
-            <div>
-            <Button onPress={onOpen} className="w-[20vw] h-[3vh] text-pri-500 bg-white/30 border border-slate-300 hover:text-white hover:bg-pri-500 hover:-translate-y-1 rounded-full shadow-md transition-all duration-300 ease-soft">
-              {
-                isOpen ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />
-              }
-            </Button>
-            <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="4xl">
-              <ModalContent className="w-full bg-slate-100">
-                {(onClose) => (
-                  <>
-                    <ModalHeader className="flex flex-col text-4xl font-bold text-pri-500 pb-1">Worldview Overview</ModalHeader>
-                    <ModalBody>
-                      <div className="grid grid-cols-3 gap-2">
-                        {Object.values(dataByCountry).map((dataByCountryElement, index) => 
-                          <div id='country-card' key={index}
-                            className={`col-span-1 min-w-[17rem] aspect-video bg-white px-6 pt-2 pb-6 shadow-sm rounded-2xl border-t-[6px] h-fit ${dataByCountryElement[0].status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
-                          >
-                            <div className="flex items-center">
-                              <h3 id='country-name' className="text-slate-700 text-xl font-medium tracking-normal">{dataByCountryElement[0]["country"]}</h3>
-                            </div>
-                            <div className="grid grid-cols-1 gap-3 mt-2">
-                              {
-                                dataByCountryElement.map((vm, index) => {
-                                  return (
-                                    <div key={index}
-                                      className={`bg-white pl-4 pr-2 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-md rounded-md ${vm.status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
-                                    > 
-                                      <h4 id='machine-name' className="text-lg font-medium">{vm.mName}</h4>
-                                      {
-                                        vm.components.map((component, index) => {
-                                          return (
-                                            <button 
-                                            key={index} 
-                                            id="component-item" 
-                                            className="w-full flex items-center justify-between mt-1 hover:translate-x-2 hover:underline hover:text-pri-500 transition-all duration-100 ease-in-out" 
-                                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                                              e.preventDefault();
-                                              router.push(`/infraView?sid=${sid}&cid=${component.cid}`);
-                                            }}
-                                          >
-                                              <p className="flex items-center text-lg tracking-tight">{component.cName}<FaCircle size={16} className={`pl-1 ${statusColors[component.cStatus]}`} /></p>
-                                              <MdOutlineArrowForwardIos
-                                                size={16}
-                                                className="text-slate-700/30 h-full"
-                                              />
-                                            </button>
-                                          )
-                                        })
-                                      }
-                                    </div>
-                                  )})
-                              }
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </ModalBody>
-                    <ModalFooter>
-                      <Button color="danger" variant="light" onPress={onClose}>
-                        Close
-                      </Button>
-                      {/* <Button color="primary" onPress={onClose}>
-                        Action
-                      </Button> */}
-                    </ModalFooter>
-                  </>
-                )}
-              </ModalContent>
-            </Modal>
-            </div>
             <div id='top-menu' className="mb-4">
               <Breadcrumbs 
                 size="lg" 
@@ -359,8 +289,8 @@ export default function WorldView() {
               >
                 <ComposableMap
                   projectionConfig={{ scale: 130 }}
-                  width={800}
-                  height = {370}
+                  width={850}
+                  height = {340}
                   style={{ width: "100%", height: "auto"}}
                 >
                   <Geographies 
@@ -420,6 +350,77 @@ export default function WorldView() {
                     </Marker>
                   )}
                 </ComposableMap>
+                <div className='flex align-middle justify-center'>
+                  <Button onPress={onOpen} className="w-[20vw] h-[3vh] text-pri-500 bg-white/30 border border-slate-300 hover:text-white hover:bg-pri-500 hover:-translate-y-1 rounded-full shadow-md transition-all duration-300 ease-soft">
+                    {
+                      isOpen ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />
+                    }
+                  </Button>
+                  <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="4xl">
+                    <ModalContent className="w-full p-2 bg-slate-100">
+                      {(onClose) => (
+                        <>
+                          <ModalHeader className="flex flex-col text-4xl font-bold text-pri-500 pb-3">Worldview Overview</ModalHeader>
+                          <ModalBody>
+                            <div className="grid grid-cols-3 gap-2">
+                              {Object.values(dataByCountry).map((dataByCountryElement, index) => 
+                                <div id='country-card' key={index}
+                                  className={`col-span-1 min-w-[17rem] aspect-video bg-white px-6 pt-2 pb-6 shadow-sm rounded-2xl border-t-[6px] h-fit ${dataByCountryElement[0].status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                                >
+                                  <div className="flex items-center">
+                                    <h3 id='country-name' className="text-slate-700 text-xl font-medium tracking-normal mr-3">{dataByCountryElement[0]["country"]}</h3> 
+                                    <span className={"flag:" + dataByCountryElement[0]["iso"]} />
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-3 mt-2">
+                                    {
+                                      dataByCountryElement.map((vm, index) => {
+                                        return (
+                                          <div key={index}
+                                            className={`bg-white pl-4 pr-2 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-lg rounded-md ${vm.status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                                          > 
+                                            <h4 id='machine-name' className="text-lg font-medium">{vm.mName}</h4>
+                                            {
+                                              vm.components.map((component, index) => {
+                                                return (
+                                                  <button 
+                                                  key={index} 
+                                                  id="component-item" 
+                                                  className="w-full flex items-center justify-between mt-1 hover:translate-x-2 hover:underline hover:text-pri-500 transition-all duration-100 ease-in-out" 
+                                                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                                    e.preventDefault();
+                                                    router.push(`/infraView?sid=${sid}&cid=${component.cid}`);
+                                                  }}
+                                                >
+                                                    <p className="flex items-center text-lg tracking-tight">{component.cName}<FaCircle size={16} className={`pl-1 ${statusColors[component.cStatus]}`} /></p>
+                                                    <MdOutlineArrowForwardIos
+                                                      size={16}
+                                                      className="text-slate-700/30 h-full"
+                                                    />
+                                                  </button>
+                                                )
+                                              })
+                                            }
+                                          </div>
+                                        )})
+                                    }
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </ModalBody>
+                          <ModalFooter>
+                            <Button color="danger" variant="light" onPress={onClose}>
+                              Close
+                            </Button>
+                            {/* <Button color="primary" onPress={onClose}>
+                              Action
+                            </Button> */}
+                          </ModalFooter>
+                        </>
+                      )}
+                    </ModalContent>
+                  </Modal>
+                </div>
               </div>
               <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
                 <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} sid={sid}/>
