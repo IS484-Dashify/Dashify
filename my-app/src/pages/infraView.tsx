@@ -306,11 +306,11 @@ export default function InfrastructureView() {
         // Determine metrics status
         const metricsStatus = determineMetricStatus(
           {
-            "CPU Usage": fetchedData["CPU Usage"][0],
-            "Disk Usage": fetchedData["Disk Usage"][0],
-            "Memory Usage": fetchedData["Memory Usage"][0],
+            "CPU Usage": fetchedData["CPU Usage"][fetchedData["CPU Usage"].length - 1],
+            "Disk Usage": fetchedData["Disk Usage"][fetchedData["Disk Usage"].length - 1],
+            "Memory Usage": fetchedData["Memory Usage"][fetchedData["Memory Usage"].length - 1],
           },
-          fetchedData["Traffic Metrics"][0]
+          fetchedData["Traffic Metrics"][fetchedData["Traffic Metrics"].length - 1]
         );
 
         setMetricsStatus(metricsStatus);
@@ -391,6 +391,7 @@ export default function InfrastructureView() {
     },
     trafficData: TrafficMetric
   ) {
+    console.log("Determine Metric Status")
     let metricsStatus: MetricStatus = {
       "CPU Usage": "Normal",
       "Disk Usage": "Normal",
@@ -407,7 +408,7 @@ export default function InfrastructureView() {
       }
       const latestDataPoint =
         percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
-      // console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
+      console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
       const currentMetricValue = (latestDataPoint as any)[variable];
       if (currentMetricValue > thresholds["critical"]) {
         metricsStatus[variable] = "Critical";
