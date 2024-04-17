@@ -265,7 +265,7 @@ export default function WorldView() {
   if(session && apiData){
     return (
       <main>
-        <div className="h-screen min-h-full overflow-hidden flex flex-row">inset-x-0 bottom-0
+        <div className="h-screen min-h-full overflow-hidden flex flex-row">
           <Sidebar/>
           <div className="w-full px-14 py-6 ml-16 h-full">
             <div id='top-menu' className="mb-4">
