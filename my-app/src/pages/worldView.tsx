@@ -265,7 +265,7 @@ export default function WorldView() {
   if(session && apiData){
     return (
       <main>
-        <div className="h-screen min-h-full overflow-hidden flex flex-row">
+        <div className="h-screen min-h-full overflow-hidden flex flex-row">inset-x-0 bottom-0
           <Sidebar/>
           <div className="w-full px-14 py-6 ml-16 h-full">
             <div id='top-menu' className="mb-4">
@@ -283,7 +283,7 @@ export default function WorldView() {
               </Breadcrumbs>
               <h1 className='text-4xl font-bold text-pri-500 mt-1 pt-2'>{serviceName}</h1>
             </div>
-            <div className="flex h-full">
+            <div className="flex h-full relative">
               <div 
                 className={`transition-all duration-150 ease-in-out w-full mx-auto my-auto -translate-y-10 ${isPopupOpen ? 'scale-125 -translate-x-7' : 'scale-100 -translate-x-10'}`}
               >
@@ -350,8 +350,8 @@ export default function WorldView() {
                     </Marker>
                   )}
                 </ComposableMap>
-                <div className='flex align-middle justify-center'>
-                  <Button onPress={onOpen} className="w-[20vw] h-[3vh] text-pri-500 bg-white/30 border border-slate-300 hover:text-white hover:bg-pri-500 hover:-translate-y-1 rounded-full shadow-md transition-all duration-300 ease-soft">
+                <div className='flex align-middle justify-center absolute inset-x-0 bottom-0'>
+                  <Button onPress={onOpen} onClick={()=>{setIsPopupOpen(false)}} className="w-[40vw] h-[3vh] text-pri-500 bg-transparent border border-slate-300 hover:text-white hover:bg-pri-500 hover:-translate-y-1 rounded-full shadow-md transition-all duration-300 ease-soft">
                     {
                       isOpen ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />
                     }
@@ -369,9 +369,9 @@ export default function WorldView() {
                                 >
                                   <div className="flex items-center">
                                     <h3 id='country-name' className="text-slate-700 text-xl font-medium tracking-normal mr-3">{dataByCountryElement[0]["country"]}</h3> 
-                                    <span className={"flag:" + dataByCountryElement[0]["iso"]} />
+                                    <span className={"border border-slate-400 rounded-sm text-2xl flag:" + dataByCountryElement[0]["iso"]} />
                                   </div>
-                                  <div className="grid grid-cols-1 gap-3 mt-2">
+                                  <div className="grid grid-cols-1 gap-4 mt-3">
                                     {
                                       dataByCountryElement.map((vm, index) => {
                                         return (
@@ -409,7 +409,7 @@ export default function WorldView() {
                             </div>
                           </ModalBody>
                           <ModalFooter>
-                            <Button color="danger" variant="light" onPress={onClose}>
+                            <Button className="px-4 py-2 bg-pri-500 text-white font-medium rounded-lg border border-pri-500 hover:bg-transparent hover:text-pri-500 transition-all duration-150 ease-in-out" onPress={onClose}>
                               Close
                             </Button>
                             {/* <Button color="primary" onPress={onClose}>
