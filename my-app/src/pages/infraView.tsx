@@ -184,7 +184,7 @@ export default function InfrastructureView() {
     trafficOutWarning: 0,
     trafficOutCritical: 0,
   });
-  const [metrics, setMetrics] = useState<Metric>({});
+  const [metrics, setMetrics] = useState<Metric>({"Disk Usage:": [], "CPU Usage": [], "Memory Usage": []});
   const [selectedDateRange, setSelectedDateRange] = useState<string>("15"); // 129600 => 90 days
   useEffect(() => {
     console.log("Metrics:", metrics);
@@ -306,11 +306,11 @@ export default function InfrastructureView() {
         // Determine metrics status
         const metricsStatus = determineMetricStatus(
           {
-            "CPU Usage": fetchedData["CPU Usage"][0],
-            "Disk Usage": fetchedData["Disk Usage"][0],
-            "Memory Usage": fetchedData["Memory Usage"][0],
+            "CPU Usage": fetchedData["CPU Usage"][fetchedData["CPU Usage"].length - 1],
+            "Disk Usage": fetchedData["Disk Usage"][fetchedData["Disk Usage"].length - 1],
+            "Memory Usage": fetchedData["Memory Usage"][fetchedData["Memory Usage"].length - 1],
           },
-          fetchedData["Traffic Metrics"][0]
+          fetchedData["Traffic Metrics"][fetchedData["Traffic Metrics"].length - 1]
         );
 
         setMetricsStatus(metricsStatus);
@@ -324,7 +324,8 @@ export default function InfrastructureView() {
         }
       } else {
         setSystemStatus(false);
-        setDowntime(fetchedData["System Downtime"] / 1000);
+        console.log("Downtime:", fetchedData["System Downtime"]);
+        setDowntime(fetchedData["System Downtime"]);
         // set overall status
         setOverallStatus("Critical");
       }
@@ -348,7 +349,6 @@ export default function InfrastructureView() {
   ) => {
     return array.find((obj) => obj.Datetime === datetime);
   };
-
 
   function formatDate(dateTimeString: string) {
     const monthNames = [
@@ -391,6 +391,7 @@ export default function InfrastructureView() {
     },
     trafficData: TrafficMetric
   ) {
+    console.log("Determine Metric Status")
     let metricsStatus: MetricStatus = {
       "CPU Usage": "Normal",
       "Disk Usage": "Normal",
@@ -407,7 +408,7 @@ export default function InfrastructureView() {
       }
       const latestDataPoint =
         percentageMetricsData[variable as keyof PercentageMetricsData]; // latestDataPoint is either of type CPUUsage, DiskUsage or MemoryUsage
-      // console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
+      console.log("Variable:", variable, "Current Metric Value:", latestDataPoint, "Thresholds:", thresholds);
       const currentMetricValue = (latestDataPoint as any)[variable];
       if (currentMetricValue > thresholds["critical"]) {
         metricsStatus[variable] = "Critical";

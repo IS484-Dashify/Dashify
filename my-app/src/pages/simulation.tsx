@@ -139,7 +139,7 @@ export default function Simulation() {
             </button>
             <button
               className="h-[2.5rem] px-4 rounded-[4px] text-pri-500 border-1 border-pri-500 shadow-md shadow-transparent hover:border-pri-500 hover:bg-pri-500 hover:text-white hover:shadow-slate-500/45 transition-all duration-300 ease-soft-spring mr-6"
-              onClick={() => openInNewTab('http://4.231.173.235:5008/run-script?script_path=analysis/peak_usage.py')}
+              onClick={() => openInNewTab('http://4.231.173.235:5008/run-script?script_path=peak_usage.py')}
             >
               Generate Insights
             </button>
