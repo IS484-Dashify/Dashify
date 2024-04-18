@@ -376,21 +376,21 @@ export default function WorldView() {
                                       dataByCountryElement.map((vm, index) => {
                                         return (
                                           <div key={index}
-                                            className={`bg-white pl-4 pr-2 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-lg rounded-md ${vm.status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                                            className={`bg-white pl-4 pr-2 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-lg rounded-md ${vm.status == "Critical" ? "border-reddish-200" : vm.status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
                                           > 
                                             <h4 id='machine-name' className="text-lg font-medium">{vm.mName}</h4>
                                             {
                                               vm.components.map((component, index) => {
                                                 return (
                                                   <button 
-                                                  key={index} 
-                                                  id="component-item" 
-                                                  className="w-full flex items-center justify-between mt-1 hover:translate-x-2 hover:underline hover:text-pri-500 transition-all duration-100 ease-in-out" 
-                                                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                                                    e.preventDefault();
-                                                    router.push(`/infraView?sid=${sid}&cid=${component.cid}`);
-                                                  }}
-                                                >
+                                                    key={index} 
+                                                    id="component-item" 
+                                                    className="w-full flex items-center justify-between mt-1 hover:translate-x-2 hover:underline hover:text-pri-500 transition-all duration-100 ease-in-out" 
+                                                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                                      e.preventDefault();
+                                                      router.push(`/infraView?sid=${sid}&cid=${component.cid}`);
+                                                    }}
+                                                  >
                                                     <p className="flex items-center text-lg tracking-tight">{component.cName}<FaCircle size={16} className={`pl-1 ${statusColors[component.cStatus]}`} /></p>
                                                     <MdOutlineArrowForwardIos
                                                       size={16}
