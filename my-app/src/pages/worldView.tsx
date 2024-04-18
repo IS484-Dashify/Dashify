@@ -1,18 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSession } from "next-auth/react";
-import { AiOutlineBars, AiOutlineHome } from 'react-icons/ai';
-import { FaCircle } from "react-icons/fa";
-import { GiWorld } from "react-icons/gi";
-import { IoArrowBackCircleOutline } from "react-icons/io5";
-import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
-import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
+
+import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure} from "@nextui-org/react";
+
 import { useRouter } from 'next/router';
 import Link from "next/link";
+
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps"
 import Map from "../../public/map.json"
 import { hasFlag, countries } from 'country-flag-icons'
 import "country-flag-icons/3x2/flags.css";
 import Sidebar from "../components/navbar";
+
+import { AiOutlineBars, AiOutlineHome, AiOutlineCaretUp, AiOutlineCaretDown } from 'react-icons/ai';
+import { FaCircle } from "react-icons/fa";
+import { GiWorld } from "react-icons/gi";
+import { IoArrowBackCircleOutline } from "react-icons/io5";
+import { MdArrowDropDown, MdArrowDropUp, MdOutlineArrowForwardIos } from 'react-icons/md';
+import {Breadcrumbs, BreadcrumbItem, Tooltip} from "@nextui-org/react";
 
 type Status = "Critical" | "Warning" | "Normal";
 interface GroupedData {
@@ -49,7 +54,6 @@ function getReasonsAndDatesByCid(data:any[], cid:number | string) {
     .filter(item => item.cid === cid)
     .map(item => ({ reason: item.reason, date: item.datetime }));
 }
-
 
 const tooltipContent = (countryName: string, iso: string, vms: Vm[]) => {
   const status_counts = {"Normal": 0, "Critical": 0, "Warning": 0};
@@ -157,6 +161,7 @@ export default function WorldView() {
   const { data: session } = useSession(); // eslint-disable-next-line react-hooks/exhaustive-deps
   const router = useRouter();
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
   useEffect(() => {
     if (!session) {
@@ -173,7 +178,6 @@ export default function WorldView() {
     }
   }, [shouldRedirect, router]);
 
-  
   const [currentPage, setCurrentPage] = React.useState("world");
   const sid = router.query.sid;
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -258,32 +262,6 @@ export default function WorldView() {
     return location;
   }
 
-  // const [alerts, setAlerts] = useState<Notification[]>([]);
-  // const fetchAllNotification = async () => {
-  //   try {
-  //     const endpoint = 'get-all-notifications'; 
-  //     const port = '5008';
-  //     const ipAddress = '4.231.173.235'; 
-  //     const response = await fetch(`/api/fetchData?endpoint=${endpoint}&port=${port}&ipAddress=${ipAddress}`);
-      
-  //     if (response.ok) {
-  //       const data: Notification[] = await response.json();
-  //       const sortedAlerts = data.filter(notification => 
-  //         ['Critical', 'Warning', 'Normal'].includes(notification.status)
-  //       )
-  //       setAlerts(sortedAlerts);
-  //     } else {
-  //       throw new Error("Failed to perform server action");
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchAllNotification();
-  // }, []);
-
   if(session && apiData){
     return (
       <main>
@@ -305,14 +283,14 @@ export default function WorldView() {
               </Breadcrumbs>
               <h1 className='text-4xl font-bold text-pri-500 mt-1 pt-2'>{serviceName}</h1>
             </div>
-            <div className="flex h-full">
+            <div className="flex h-full relative">
               <div 
                 className={`transition-all duration-150 ease-in-out w-full mx-auto my-auto -translate-y-10 ${isPopupOpen ? 'scale-125 -translate-x-7' : 'scale-100 -translate-x-10'}`}
               >
                 <ComposableMap
                   projectionConfig={{ scale: 130 }}
-                  width={800}
-                  height = {370}
+                  width={850}
+                  height = {340}
                   style={{ width: "100%", height: "auto"}}
                 >
                   <Geographies 
@@ -334,10 +312,9 @@ export default function WorldView() {
                       ))
                     }
                   </Geographies>
-                  {Object.values(dataByCountry).map((dataByCountryElement) =>
-                    // TODO:  For each marker, pass in a list of VMs + their components
+                  {Object.values(dataByCountry).map((dataByCountryElement, index) =>
                     <Marker
-                      key={convertLocationToList(dataByCountryElement[0]['country'])}
+                      key={index}
                       coordinates={[convertLocationToList(dataByCountryElement[0]['location'])[0], convertLocationToList(dataByCountryElement[0]['location'])[1]]}
                       className="map-marker cursor-pointer"
                       onClick={() => handleMarkerClick(dataByCountryElement)}
@@ -373,6 +350,77 @@ export default function WorldView() {
                     </Marker>
                   )}
                 </ComposableMap>
+                <div className='flex align-middle justify-center absolute inset-x-0 bottom-0'>
+                  <Button onPress={onOpen} onClick={()=>{setIsPopupOpen(false)}} className="w-[40vw] h-[3vh] text-pri-500 bg-transparent border border-slate-300 hover:text-white hover:bg-pri-500 hover:-translate-y-1 rounded-full shadow-md transition-all duration-300 ease-soft">
+                    {
+                      isOpen ? <AiOutlineCaretDown /> : <AiOutlineCaretUp />
+                    }
+                  </Button>
+                  <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="4xl">
+                    <ModalContent className="w-full p-2 bg-slate-100">
+                      {(onClose) => (
+                        <>
+                          <ModalHeader className="flex flex-col text-4xl font-bold text-pri-500 pb-3">Worldview Overview</ModalHeader>
+                          <ModalBody>
+                            <div className="grid grid-cols-3 gap-2">
+                              {Object.values(dataByCountry).map((dataByCountryElement, index) => 
+                                <div id='country-card' key={index}
+                                  className={`col-span-1 min-w-[17rem] aspect-video bg-white px-6 pt-2 pb-6 shadow-sm rounded-2xl border-t-[6px] h-fit ${dataByCountryElement[0].status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                                >
+                                  <div className="flex items-center">
+                                    <h3 id='country-name' className="text-slate-700 text-xl font-medium tracking-normal mr-3">{dataByCountryElement[0]["country"]}</h3> 
+                                    <span className={"border border-slate-400 rounded-sm text-2xl flag:" + dataByCountryElement[0]["iso"]} />
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-4 mt-3">
+                                    {
+                                      dataByCountryElement.map((vm, index) => {
+                                        return (
+                                          <div key={index}
+                                            className={`bg-white pl-4 pr-2 py-2 border-[1px] border-t-slate-200 border-r-slate-200 border-b-slate-200 border-l-4 shadow-lg rounded-md ${vm.status == "Critical" ? "border-reddish-200" : dataByCountryElement[0].status == "Warning" ? "border-amberish-200" : "border-greenish-200"}`}
+                                          > 
+                                            <h4 id='machine-name' className="text-lg font-medium">{vm.mName}</h4>
+                                            {
+                                              vm.components.map((component, index) => {
+                                                return (
+                                                  <button 
+                                                  key={index} 
+                                                  id="component-item" 
+                                                  className="w-full flex items-center justify-between mt-1 hover:translate-x-2 hover:underline hover:text-pri-500 transition-all duration-100 ease-in-out" 
+                                                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                                    e.preventDefault();
+                                                    router.push(`/infraView?sid=${sid}&cid=${component.cid}`);
+                                                  }}
+                                                >
+                                                    <p className="flex items-center text-lg tracking-tight">{component.cName}<FaCircle size={16} className={`pl-1 ${statusColors[component.cStatus]}`} /></p>
+                                                    <MdOutlineArrowForwardIos
+                                                      size={16}
+                                                      className="text-slate-700/30 h-full"
+                                                    />
+                                                  </button>
+                                                )
+                                              })
+                                            }
+                                          </div>
+                                        )})
+                                    }
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </ModalBody>
+                          <ModalFooter>
+                            <Button className="px-4 py-2 bg-pri-500 text-white font-medium rounded-lg border border-pri-500 hover:bg-transparent hover:text-pri-500 transition-all duration-150 ease-in-out" onPress={onClose}>
+                              Close
+                            </Button>
+                            {/* <Button color="primary" onPress={onClose}>
+                              Action
+                            </Button> */}
+                          </ModalFooter>
+                        </>
+                      )}
+                    </ModalContent>
+                  </Modal>
+                </div>
               </div>
               <div className={`transition-all duration-150 ease-in-out ${isPopupOpen ? "w-2/6 opacity-100" : "w-0 opacity-0"}`}>
                 <RightPopup isOpen={isPopupOpen} setIsOpen={setIsPopupOpen} selectedMarker={selectedMarker} sid={sid}/>
