@@ -639,11 +639,10 @@ export default function InfrastructureView() {
                     <div className="grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-1 gap-4">
                       <div
                         className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                          metricsStatus["CPU Usage"] === "Critical"
-                            ? "border-reddish-200"
-                            : metricsStatus["CPU Usage"] === "Warning"
-                            ? "border-amberish-200"
-                            : "border-greenish-200"
+                          systemStatus == false ? "border-gray-400" :
+                          metricsStatus["CPU Usage"] === "Critical" ? "border-reddish-200"
+                          : metricsStatus["CPU Usage"] === "Warning"? "border-amberish-200"
+                          : "border-greenish-200"
                         }`}
                       >
                         <p className="text-base text-gray-600 font-bold mb-4">
@@ -665,11 +664,10 @@ export default function InfrastructureView() {
                       </div>
                       <div
                         className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                          metricsStatus["Memory Usage"] === "Critical"
-                            ? "border-reddish-200"
-                            : metricsStatus["Memory Usage"] === "Warning"
-                            ? "border-amberish-200"
-                            : "border-greenish-200"
+                          systemStatus == false ? "border-gray-400" :
+                          metricsStatus["Memory Usage"] === "Critical" ? "border-reddish-200"
+                          : metricsStatus["Memory Usage"] === "Warning"? "border-amberish-200"
+                          : "border-greenish-200"
                         }`}
                       >
                         <p className="text-base text-gray-600 font-bold mb-4">
@@ -691,11 +689,10 @@ export default function InfrastructureView() {
                       </div>
                       <div
                         className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                          metricsStatus["Disk Usage"] === "Critical"
-                            ? "border-reddish-200"
-                            : metricsStatus["Disk Usage"] === "Warning"
-                            ? "border-amberish-200"
-                            : "border-greenish-200"
+                          systemStatus == false ? "border-gray-400" :
+                          metricsStatus["Disk Usage"] === "Critical" ? "border-reddish-200"
+                          : metricsStatus["Disk Usage"] === "Warning"? "border-amberish-200"
+                          : "border-greenish-200"
                         }`}
                       >
                         <p className="text-base text-gray-600 font-bold mb-4">
@@ -715,11 +712,10 @@ export default function InfrastructureView() {
                       </div>
                       <div
                         className={`bg-white p-4 rounded-lg shadow border-t-4 ${
-                          metricsStatus["Traffic"] === "Critical"
-                            ? "border-reddish-200"
-                            : metricsStatus["Traffic"] === "Warning"
-                            ? "border-amberish-200"
-                            : "border-greenish-200"
+                          systemStatus == false ? "border-gray-400" :
+                          metricsStatus["Traffic"] === "Critical" ? "border-reddish-200"
+                          : metricsStatus["Traffic"] === "Warning"? "border-amberish-200"
+                          : "border-greenish-200"
                         }`}
                       >
                         <p className="text-base text-gray-600 font-bold mb-4">
