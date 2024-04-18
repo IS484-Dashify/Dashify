@@ -360,7 +360,7 @@ export default function WorldView() {
                     <ModalContent className="w-full p-2 bg-slate-100">
                       {(onClose) => (
                         <>
-                          <ModalHeader className="flex flex-col text-4xl font-bold text-pri-500 pb-3">Worldview Overview</ModalHeader>
+                          <ModalHeader className="flex flex-col text-4xl font-bold text-pri-500 pb-3">Overview</ModalHeader>
                           <ModalBody>
                             <div className="grid grid-cols-3 gap-2">
                               {Object.values(dataByCountry).map((dataByCountryElement, index) => 
