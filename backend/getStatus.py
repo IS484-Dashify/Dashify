@@ -72,10 +72,7 @@ def get_all_service_name_and_status():
 
             for cid in cids:
                 response4 = requests.get(f'http://127.0.0.1:5004/get-result-status/{cid}/{mid}')
-                try:
-                    component_status = response4.json()['status']
-                except:
-                    component_status = 'Normal'
+                component_status = response4.json()['status']
                 statuses.append(component_status)
         
         if 'Critical' in statuses:
