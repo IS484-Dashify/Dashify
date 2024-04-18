@@ -750,7 +750,7 @@ export default function InfrastructureView() {
                       <Terminal height="400px">
                         {/* {terminalLineData} */}
                         <LogViewer
-                          channel={`dashify-logs`}
+                          channel={`dashify-${cid}`}
                           event="logs"
                         />
                         {/* replace dashify-logs with dashify-[cid] where cid is from useParams() */}
